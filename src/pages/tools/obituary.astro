@@ -20,12 +20,12 @@ import Base from '../../layouts/Base.astro';
         <label><span class="lab">돌아가신 분 성함 *</span><input name="name" placeholder="홍길동" /></label>
         <label><span class="lab">관계 (누구의)</span><input name="rel" placeholder="홍지수의 부친" /></label>
         <label><span class="lab">돌아가신 날</span><input type="date" name="date" /></label>
-        <label data-hide="after"><span class="lab">빈소</span><input name="place" placeholder="○○병원 장례식장 3호실" /></label>
-        <label data-hide="after"><span class="lab">발인</span><input name="out" placeholder="10월 29일 오전 7시" /></label>
+        <label data-hide="after family"><span class="lab">빈소</span><input name="place" placeholder="○○병원 장례식장 3호실" /></label>
+        <label data-hide="after family"><span class="lab">발인</span><input name="out" placeholder="10월 29일 오전 7시" /></label>
         <label><span class="lab">장지</span><input name="rest" placeholder="○○추모공원" /></label>
         <label class="wide"><span class="lab">상주</span><input name="chief" placeholder="홍지수, 홍민수" /></label>
       </div>
-      <fieldset class="ob-type" data-hide="after">
+      <fieldset class="ob-type" data-hide="after family">
         <legend>조의금 안내</legend>
         <label class="opt"><input type="radio" name="gift" value="none" checked /> <span>넣지 않음</span></label>
         <label class="opt"><input type="radio" name="gift" value="decline" /> <span>정중히 사양</span></label>
@@ -86,8 +86,9 @@ import Base from '../../layouts/Base.astro';
   function build() {
     const type = radio('type');
     const gift = radio('gift');
-    form.querySelectorAll<HTMLElement>('[data-hide="after"]').forEach((el) => { el.hidden = type === 'after'; });
-    (form.querySelector('[data-account]') as HTMLElement).hidden = !(type !== 'after' && gift === 'account');
+    // 가족장(조문은 마음으로)과 장례 후 알림에는 빈소·발인·조의금 안내를 넣지 않습니다.
+    form.querySelectorAll<HTMLElement>('[data-hide]').forEach((el) => { el.hidden = el.dataset.hide!.split(' ').includes(type); });
+    (form.querySelector('[data-account]') as HTMLElement).hidden = !(type === 'basic' && gift === 'account');
 
     const name = v('name') || '○○○';
     const who = v('rel') ? `${v('rel')} ` : '';
@@ -95,19 +96,19 @@ import Base from '../../layouts/Base.astro';
     const lines: string[] = ['[부고]'];
     if (type === 'after') {
       lines.push(`${who}${name} 님께서 ${when ? when + '에 ' : ''}별세하셨습니다.`);
-      lines.push('장례는 고인의 뜻에 따라 가족끼리 조용히 마쳤습니다.');
+      lines.push('장례는 가족끼리 조용히 치렀습니다.');
       if (v('rest')) lines.push(`장지: ${v('rest')}`);
       if (v('chief')) lines.push(`상주: ${v('chief')}`);
       lines.push('뒤늦게 알려 드려 송구합니다. 그동안 고인께 보내 주신 마음에 깊이 감사드립니다.');
     } else {
       lines.push(`${who}${name} 님께서 ${when ? when + ' ' : ''}별세하셨기에 삼가 알려 드립니다.`);
       if (type === 'family') lines.push('가족과 가까운 분들만 모여 조용히 장례를 치르려 합니다. 조문은 마음으로만 받겠습니다.');
-      if (v('place')) lines.push(`빈소: ${v('place')}`);
-      if (v('out')) lines.push(`발인: ${v('out')}`);
+      if (type === 'basic' && v('place')) lines.push(`빈소: ${v('place')}`);
+      if (type === 'basic' && v('out')) lines.push(`발인: ${v('out')}`);
       if (v('rest')) lines.push(`장지: ${v('rest')}`);
       if (v('chief')) lines.push(`상주: ${v('chief')}`);
-      if (gift === 'decline') lines.push('조의금은 정중히 사양합니다.');
-      if (gift === 'account' && v('account')) lines.push(`마음 전하실 곳: ${v('account')}`);
+      if (type === 'basic' && gift === 'decline') lines.push('조의금은 정중히 사양합니다.');
+      if (type === 'basic' && gift === 'account' && v('account')) lines.push(`마음 전하실 곳: ${v('account')}`);
       lines.push('마음으로 함께해 주시는 모든 분께 감사드립니다.');
     }
     const text = lines.join('\n');
@@ -136,7 +137,14 @@ import Base from '../../layouts/Base.astro';
       if (navigator.share) { await navigator.share({ text }); track('obituary_share'); return; }
       await navigator.clipboard.writeText(text);
       status.textContent = '이 기기에는 공유 기능이 없어 문안을 복사했습니다.';
-    } catch { /* 공유 창을 닫은 경우 */ }
+    } catch (e) {
+      // 공유 창을 그냥 닫은 경우(AbortError)는 조용히 넘어가고, 그 밖에는 직접 복사하도록 안내합니다.
+      if ((e as Error)?.name !== 'AbortError') {
+        const r = document.createRange(); r.selectNodeContents(out);
+        const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r);
+        status.textContent = '공유를 할 수 없어 문안을 선택해 두었습니다. 길게 눌러 복사하세요.';
+      }
+    }
   });
   sms.addEventListener('click', () => track('obituary_sms'));
 </script>

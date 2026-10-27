@@ -29,7 +29,7 @@ const isDomain = (x) => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(x);
               <p class="org-contact">
                 {parts(contact).map((x) =>
                   isTel(x) ? <a class="tel" href={`tel:${x.replace(/-/g, '')}`}>☎ {x}</a>
-                  : isDomain(x) ? <a class="web" href={`https://${x === 'gov.kr' ? 'www.gov.kr' : x}`} rel="noopener" target="_blank">{x} ↗</a>
+                  : isDomain(x) ? <a class="web" href={`https://${x === 'gov.kr' || (x.split('.').length === 3 && !/^\d/.test(x)) ? 'www.' + x : x}`} rel="noopener" target="_blank">{x} ↗</a>
                   : <span>{x}</span>)}
               </p>
             </div>
@@ -38,7 +38,7 @@ const isDomain = (x) => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(x);
       ) : null
     ))}
     <section class="sources">
-      <p><strong>확인한 자료 (2026년 10월 27일)</strong></p>
+      <p><strong>참고한 자료 (확인일 2026년 10월 27일)</strong></p>
       <ul>{links.sources.map((s) => <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.title}</a></li>)}</ul>
     </section>
   </div>

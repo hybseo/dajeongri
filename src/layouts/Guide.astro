@@ -12,16 +12,18 @@ const { title, description, checked, sources = [], slug } = Astro.props;
 const me = guides.find((g) => g.slug === slug);
 const group = groups.find((g) => g.key === me?.group);
 const same = guides.filter((g) => g.group === me?.group && g.slug !== slug);
-const others = same.length ? same : guides.filter((g) => g.slug !== slug).slice(0, 3);
+// 같은 묶음에 다른 가이드가 없으면(예: 떠나보낸 뒤) 가장 가까운 "법과 재산" 묶음을 보여 줍니다.
+const near = guides.filter((g) => g.group === 'law' && g.slug !== slug && g.slug !== 'will');
+const others = same.length ? same : (me?.group === 'after' ? near : guides.filter((g) => g.slug !== slug)).slice(0, 3);
 /* 묶음마다 맨 위 그림과 함께 볼 도구 (2026-10-27 개편) */
 const GROUP_UI = {
-  care: { ill: ['situ-time', '자녀가 부모님 어깨를 감싸 안은 그림'], tools: [['/note/', '엔딩노트: 의료와 장례에 대한 바람'], ['/tools/cards/', '지갑 긴급 카드 만들기']] },
-  law: { ill: ['costs', '영수증과 계산기'], tools: [['/note/', '엔딩노트: 은행·보험·빚 적기'], ['/tools/deadlines/', '상속 기한 계산기']] },
-  digital: { ill: ['cards', '잠긴 휴대폰과 지갑에 넣는 연락 카드'], tools: [['/tools/cards/', '휴대폰 잠금 카드 만들기'], ['/note/', '엔딩노트: 디지털 계정 적기']] },
-  funeral: { ill: ['burial', '언덕 위 나무 아래 작은 표지가 있는 그림'], tools: [['/note/', '엔딩노트: 장례에 대한 바람'], ['/tools/obituary/', '부고 문자 만들기']] },
-  heart: { ill: ['letter', '부모님이 책상에서 편지를 쓰는 그림'], tools: [['/note/', '엔딩노트: 남기는 말'], ['/check/', '3분 진단']] },
+  care: { ill: ['situ-time', '자녀가 부모님 어깨를 감싸 안은 그림'], tools: [['/note/#wishes', '엔딩노트: 의료와 장례에 대한 바람'], ['/tools/cards/', '지갑 긴급 카드 만들기']] },
+  law: { ill: ['costs', '영수증과 계산기'], tools: [['/note/#bank', '엔딩노트: 은행·보험·빚 칸 적기'], ['/tools/deadlines/', '상속 기한 계산기']] },
+  digital: { ill: ['cards', '잠긴 휴대폰과 지갑에 넣는 연락 카드'], tools: [['/tools/cards/', '휴대폰 잠금 카드 만들기'], ['/note/#digital', '엔딩노트: 디지털 계정 적기']] },
+  funeral: { ill: ['burial', '언덕 위 나무 아래 작은 표지가 있는 그림'], tools: [['/note/#wishes', '엔딩노트: 의료와 장례에 대한 바람'], ['/tools/obituary/', '부고 문자 만들기']] },
+  heart: { ill: ['letter', '부모님이 책상에서 편지를 쓰는 그림'], tools: [['/note/#letters', '엔딩노트: 남기는 말'], ['/check/', '3분 진단']] },
   after: { ill: ['situ-after', '가디건이 걸린 빈 의자와 찻잔이 놓인 조용한 그림'], tools: [['/tools/deadlines/', '상속 기한 계산기'], ['/tools/my-procedures/', '나에게 필요한 절차만']] },
-  alone: { ill: ['alone', '창가에 앉은 부모님과 고양이'], tools: [['/tools/cards/', '지갑 긴급 카드 만들기'], ['/note/', '엔딩노트: 꼭 연락해야 할 사람']] },
+  alone: { ill: ['alone', '창가에 앉은 어르신과 고양이'], tools: [['/tools/cards/', '지갑 긴급 카드 만들기'], ['/note/#contacts', '엔딩노트: 꼭 연락해야 할 사람']] },
 };
 const ui = GROUP_UI[me?.group] ?? GROUP_UI.heart;
 const illOverride = me?.ill;
@@ -69,7 +71,7 @@ const illOverride = me?.ill;
     )}
 
     <section class="no-print">
-      <h2>{same.length ? `${group?.title} 가이드 더 보기` : '다른 가이드'}</h2>
+      <h2>{same.length ? `${group?.title} 가이드 더 보기` : me?.group === 'after' ? '함께 보면 좋은 가이드' : '다른 가이드'}</h2>
       <div class="cards">
         {others.map((g) => (
           <a class="card" href={`/guide/${g.slug}/`}>

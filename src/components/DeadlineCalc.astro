@@ -8,29 +8,31 @@ const { compact = false } = Astro.props;
 ---
 <section class="calc card" data-calc>
   {compact ? <h2 class="calc-title">돌아가신 날을 넣으면 마감 날짜를 계산해 드립니다</h2> : null}
-  <form class="calc-form" onsubmit="return false">
+  <form class="calc-form" onsubmit="return false" novalidate>
     <label>
       <span class="lab">돌아가신 날</span>
-      <input type="date" name="death" required />
+      <input type="date" name="death" />
     </label>
     <details class="calc-more">
-      <summary>사망 사실을 나중에 알았거나, 해외에 사는 상속인이 있다면</summary>
+      <summary>사망 사실을 나중에 알았거나, 돌아가신 분이나 상속인이 외국에 살았다면</summary>
       <label>
         <span class="lab">사망·상속 사실을 안 날 (다를 때만)</span>
         <input type="date" name="knew" />
       </label>
-      <label class="opt"><input type="checkbox" name="abroad" /> <span>상속인 중 해외에 사는 사람이 있음 (상속세·취득세 9개월)</span></label>
+      <label class="opt"><input type="checkbox" name="abroad" /> <span>상속인 중 외국에 주소를 둔 사람이 있음 (상속세·취득세 9개월)</span></label>
+      <label class="opt"><input type="checkbox" name="deadAbroad" /> <span>돌아가신 분이 외국에 주소를 두었음 (상속세 9개월)</span></label>
     </details>
     <button class="btn clay" type="submit" data-run>마감 날짜 보기</button>
+    <p class="calc-err" data-err role="alert" hidden></p>
   </form>
 
   <div class="calc-result" data-result hidden>
     <ol class="timeline" data-list></ol>
-    <p class="muted small">마감일이 토·일요일이면 다음 평일로 옮겨 표시했습니다. 설·추석 등 공휴일은 반영하지 않았고, 기간 계산은 사정에 따라 달라질 수 있으니 중요한 일은 여유 있게 처리하고 해당 기관에 확인하세요.</p>
+    <p class="muted small">법이 정한 기한은 마지막 날이 토·일요일이면 다음 평일로 옮겨 표시했습니다. 설·추석 같은 공휴일은 반영하지 않았고, 기간 계산은 사정에 따라 달라질 수 있으니 중요한 일은 여유 있게 처리하고 해당 기관에 확인하세요.</p>
     <div class="btn-row no-print">
-      <button class="btn ghost small" type="button" data-ics>휴대폰 캘린더에 저장</button>
+      <button class="btn ghost small" type="button" data-ics>휴대폰 달력에 저장</button>
       <button class="btn ghost small" type="button" data-print>인쇄하기</button>
-      <a class="btn ghost small" href="/tools/after-checklist/">해지·신고 체크리스트</a>
+      <a class="btn ghost small" href="/tools/after-checklist/">유족 해지·신고 체크리스트</a>
     </div>
   </div>
 </section>
@@ -59,11 +61,13 @@ const { compact = false } = Astro.props;
   .calc .timeline .rule { display: block; font-size: 15px; color: var(--ink-soft); }
   .calc .timeline a { font-size: 15px; }
   .calc .small { font-size: 15px; }
+  .calc .nw { white-space: nowrap; }
+  .calc-err { margin: 0; font-weight: 700; color: #b42318; }
   @media (max-width: 600px) { .calc .calc-form .btn { justify-self: stretch; } }
 </style>
 
 <script>
-  import { computeDeadlines, korean, daysLeft, toICS, ymd } from '../scripts/deadlines.js';
+  import { computeDeadlines, checkDates, korean, daysLeft, toICS, ymd } from '../scripts/deadlines.js';
   import { track } from '../scripts/analytics.js';
 
   document.querySelectorAll<HTMLElement>('[data-calc]').forEach((root) => {
@@ -72,12 +76,22 @@ const { compact = false } = Astro.props;
     const list = root.querySelector('[data-list]') as HTMLElement;
     let items: ReturnType<typeof computeDeadlines> = [];
 
+    const err = root.querySelector('[data-err]') as HTMLElement;
     const run = () => {
       const death = (form.elements.namedItem('death') as HTMLInputElement).value;
-      if (!death) { (form.elements.namedItem('death') as HTMLInputElement).focus(); return; }
       const knew = (form.elements.namedItem('knew') as HTMLInputElement).value || undefined;
-      const abroad = (form.elements.namedItem('abroad') as HTMLInputElement).checked;
-      items = computeDeadlines(death, knew, abroad);
+      const problem = checkDates(death, knew);
+      if (problem) {
+        err.textContent = problem; err.hidden = false;
+        result.hidden = true; items = [];
+        if (!death) (form.elements.namedItem('death') as HTMLInputElement).focus();
+        else if (knew && problem.includes('안 날')) { (root.querySelector('details') as HTMLDetailsElement).open = true; (form.elements.namedItem('knew') as HTMLInputElement).focus(); }
+        return;
+      }
+      err.hidden = true;
+      const heirAbroad = (form.elements.namedItem('abroad') as HTMLInputElement).checked;
+      const deceasedAbroad = (form.elements.namedItem('deadAbroad') as HTMLInputElement).checked;
+      items = computeDeadlines(death, knew, { heirAbroad, deceasedAbroad });
       list.innerHTML = '';
       for (const it of items) {
         const left = daysLeft(it.due);
@@ -88,7 +102,12 @@ const { compact = false } = Astro.props;
         (li.querySelector('.due') as HTMLElement).textContent = korean(it.due) + '까지';
         (li.querySelector('.left') as HTMLElement).textContent = leftText;
         (li.querySelector('.what') as HTMLElement).textContent = it.title;
-        (li.querySelector('.rule') as HTMLElement).textContent = `${it.rule} · ${it.where}${it.moved ? ' · 주말이라 다음 평일로' : ''}`;
+        // 전화번호가 줄 끝에서 끊기지 않게 따로 감쌉니다.
+        const ruleEl = li.querySelector('.rule') as HTMLElement;
+        `${it.rule} · ${it.where}${it.moved ? ' · 주말이라 다음 평일로' : ''}`.split(/(\d{2,4}-\d{3,4}(?:-\d{4})?)/).forEach((part, i) => {
+          if (i % 2) { const s = document.createElement('span'); s.className = 'nw'; s.textContent = part; ruleEl.appendChild(s); }
+          else ruleEl.appendChild(document.createTextNode(part));
+        });
         const a = document.createElement('a');
         // 오프라인 미리보기에서는 주소 변환 도우미(window.__href)를 거칩니다. 실제 사이트에서는 그대로.
         a.href = (window as any).__href ? (window as any).__href(it.link) : it.link; a.textContent = '자세히 보기 →';

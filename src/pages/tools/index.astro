@@ -1,7 +1,7 @@
 ---
 /*
  * 정리 도구 모음 (2026-10-27 개편). 예전에는 표였던 것을 세 묶음 카드로 바꿨습니다.
- *   미리 준비하기 · 떠나보낸 후 · 알아두기(가이드 묶음)
+ *   미리 준비하기 · 떠나보낸 뒤 · 알아두기(가이드 묶음)
  */
 import Base from '../../layouts/Base.astro';
 import { noteSections } from '../../data/note.js';
@@ -16,19 +16,19 @@ const panels = [
     key: 'before', title: '미리 준비하기', ill: 'situ-me',
     items: [
       { href: '/note/', icon: '✎', title: '엔딩노트 작성기', desc: `${noteSections.length}개 항목 · Word로 보관` },
-      { href: '/checklist/', icon: '☑', title: '정리 체크리스트', desc: `${checkCount}가지 할 일 · 진행률 표시` },
+      { href: '/checklist/', icon: '☑', title: '생전정리 체크리스트', desc: `${checkCount}가지 할 일 · 진행률 표시` },
       { href: '/check/', icon: '?', title: '3분 진단', desc: '질문 3개로 시작점 찾기', fresh: true },
-      { href: '/tools/cards/', icon: '▭', title: '휴대폰 잠금 카드 · 지갑 카드', desc: '인쇄해서 보관', fresh: true },
+      { href: '/tools/cards/', icon: '▭', title: '휴대폰 잠금 카드 · 지갑 긴급 카드', desc: '인쇄해서 보관', fresh: true },
       { href: '/tools/print/', icon: '⎙', title: '인쇄용 빈 엔딩노트', desc: '손으로 쓰고 싶을 때' },
     ],
   },
   {
-    key: 'after', title: '떠나보낸 후', ill: 'situ-after',
+    key: 'after', title: '떠나보낸 뒤', ill: 'situ-after',
     items: [
-      { href: '/tools/deadlines/', icon: '⏳', title: '상속 기한 계산기', desc: '마감 8가지 · 캘린더 저장' },
+      { href: '/tools/deadlines/', icon: '⏳', title: '상속 기한 계산기', desc: '마감 8가지 · 달력 저장' },
       { href: '/tools/my-procedures/', icon: '☰', title: '나에게 필요한 절차만', desc: '질문에 답하면 할 일 목록', fresh: true },
       { href: '/tools/obituary/', icon: '✉', title: '부고 문자 만들기', desc: '문안 고르고 바로 보내기' },
-      { href: '/tools/after-checklist/', icon: '☑', title: '해지·신고 체크리스트', desc: `${afterCount}가지 · 서류 안내` },
+      { href: '/tools/after-checklist/', icon: '☑', title: '유족 해지·신고 체크리스트', desc: `${afterCount}가지 · 서류 안내` },
     ],
   },
 ];
@@ -47,7 +47,7 @@ const guideGroups = groups.map((g) => ({ ...g, list: guides.filter((x) => x.grou
         <section class={`panel ${p.key}`}>
           <div class="ph"><h2>{p.title}</h2><img src={`/illust/${p.ill}.svg`} alt="" width="320" height="240" /></div>
           {p.items.map((it) => (
-            <a href={it.href}><span class="ic" aria-hidden="true">{it.icon}</span><span class="tx"><b>{it.title}{it.fresh && <em>새로</em>}</b><span>{it.desc}</span></span><span class="gt" aria-hidden="true">›</span></a>
+            <a href={it.href}><span class="ic" aria-hidden="true">{it.icon}</span><span class="tx"><b>{it.title}{it.fresh && <em>새 기능</em>}</b><span>{it.desc}</span></span><span class="gt" aria-hidden="true">›</span></a>
           ))}
         </section>
       ))}
@@ -75,7 +75,7 @@ const guideGroups = groups.map((g) => ({ ...g, list: guides.filter((x) => x.grou
   .ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; flex: none; font-size: 17px; color: var(--green); }
   .before .ic { background: var(--mint-t); } .after .ic { background: var(--clay-soft); } .know .ic { background: var(--navy-t); }
   .tx b { display: block; font-size: 17px; line-height: 1.35; letter-spacing: -0.02em; }
-  .tx b em { font-style: normal; font-size: 11.5px; background: var(--amber); color: #fff; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .tx b em { font-style: normal; font-size: 13px; background: var(--amber); color: #fff; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
   .tx > span { display: block; font-size: 14.5px; color: var(--ink-soft); line-height: 1.45; }
   .gt { margin-left: auto; color: var(--ink-soft); font-size: 20px; }
   @media (max-width: 1000px) { .panels { grid-template-columns: 1fr; } }

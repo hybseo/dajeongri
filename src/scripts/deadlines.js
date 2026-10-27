@@ -49,28 +49,53 @@ export function rollWeekend(d) {
  * 기한 목록을 만듭니다.
  * @param {string} death  돌아가신 날 (YYYY-MM-DD)
  * @param {string} [knew] 사망·상속 사실을 안 날 (없으면 돌아가신 날)
- * @param {boolean} [abroad] 상속인 중 해외 거주자가 있으면 true
+ * @param {{heirAbroad?: boolean, deceasedAbroad?: boolean}|boolean} [opt]
+ *   heirAbroad: 상속인 중 외국에 주소를 둔 사람이 있음 → 상속세·취득세 9개월
+ *   deceasedAbroad: 돌아가신 분이 외국에 주소를 두었음 → 상속세 9개월 (상속세 및 증여세법 제67조제4항)
+ *   (예전처럼 true/false 하나만 넘기면 heirAbroad 로 봅니다.)
  */
-export function computeDeadlines(death, knew, abroad = false) {
+export function computeDeadlines(death, knew, opt = {}) {
+  const o = typeof opt === 'boolean' ? { heirAbroad: opt } : opt;
   const d = parse(death);
   const k = knew ? parse(knew) : d;
-  const taxMonths = abroad ? 9 : 6;
+  const taxMonths = o.heirAbroad || o.deceasedAbroad ? 9 : 6;
+  const acqMonths = o.heirAbroad ? 9 : 6;
   const items = [
     { key: 'death-report', title: '사망신고', rule: '사망 사실을 안 날부터 1개월', date: afterMonths(k, 1), where: '주민센터·시·구청', link: '/after/first-month/' },
-    { key: 'nhis', title: '건강보험 자격상실 신고 (지역가입자인 경우)', rule: '14일 이내 (세대주)', date: afterDays(d, 14), where: '국민건강보험공단 1577-1000', link: '/after/first-month/' },
-    { key: 'renounce', title: '상속 승인·한정승인·포기 결정', rule: '상속 개시를 안 날부터 3개월', date: afterMonths(k, 3), where: '가정법원', link: '/guide/renounce/' },
-    { key: 'tax', title: '상속세 신고·납부', rule: `돌아가신 달의 말일부터 ${taxMonths}개월`, date: fromMonthEnd(d, taxMonths), where: '세무서·홈택스', link: '/after/six-months/' },
-    { key: 'acq', title: '상속 부동산 취득세 신고·납부', rule: `돌아가신 달의 말일부터 ${taxMonths}개월`, date: fromMonthEnd(d, taxMonths), where: '시·군·구청·위택스', link: '/after/six-months/' },
+    // 자격은 사망한 날의 다음 날 잃고(국민건강보험법 제10조), 그날부터 14일 안에 신고합니다.
+    // 자격 상실일은 0시부터 시작하므로 그날을 첫날로 셉니다(민법 제157조 단서) → 사망일 + 14일.
+    { key: 'nhis', title: '건강보험 자격상실 신고 (지역가입자 세대주, 필요한지 공단에 확인)', rule: '자격을 잃은 날(사망 다음 날)부터 14일', date: afterDays(d, 14), where: '국민건강보험공단 1577-1000', link: '/after/first-month/' },
+    { key: 'renounce', title: '단순승인·한정승인·상속포기 결정', rule: '상속이 시작된 것을 안 날부터 3개월', date: afterMonths(k, 3), where: '가정법원', link: '/guide/renounce/' },
+    { key: 'tax', title: '상속세 신고·납부 (내야 할 세금이 있을 때)', rule: `돌아가신 달의 말일부터 ${taxMonths}개월`, date: fromMonthEnd(d, taxMonths), where: '세무서·홈택스', link: '/after/six-months/' },
+    { key: 'acq', title: '상속 부동산 취득세 신고·납부', rule: `돌아가신 달의 말일부터 ${acqMonths}개월`, date: fromMonthEnd(d, acqMonths), where: '시·군·구청·위택스', link: '/after/six-months/' },
     { key: 'car', title: '상속 자동차 이전등록', rule: '돌아가신 달의 말일부터 6개월', date: fromMonthEnd(d, 6), where: '차량등록사업소', link: '/after/six-months/' },
-    { key: 'safe', title: '안심상속 원스톱서비스 신청 (늦어도)', rule: '돌아가신 달의 말일부터 1년', date: fromMonthEnd(d, 12), where: '주민센터·정부24', link: '/after/first-month/' },
-    { key: 'insurance', title: '사망보험금 청구', rule: '돌아가신 날부터 3년', date: afterMonths(d, 36), where: '각 보험사', link: '/guide/insurance-pension/' },
+    // 법이 정한 기간이 아니라 서비스 신청 기준이므로 주말이어도 미루지 않습니다.
+    { key: 'safe', title: '안심상속 원스톱서비스 신청 (늦어도)', rule: '돌아가신 달의 말일부터 1년', date: fromMonthEnd(d, 12), where: '주민센터·정부24', link: '/after/first-month/', noRoll: true },
+    { key: 'insurance', title: '사망보험금 청구', rule: '보험금을 청구할 수 있는 때(보통 돌아가신 날)부터 3년', date: afterMonths(d, 36), where: '각 보험사', link: '/guide/insurance-pension/' },
   ];
   return items
     .map((it) => {
-      const due = rollWeekend(it.date);
+      const due = it.noRoll ? it.date : rollWeekend(it.date);
       return { ...it, due, moved: due.getTime() !== it.date.getTime() };
     })
     .sort((a, b) => a.due - b.due);
+}
+
+/** 입력 날짜 확인. 문제가 있으면 안내 문장을, 없으면 '' 를 돌려줍니다. */
+export function checkDates(death, knew, today = new Date()) {
+  if (!death) return '돌아가신 날을 넣어 주세요.';
+  const d = parse(death);
+  if (isNaN(d.getTime())) return '날짜를 다시 확인해 주세요.';
+  const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  if (d > t) return '돌아가신 날이 오늘보다 뒤입니다. 날짜를 다시 확인해 주세요.';
+  if (d.getFullYear() < 1950) return '날짜를 다시 확인해 주세요.';
+  if (knew) {
+    const k = parse(knew);
+    if (isNaN(k.getTime())) return '"안 날"을 다시 확인해 주세요.';
+    if (k < d) return '"사망·상속 사실을 안 날"은 돌아가신 날과 같거나 그 뒤여야 합니다.';
+    if (k > t) return '"사망·상속 사실을 안 날"이 오늘보다 뒤입니다. 날짜를 다시 확인해 주세요.';
+  }
+  return '';
 }
 
 export function daysLeft(due, today = new Date()) {

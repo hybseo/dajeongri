@@ -91,7 +91,12 @@ const total = checklist.reduce((n, g) => n + g.items.length, 0);
   form.addEventListener('change', () => { save(); render(); });
 
   document.getElementById('print')?.addEventListener('click', () => { track('checklist_print'); window.print(); });
-  document.getElementById('reset')?.addEventListener('click', () => {
+  // 실수로 누르지 않도록 한 번 더 눌러야 지웁니다.
+  let armed = false;
+  document.getElementById('reset')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    if (!armed) { armed = true; btn.textContent = '한 번 더 누르면 표시가 모두 지워집니다'; setTimeout(() => { armed = false; btn.textContent = '표시 모두 지우기'; }, 4000); return; }
+    armed = false; btn.textContent = '표시 모두 지우기';
     boxes.forEach((b) => { b.checked = false; });
     save(); render();
   });
