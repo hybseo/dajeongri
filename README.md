@@ -141,6 +141,7 @@ npm run preview:offline
 | 방문 통계 | 켬. 구글 애널리틱스 4, 측정 ID `G-64GMVXVKCR` | `src/site.js` 의 `GA_ID`. 계정 "다정리" → 속성 "다정리 웹사이트". 끄려면 값을 비웁니다. 개인정보 안내(/privacy)는 이 값에 따라 자동으로 바뀝니다. |
 | 기능 사용 횟수 | 켬 (사건 이름만) | `src/scripts/analytics.js` 의 `track`. 엔딩노트 작성 시작·Word 내려받기·인쇄, 체크리스트·빈 노트 인쇄, 기한 계산·캘린더 저장, 부고 문안 복사·공유·문자, 가족에게 보내기, 글자 크게, 앱 설치 |
 | 사이트 검색어 | 켬 (2026-10-28 대표 결정) | `view_search_results` 의 `search_term`, 결과 없으면 `search_no_result` 의 `no_result_term`. 숫자는 #, 메일 주소는 (메일)로 바꿔 보냄(`maskTerm`). 검색 화면 주소의 `?w=` 는 페이지 주소 통계에서 뺌(`Base.astro` 의 `page_location`). 개인정보 안내에 적음 |
+| 애널리틱스 설정 (2026-10-28) | 내부 트래픽 제외 · 주요 이벤트 · 검색 | 대표 컴퓨터 IP(116.121.208.187/32)를 내부 트래픽으로 지정하고 Internal Traffic 데이터 필터 "사용 중"(IP가 바뀌면 규칙도 고칠 것). 주요 이벤트: check_done, deadline_ics, note_download, tax_calc. 향상된 측정의 "사이트 검색" 자동 감지는 끔(3분 진단 `?s=` 가 검색으로 잘못 잡히던 문제). 맞춤 측정기준 "결과 없는 검색어"(no_result_term) |
 | 구글 서치콘솔 | 등록 완료, 사이트맵 다시 제출(개편 후 페이지 45개 확인). 2026-10-27 색인 요청: `/`, `/check/`, `/note/`, `/tools/`, `/guide/`, `/guide/burial/`, `/guide/living-alone/` | 도메인 속성. 소유확인은 클라우드플레어 DNS 의 TXT 기록(`google-site-verification=...`)으로 했으므로 사이트 코드에는 없습니다. **그 TXT 기록을 지우면 확인이 풀립니다.** |
 | 네이버 서치어드바이저 | 등록·소유확인 완료, 사이트맵 제출 (2026-10-27) | `src/layouts/Base.astro` 머리말의 `naver-site-verification` 메타(값 babd2aa2…). **지우면 확인이 풀립니다.** 사이트맵 https://dajeongri.com/sitemap.xml 제출. |
 
