@@ -113,7 +113,7 @@ npm run preview:offline
 | 방문 통계 | 켬. 구글 애널리틱스 4, 측정 ID `G-64GMVXVKCR` | `src/site.js` 의 `GA_ID`. 계정 "다정리" → 속성 "다정리 웹사이트". 끄려면 값을 비웁니다. 개인정보 안내(/privacy)는 이 값에 따라 자동으로 바뀝니다. |
 | 기능 사용 횟수 | 켬 (사건 이름만) | `src/scripts/analytics.js` 의 `track`. 엔딩노트 작성 시작·Word 내려받기·인쇄, 체크리스트·빈 노트 인쇄, 기한 계산·캘린더 저장, 부고 문안 복사·공유·문자, 가족에게 보내기, 글자 크게, 앱 설치 |
 | 구글 서치콘솔 | 등록 완료, 사이트맵 다시 제출(개편 후 페이지 45개 확인). 2026-10-27 색인 요청: `/`, `/check/`, `/note/`, `/tools/`, `/guide/`, `/guide/burial/`, `/guide/living-alone/` | 도메인 속성. 소유확인은 클라우드플레어 DNS 의 TXT 기록(`google-site-verification=...`)으로 했으므로 사이트 코드에는 없습니다. **그 TXT 기록을 지우면 확인이 풀립니다.** |
-| 네이버 서치어드바이저 | 소유확인 태그 넣음 (2026-10-27) | `src/layouts/Base.astro` 머리말의 `naver-site-verification` 메타(값 babd2aa2…). **지우면 확인이 풀립니다.** 사이트맵 https://dajeongri.com/sitemap.xml 제출. |
+| 네이버 서치어드바이저 | 등록·소유확인 완료, 사이트맵 제출 (2026-10-27) | `src/layouts/Base.astro` 머리말의 `naver-site-verification` 메타(값 babd2aa2…). **지우면 확인이 풀립니다.** 사이트맵 https://dajeongri.com/sitemap.xml 제출. |
 
 ## 직접 돌려 볼 때
 
