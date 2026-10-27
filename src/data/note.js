@@ -136,6 +136,7 @@ export const noteSections = [
       { id: 'rest', label: '모셔지고 싶은 곳' },
       { id: 'ritual', label: '장례 의식에 대한 바람', kind: 'textarea', hint: '종교 의식, 꼭 불러 주었으면 하는 사람, 조촐하게 등' },
       { id: 'portrait', label: '영정 사진이 있는 곳' },
+      { id: 'donation', label: '장기·인체조직 기증', kind: 'choice', options: ['희망등록을 했다', '기증하고 싶다 (아직 등록 안 함)', '원하지 않는다', '아직 정하지 못했다'], hint: '기증하고 싶다면 가족에게도 꼭 알려 두세요. 실제 기증 때 가족의 동의가 필요합니다.', guide: '/guide/donation/' },
       { id: 'pet', label: '반려동물을 부탁할 사람' },
     ],
   },

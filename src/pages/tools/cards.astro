@@ -90,8 +90,8 @@ import Base from '../../layouts/Base.astro';
           <div class="pcard front w">
             <p class="k">지갑 긴급 카드</p>
             <p class="big" data-out="w-name">이름</p>
-            <p class="line"><b>1</b> <span data-out="w-c1"></span> <span data-out="w-t1"></span></p>
-            <p class="line"><b>2</b> <span data-out="w-c2"></span> <span data-out="w-t2"></span></p>
+            <p class="line"><b>연락 1</b> <span data-out="w-c1"></span> <span data-out="w-t1"></span></p>
+            <p class="line"><b>연락 2</b> <span data-out="w-c2"></span> <span data-out="w-t2"></span></p>
             <p class="foot">위급할 때 위 번호로 연락해 주세요</p>
           </div>
           <div class="pcard back w">
@@ -148,7 +148,7 @@ import Base from '../../layouts/Base.astro';
   .pin { display: flex; gap: 1.6mm; margin: 1.5mm 0 1.6mm; }
   .pin span { width: 8mm; height: 9mm; border: .4mm solid #1e3a5a; border-radius: 1.2mm; }
   .dots9 { display: grid; grid-template-columns: repeat(3, 4mm); gap: 2.2mm; }
-  .dots9 i { width: 2.2mm; height: 2.2mm; border-radius: 50%; background: #1e3a5a; margin: auto; }
+  .dots9 i { width: 0; height: 0; border: 1.1mm solid #1e3a5a; border-radius: 50%; margin: auto; } /* 인쇄 때 배경색은 빠지므로 테두리로 점을 그립니다 */
   .tips { margin-top: 30px; }
   @media (max-width: 960px) { .cards-layout { grid-template-columns: minmax(0, 1fr); } .cards-layout > * { min-width: 0; } .sheet { position: static; } .head-row img { display: none; } }
   @media print {

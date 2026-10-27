@@ -105,7 +105,7 @@ const illOverride = me?.ill;
       if (!h.id) h.id = `s${i + 1}`;
       const li = document.createElement('li');
       const a = document.createElement('a');
-      a.href = `#${h.id}`; a.textContent = h.textContent || '';
+      a.href = `#${h.id}`; a.textContent = (h.textContent || '').replace(/^\d+\.\s*/, ''); // 목차가 번호를 붙이므로 소제목 앞 "1."은 뺍니다
       li.appendChild(a); ol.appendChild(li);
     });
     toc.hidden = false;

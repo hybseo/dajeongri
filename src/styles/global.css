@@ -35,7 +35,9 @@
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 92px; }
+/* 위에 붙어 있는 머리말에 제목이 가려지지 않도록, 목차·바로가기로 이동할 때 머리말 높이만큼 띄웁니다. */
+@media (max-width: 700px) { html { scroll-padding-top: 76px; } }
 body {
   margin: 0;
   background: var(--paper);
@@ -67,7 +69,7 @@ header.site .top-nav { display: flex; gap: 2px; flex: 1; }
 header.site .top-nav a { text-decoration: none; color: var(--ink-soft); padding: 8px 13px; border-radius: 10px; font-size: 17px; font-weight: 600; }
 header.site .top-nav a:hover { background: var(--navy-t); color: var(--green); }
 header.site .top-nav a[aria-current='page'] { background: var(--navy-t); color: var(--green); }
-header.site .top-nav a.first .mk { display: inline-block; font-size: 12px; background: var(--green); color: #fff; border-radius: 6px; padding: 1px 6px; margin-right: 6px; vertical-align: 2px; font-weight: 700; }
+header.site .top-nav a.first .mk { display: inline-block; width: 8px; height: 8px; background: var(--amber); border-radius: 50%; margin-right: 7px; vertical-align: 3px; }
 
 /* ── 꼬리말 ─────────────────────────────── */
 footer.site { margin-top: 80px; border-top: 1px solid var(--line); background: var(--bg); padding: 36px 0 48px; font-size: 15px; color: var(--ink-soft); }
@@ -240,3 +242,34 @@ html[data-size='large'] .tabbar a { font-size: 14px; }
 html[data-size='large'] h1 { font-size: clamp(32px, 5.6vw, 50px); }
 
 @media print { .share-row, .crumb { display: none !important; } }
+
+/* 제목 마지막 줄에 한 글자만 남지 않게 줄을 고르게 나눕니다(지원하는 브라우저에서만). */
+h1, h2, h3 { text-wrap: balance; }
+
+/* 휴대폰에서는 칸이 셋 이상인 표를 줄마다 카드처럼 세로로 보여 줍니다(좁은 칸에 글자가 한두 자씩 끊기지 않게).
+   각 칸 이름은 Base.astro 의 스크립트가 data-label 로 붙입니다. 인쇄할 때는 원래 표 그대로. */
+@media screen and (max-width: 600px) {
+  .table-wrap:has(thead th:nth-child(3)) { overflow-x: visible; border: 0; border-radius: 0; }
+  .table-wrap table:has(thead th:nth-child(3)) thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .table-wrap table:has(thead th:nth-child(3)),
+  .table-wrap table:has(thead th:nth-child(3)) tbody,
+  .table-wrap table:has(thead th:nth-child(3)) tr,
+  .table-wrap table:has(thead th:nth-child(3)) tbody th,
+  .table-wrap table:has(thead th:nth-child(3)) td { display: block; width: auto; }
+  .table-wrap table:has(thead th:nth-child(3)) { background: none; }
+  .table-wrap table:has(thead th:nth-child(3)) tr { padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); margin-bottom: 10px; }
+  .table-wrap table:has(thead th:nth-child(3)) tbody th,
+  .table-wrap table:has(thead th:nth-child(3)) td { border: 0; padding: 3px 0; background: none; }
+  .table-wrap table:has(thead th:nth-child(3)) tr > :first-child { font-size: 17.5px; font-weight: 800; color: var(--green); padding-bottom: 6px; }
+  .table-wrap table:has(thead th:nth-child(3)) td[data-label]::before { content: attr(data-label); display: block; font-size: 13.5px; font-weight: 700; color: var(--ink-soft); margin-top: 6px; }
+  .table-wrap table:has(thead th:nth-child(3)) tr > td:first-child[data-label]::before { display: none; }
+}
+
+/* 인쇄: 프린터는 기본으로 배경색을 빼므로, 체크 표시는 검은 선으로 다시 그립니다.
+   상속 기한 계산 결과는 길어서 한 장에 안 들어가도 이어서 인쇄되게 합니다. */
+@media print {
+  .check input:checked + .box { background: #fff !important; border-color: #000 !important; }
+  .check input:checked + .box::after { border-color: #000 !important; }
+  .calc { break-inside: auto !important; }
+  .calc-form .btn, .calc-more:not([open]), .calc-done, .calc .timeline a { display: none !important; }
+}

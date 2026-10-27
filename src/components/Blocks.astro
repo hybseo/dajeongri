@@ -8,12 +8,14 @@
 import DeadlineCalc from './DeadlineCalc.astro';
 const { blocks = [] } = Astro.props;
 const lines = (s) => String(s).split('|');
+// "1. 배우자"처럼 번호로 시작하는 목록은 글머리 점 대신 번호 목록으로 그립니다.
+const numbered = (list) => list.length > 1 && list.every((x) => /^\d+\.\s/.test(String(x)));
 const isPath = (s) => typeof s === 'string' && /^\/[a-z0-9\-/]*$/i.test(s);
 ---
 {blocks.map((b) => (
   b.h ? <h2>{b.h}</h2>
   : b.p ? <p>{b.p}</p>
-  : b.ul ? <ul>{b.ul.map((x) => <li>{x}</li>)}</ul>
+  : b.ul ? (numbered(b.ul) ? <ol class="plain-ol">{b.ul.map((x) => <li>{String(x).replace(/^\d+\.\s*/, '')}</li>)}</ol> : <ul>{b.ul.map((x) => <li>{x}</li>)}</ul>)
   : b.steps ? (
     <ol class="steps">
       {b.steps.map(([t, d]) => <li><strong>{t}</strong>{d}</li>)}
@@ -26,7 +28,7 @@ const isPath = (s) => typeof s === 'string' && /^\/[a-z0-9\-/]*$/i.test(s);
         <tbody>
           {b.table.rows.map((r) => (
             <tr>{r.map((c, i) => (
-              isPath(c) ? <td><a href={c}>바로가기 →</a></td>
+              isPath(c) ? <td><a href={c} style="white-space:nowrap">바로가기 →</a></td>
               : i === 0 ? <th scope="row" class="row-head">{lines(c).map((l, k) => <>{k > 0 && <br />}{l}</>)}</th>
               : <td>{lines(c).map((l, k) => <>{k > 0 && <br />}{l}</>)}</td>
             ))}</tr>

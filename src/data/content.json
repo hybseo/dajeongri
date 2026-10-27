@@ -1049,7 +1049,7 @@
      "cta": [
       {
        "label": "엔딩노트에 적기",
-       "url": "/note/"
+       "url": "/note/#wishes"
       },
       {
        "label": "장례 비용과 상조",
@@ -1511,7 +1511,7 @@
       },
       {
        "label": "재산·빚 한 번에 조회하기",
-       "url": "/guide/inheritance/"
+       "url": "/guide/inheritance/#s2"
       }
      ]
     }
@@ -1613,11 +1613,11 @@
      "cta": [
       {
        "label": "엔딩노트에 보험 적기",
-       "url": "/note/"
+       "url": "/note/#insurance"
       },
       {
        "label": "재산·보험 한 번에 조회하기",
-       "url": "/guide/inheritance/"
+       "url": "/guide/inheritance/#s2"
       }
      ]
     }
@@ -1942,7 +1942,7 @@
      "cta": [
       {
        "label": "엔딩노트에 적기",
-       "url": "/note/"
+       "url": "/note/#wishes"
       },
       {
        "label": "공식 기관 바로가기",
@@ -2025,7 +2025,7 @@
       },
       {
        "label": "엔딩노트에 적기",
-       "url": "/note/"
+       "url": "/note/#phone"
       }
      ]
     }
@@ -2207,7 +2207,7 @@
      "cta": [
       {
        "label": "엔딩노트에 남기는 말 쓰기",
-       "url": "/note/"
+       "url": "/note/#letters"
       }
      ]
     }
@@ -2352,11 +2352,11 @@
      "cta": [
       {
        "label": "엔딩노트에 적기",
-       "url": "/note/"
+       "url": "/note/#wishes"
       },
       {
        "label": "장례 비용 한눈표",
-       "url": "/guide/funeral-cost/"
+       "url": "/guide/funeral-cost/#s2"
       }
      ]
     }

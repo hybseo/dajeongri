@@ -27,6 +27,7 @@ const { compact = false } = Astro.props;
   </form>
 
   <div class="calc-result" data-result hidden>
+    <p class="calc-past" data-past hidden>이미 지난 마감이 있습니다. 늦었더라도 할 수 있는 일은 바로 하세요(사망신고처럼 늦으면 과태료가 붙는 일도 있습니다). 상속을 정하는 3개월이 지난 뒤에 빚이 더 많다는 것을 알게 되었다면 <a href="/guide/renounce/#s6">"나중에 빚을 알았다면"</a> 안내를 꼭 읽어 보세요.</p>
     <ol class="timeline" data-list></ol>
     <p class="muted small">"휴대폰 달력에 저장"에는 아직 지나지 않은 마감만 들어갑니다. 법이 정한 기한은 마지막 날이 토·일요일이면 다음 평일로 옮겨 표시했습니다. 설·추석 같은 공휴일은 반영하지 않았고, 기간 계산은 사정에 따라 달라질 수 있으니 중요한 일은 여유 있게 처리하고 해당 기관에 확인하세요.</p>
     <div class="btn-row no-print">
@@ -34,13 +35,14 @@ const { compact = false } = Astro.props;
       <button class="btn ghost small" type="button" data-print>인쇄하기</button>
       <a class="btn ghost small" href="/tools/after-checklist/">유족 해지·신고 체크리스트</a>
     </div>
+    <p class="calc-done" data-done role="status"></p>
   </div>
 </section>
 
 <style is:global>
   /* 결과 목록은 스크립트가 만들어 넣으므로, 범위 한정 스타일 대신 .calc 아래 전역 스타일로 둡니다. */
   .calc { margin: 24px 0; }
-  .calc-title { font-size: 21px; margin: 0 0 12px; }
+  .calc-title, .article .calc-title { font-size: 21px; margin: 0 0 12px; }
   .calc-form { display: grid; gap: 14px; }
   .calc-form input[type=date] { width: 100%; max-width: 320px; font: inherit; font-size: 18px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
   .calc .lab { display: block; font-weight: 700; font-size: 16px; margin-bottom: 6px; }
@@ -63,6 +65,9 @@ const { compact = false } = Astro.props;
   .calc .small { font-size: 15px; }
   .calc .nw { white-space: nowrap; }
   .calc-err { margin: 0; font-weight: 700; color: #b42318; }
+  .calc-past { margin: 18px 0 0; padding: 12px 16px; border-radius: 12px; background: var(--clay-soft); font-size: 15.5px; }
+  .calc-done { margin: 10px 0 0; font-weight: 700; font-size: 15.5px; color: #1f6e55; }
+  .calc-done:empty { display: none; }
   @media (max-width: 600px) { .calc .calc-form .btn { justify-self: stretch; } }
 </style>
 
@@ -114,6 +119,8 @@ const { compact = false } = Astro.props;
         li.appendChild(a);
         list.appendChild(li);
       }
+      (root.querySelector('[data-past]') as HTMLElement).hidden = !items.some((it) => daysLeft(it.due) < 0);
+      (root.querySelector('[data-done]') as HTMLElement).textContent = '';
       result.hidden = false;
       track('deadline_calc');
     };
@@ -131,6 +138,7 @@ const { compact = false } = Astro.props;
       a.href = url; a.download = `상속기한_${ymd(upcoming[0].due)}.ics`;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
+      (root.querySelector('[data-done]') as HTMLElement).textContent = `달력 파일을 받았습니다(남은 마감 ${upcoming.length}가지). 받은 파일을 열면 휴대폰 달력에 들어가고, 마감 7일 전에 알림이 옵니다.`;
       track('deadline_ics');
     });
     root.querySelector('[data-print]')?.addEventListener('click', () => window.print());

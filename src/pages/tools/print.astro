@@ -5,7 +5,7 @@
  */
 import Base from '../../layouts/Base.astro';
 import { noteSections } from '../../data/note.js';
-const rowsFor = (id) => (id === 'letters' ? 3 : id === 'contacts' || id === 'digital' ? 6 : 4);
+const rowsFor = (id) => (id === 'letters' ? 6 : id === 'contacts' || id === 'digital' ? 6 : 4);
 ---
 <Base title="인쇄용 빈 엔딩노트" description="손으로 쓰고 싶은 분을 위한 인쇄용 엔딩노트 양식. A4로 인쇄해 펜으로 채우세요.">
   <div class="wrap narrow">
@@ -41,7 +41,9 @@ const rowsFor = (id) => (id === 'letters' ? 3 : id === 'contacts' || id === 'dig
                   <span class="sf-label">{f.label}</span>
                   {f.kind === 'choice'
                     ? <span class="sf-choices">{f.options.map((o) => <span>☐ {o}</span>)}</span>
-                    : <span class="sf-line"></span>}
+                    : f.kind === 'textarea'
+                      ? <span class="sf-lines">{Array.from({ length: s.id === 'docs' ? 6 : 3 }).map(() => <i></i>)}</span>
+                      : <span class="sf-line"></span>}
                 </div>
               ))}
             </div>
@@ -74,7 +76,10 @@ const rowsFor = (id) => (id === 'letters' ? 3 : id === 'contacts' || id === 'dig
   .sf-label { flex: 0 0 auto; font-weight: 700; font-size: 14px; }
   .sf-line { flex: 1; border-bottom: 1px solid #999; height: 26px; }
   .sf.tall { flex-direction: column; align-items: stretch; }
-  .sf.tall .sf-line { height: 72px; background: repeating-linear-gradient(to bottom, transparent 0 23px, #bbb 23px 24px); border-bottom: 0; }
+  /* 손으로 쓸 줄. 인쇄할 때 배경 그림은 빠지므로 진짜 밑줄로 그립니다. */
+  .sf-lines { display: block; }
+  .sf-lines i { display: block; height: 30px; border-bottom: 1px solid #999; }
+  .sf:has(.sf-choices) { align-items: flex-start; }
   .sf-choices { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; }
   .sheet-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .sheet-table th { background: #f2ece2; color: var(--green); padding: 6px 8px; border: 1px solid #bbb; text-align: left; }

@@ -173,7 +173,11 @@ import Base from '../layouts/Base.astro';
     back.hidden = step === 0;
     next.textContent = step === 2 ? '결과 보기' : '다음';
     next.disabled = !(q.multi ? Array.isArray(cur) && cur.length : cur);
-    if (focus === 'heading') { const h = body.querySelector('h2') as HTMLElement; h.tabIndex = -1; h.focus(); }
+    if (focus === 'heading') {
+      const h = body.querySelector('h2') as HTMLElement; h.tabIndex = -1; h.focus({ preventScroll: true });
+      // 새 질문 카드가 화면 맨 위에 오도록 (휴대폰에서 보기가 아래로 밀려 안 보이지 않게)
+      quiz.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     else if (focus) body.querySelector<HTMLElement>(`.opt[data-v="${focus}"]`)?.focus();
   }
 
@@ -268,6 +272,8 @@ import Base from '../layouts/Base.astro';
     quiz.hidden = true;
     result.hidden = false;
     if (save) { try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch { /* 무시 */ } track('check_done'); }
+    // 결과에서 안내 페이지로 갔다가 "뒤로"를 누르면 질문이 아니라 이 결과가 다시 보이도록 주소의 ?s= 를 뗍니다.
+    if (location.search) { try { history.replaceState(null, '', location.pathname); } catch { /* 무시 */ } }
     result.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (save) { const t = document.getElementById('r-title') as HTMLElement; t.tabIndex = -1; t.focus({ preventScroll: true }); }
   }
@@ -282,7 +288,7 @@ import Base from '../layouts/Base.astro';
   const s = new URLSearchParams(location.search).get('s');
   let saved: Answers | null = null;
   try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { saved = null; }
-  if (s && Q1.opts.some((o) => o.v === s)) { ans = { situ: s }; step = 1; render(); track('check_start'); }
+  if (s && Q1.opts.some((o) => o.v === s)) { ans = { situ: s }; step = 1; render(); track('check_start'); quiz.scrollIntoView({ block: 'start' }); }
   else if (saved && saved.situ) { ans = saved; step = 2; render(); finish(false); }
   else { render(); }
 </script>

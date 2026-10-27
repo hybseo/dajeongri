@@ -12,6 +12,15 @@ const isWide = (c) => c.kind === 'textarea';
       <p class="lead">아는 것부터, 쓰고 싶은 칸부터 채우세요. 비워 둔 칸은 파일에 나오지 않습니다.</p>
     </header>
 
+    <div class="restore no-print" id="restore" hidden>
+      <p style="margin:0">이 기기에 임시저장해 둔 노트가 있습니다.</p>
+      <div class="btn-row">
+        <button class="btn small" type="button" id="btn-load">이어서 쓰기</button>
+        <button class="btn small ghost" type="button" id="btn-forget">임시저장 지우기</button>
+      </div>
+    </div>
+    <p class="top-msg no-print" id="top-msg" role="status" hidden></p>
+
     <div class="notice">
       <p style="margin:0 0 8px"><strong>꼭 읽어 주세요</strong></p>
       <ul style="margin:0;padding-left:1.2em">
@@ -25,14 +34,6 @@ const isWide = (c) => c.kind === 'textarea';
       <p style="margin:0"><strong>다른 기기에서 쓰던 노트가 있나요?</strong> 다정리에서 내려받은 Word 파일을 고르면 쓰던 곳부터 이어 쓸 수 있습니다. 파일은 이 기기 안에서만 읽습니다.</p>
       <button class="btn small ghost" type="button" id="btn-import">내 파일 불러오기</button>
       <input type="file" id="file-import" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden />
-    </div>
-
-    <div class="restore no-print" id="restore" hidden>
-      <p style="margin:0">이 기기에 임시저장해 둔 노트가 있습니다.</p>
-      <div class="btn-row">
-        <button class="btn small" type="button" id="btn-load">이어서 쓰기</button>
-        <button class="btn small ghost" type="button" id="btn-forget">임시저장 지우기</button>
-      </div>
     </div>
 
     <div class="progress-bar no-print">
@@ -158,6 +159,9 @@ const isWide = (c) => c.kind === 'textarea';
 
 <style>
   .note-head { padding-bottom: 0; }
+  /* 진행 막대도 위에 붙어 있으므로 다음 칸으로 넘어갈 때 칸 제목이 그 아래에 보이게 더 띄웁니다. */
+  .sec, .actions { scroll-margin-top: 40px; }
+  .top-msg { margin: 14px 0 0; padding: 12px 16px; border-radius: 14px; background: var(--mint-t); color: #1f6e55; font-weight: 700; font-size: 15.5px; }
   .progress-bar { display: flex; align-items: center; gap: 14px; margin: 18px 0 20px; font-size: 15px; color: var(--ink-soft); position: sticky; top: 72px; z-index: 3; background: #fff; padding: 10px 0; }
   .pb-track { flex: 1; max-width: 420px; height: 9px; background: var(--mint-t); border-radius: 99px; overflow: hidden; }
   .pb-track i { display: block; height: 100%; width: 0; background: var(--amber); border-radius: 99px; transition: width .3s; }
@@ -204,6 +208,8 @@ const isWide = (c) => c.kind === 'textarea';
   .remove:hover { color: var(--clay); }
   .pager { display: flex; justify-content: space-between; gap: 10px; margin: 4px 0 8px; }
   .pager .btn { width: auto; }
+  #btn-prev { flex: none; white-space: nowrap; }
+  #btn-next { flex: 0 1 auto; text-wrap: balance; }
   .import-row { display: flex; align-items: center; justify-content: space-between; gap: 12px 18px; flex-wrap: wrap; border: 1.5px dashed #c9d6e5; border-radius: var(--radius); padding: 14px 20px; margin: 16px 0 0; font-size: 15.5px; color: var(--ink-soft); }
   .import-row strong { color: var(--ink); }
   .import-row .btn { flex: none; }
@@ -259,6 +265,9 @@ const isWide = (c) => c.kind === 'textarea';
   const form = document.getElementById('note') as HTMLFormElement;
   const status = document.getElementById('status') as HTMLElement;
   const say = (msg: string) => { status.textContent = msg; };
+  // 화면 위쪽에 바로 보이는 안내 (불러오기·되살리기처럼 처음에 일어나는 일)
+  const topMsg = document.getElementById('top-msg') as HTMLElement;
+  const topSay = (msg: string) => { topMsg.textContent = msg; topMsg.hidden = !msg; };
 
   /* ── 줄 추가·삭제 ─────────────────────────── */
   function addRow(sectionId: string, values?: Row) {
@@ -291,6 +300,7 @@ const isWide = (c) => c.kind === 'textarea';
       row.remove();
       if (!rows.children.length) addRow(rows.dataset.rows!);
       dirty = true;
+      tabSave();
     }
   });
   /* ── 모으기·채우기 ───────────────────────── */
@@ -365,6 +375,15 @@ const isWide = (c) => c.kind === 'textarea';
     ? ' 아이폰·아이패드에서는 7일 넘게 열지 않으면 임시저장이 지워질 수 있습니다. 공유 버튼에서 "홈 화면에 추가"를 해 두시면 더 오래 보관됩니다.'
     : '';
 
+  /* ── 쓰는 중인 내용 잠시 보관 (이 창에만) ──────
+     휴대폰은 다른 앱을 쓰다 오면 페이지를 새로 불러오는 일이 잦습니다. 그때 쓴 내용이 날아가지 않도록
+     창(탭)이 열려 있는 동안만 보관합니다. 창을 닫으면 브라우저가 지우므로 함께 쓰는 컴퓨터에도 남지 않습니다. */
+  const TAB = KEY + '-tab';
+  let tabTimer = 0;
+  const tabSave = () => { clearTimeout(tabTimer); tabTimer = window.setTimeout(() => { try { const d = collect(); if (isEmpty(d)) sessionStorage.removeItem(TAB); else sessionStorage.setItem(TAB, JSON.stringify(d)); } catch { /* 무시 */ } }, 400); };
+  const tabClear = () => { clearTimeout(tabTimer); try { sessionStorage.removeItem(TAB); } catch { /* 무시 */ } };
+  const tabGet = (): NoteData | null => { try { const s = sessionStorage.getItem(TAB); return s ? JSON.parse(s) : null; } catch { return null; } };
+
   /* ── 임시저장 (이 기기에만) ───────────────── */
   function storageGet(): NoteData | null {
     try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -374,13 +393,14 @@ const isWide = (c) => c.kind === 'textarea';
 
   document.getElementById('btn-load')?.addEventListener('click', () => {
     const d = storageGet();
-    if (d) { fill(d); say('임시저장한 내용을 불러왔습니다.'); refresh(); }
+    if (d) { fill(d); tabSave(); say('임시저장한 내용을 불러왔습니다.'); topSay('임시저장한 내용을 불러왔습니다. 이어서 쓰세요.'); refresh(); }
     restoreBox.hidden = true;
   });
   document.getElementById('btn-forget')?.addEventListener('click', () => {
     try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '-meta'); } catch { /* 무시 */ }
     restoreBox.hidden = true;
     say('이 기기에 저장된 노트를 지웠습니다.');
+    topSay('이 기기에 저장된 노트를 지웠습니다.');
   });
   document.getElementById('btn-save')?.addEventListener('click', () => {
     try {
@@ -406,7 +426,10 @@ const isWide = (c) => c.kind === 'textarea';
     form.reset();
     resetRows();
     try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '-meta'); } catch { /* 무시 */ }
+    tabClear();
     restoreBox.hidden = true;
+    topSay('');
+    document.querySelector('.import-row .import-msg')?.remove();
     dirty = false;
     refresh();
     say('모두 지웠습니다.');
@@ -456,6 +479,7 @@ const isWide = (c) => c.kind === 'textarea';
   importBtn.addEventListener('click', () => {
     if (!isEmpty(collect()) && !importArmed) {
       importArmed = true;
+      document.querySelector('.import-row .import-msg')?.remove();
       importBtn.textContent = '한 번 더 누르면 지금 쓴 내용 대신 파일을 불러옵니다';
       setTimeout(() => { importArmed = false; importBtn.textContent = '내 파일 불러오기'; }, 5000);
       return;
@@ -483,6 +507,7 @@ const isWide = (c) => c.kind === 'textarea';
         return;
       }
       fill(r.data as NoteData);
+      tabSave();
       restoreBox.hidden = true;
       show(0);
       dirty = false;
@@ -574,11 +599,11 @@ const isWide = (c) => c.kind === 'textarea';
     if (cur === secs.length - 1) { document.querySelector('.actions')?.scrollIntoView({ behavior: 'smooth' }); return; }
     show(cur + 1, true);
   });
-  form.addEventListener('input', () => { refresh(); markUnsaved(); dirty = true; });
+  form.addEventListener('input', () => { refresh(); markUnsaved(); dirty = true; tabSave(); });
   form.addEventListener('click', () => setTimeout(refresh, 0));
   document.querySelectorAll<HTMLElement>('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy!)?.click()));
 
-  /* 저장 표시: 임시저장을 누른 때를 보여 줍니다(자동 저장은 하지 않습니다. 함께 쓰는 컴퓨터를 위해). */
+  /* 저장 표시: 임시저장을 누른 때를 보여 줍니다(기기에 자동 저장은 하지 않습니다. 함께 쓰는 컴퓨터를 위해. 창이 열려 있는 동안만 잠시 보관). */
   const chip = document.getElementById('saved-chip') as HTMLElement;
   function markSaved() {
     const t = new Date();
@@ -589,6 +614,15 @@ const isWide = (c) => c.kind === 'textarea';
   function markUnsaved() { if (chip.classList.contains('ok')) { chip.textContent = '고친 내용은 아직 저장 안 함'; chip.classList.remove('ok'); } }
 
   resetRows();
+  // 같은 창에서 새로고침되었거나 휴대폰이 페이지를 다시 불러온 경우: 쓰던 내용을 되살립니다.
+  const tabDraft = tabGet();
+  if (tabDraft && !isEmpty(tabDraft)) {
+    fill(tabDraft);
+    dirty = true;
+    restoreBox.hidden = true;
+    say('이 창에서 쓰던 내용을 되살렸습니다. 창을 닫으면 사라지니 다 쓰면 "이 기기에 임시저장"이나 "Word 파일로 내려받기"를 눌러 주세요.');
+    topSay('이 창에서 쓰던 내용을 되살렸습니다. 창을 닫으면 사라지니 다 쓰면 "이 기기에 임시저장"이나 "Word 파일로 내려받기"를 눌러 주세요.');
+  }
   // 다른 페이지에서 특정 칸으로 바로 오는 경우 (예: /note/#bank)
   const fromHash = () => { const id = decodeURIComponent(location.hash.slice(1)); const i = secs.findIndex((s) => s.dataset.section === id); return i; };
   const startAt = fromHash();
