@@ -1,0 +1,272 @@
+---
+/*
+ * 3분 진단 (2026-10-27 추가).
+ *
+ * 질문 3개에 답하면 그 상황에 맞는 할 일 3~6가지를 순서대로 보여 줍니다.
+ * 답과 결과는 이 기기의 브라우저 안에서만 계산하고, 다정리 서버로 보내지 않습니다.
+ * 마지막 답은 이 기기에만 기억해 두었다가 다시 들어오면 결과를 바로 보여 줍니다.
+ *
+ * 규칙은 아래 <script> 의 build() 에 있습니다. 링크 대상은 모두 사이트 안의 실제 페이지입니다.
+ */
+import Base from '../layouts/Base.astro';
+---
+<Base title="3분 진단: 무엇부터 정리할까요" description="질문 3개에 답하면 지금 상황에 맞는 생전정리·사후 정리 할 일을 순서대로 알려 드립니다. 답은 이 기기에서만 처리됩니다.">
+  <div class="wrap narrow">
+    <header class="page-head">
+      <img class="page-illust" src="/illust/quiz.svg" alt="갈림길 표지판 앞에서 길을 가리키는 그림" width="320" height="240" />
+      <p class="kicker">3분 진단</p>
+      <h1>무엇부터 정리할까요</h1>
+      <p class="lead">질문 3개에 답하시면 지금 상황에 맞는 할 일만 순서대로 보여 드립니다. 답은 이 기기에서만 처리됩니다.</p>
+    </header>
+
+    <div class="quiz" id="quiz">
+      <div class="q-top"><span id="q-step">질문 1 / 3</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+      <div id="q-body"></div>
+      <div class="q-nav">
+        <button class="btn ghost" type="button" id="q-back" hidden>← 이전</button>
+        <button class="btn" type="button" id="q-next" disabled>다음</button>
+      </div>
+    </div>
+
+    <section class="result" id="result" hidden aria-live="polite">
+      <p class="kicker">진단 결과</p>
+      <h2 id="r-title">이 순서로 해 보세요</h2>
+      <p class="muted" id="r-sub"></p>
+      <ol class="todo" id="r-list"></ol>
+      <div class="btn-row no-print">
+        <button class="btn ghost" type="button" id="r-again">처음부터 다시</button>
+        <button class="btn ghost" type="button" id="r-print">결과 인쇄</button>
+      </div>
+      <p class="muted" style="margin-top:14px">이 결과는 일반적인 안내입니다. 실제 절차와 기한은 각 가이드의 출처와 해당 기관에서 확인하세요.</p>
+    </section>
+    <noscript><p class="notice">이 진단은 브라우저의 자바스크립트가 켜져 있어야 동작합니다. <a href="/start/">상황별 시작하기</a>를 이용해 주세요.</p></noscript>
+  </div>
+</Base>
+
+<style>
+  .quiz { background: #fff; border: 1px solid var(--line); border-radius: 26px; padding: 26px 28px; box-shadow: 0 20px 50px rgba(22, 33, 44, .08); }
+  .q-top { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 800; color: var(--ink-soft); }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 28px; height: 6px; border-radius: 9px; background: var(--line); }
+  .dots i.on { background: var(--green-2); }
+  .quiz :global(h2) { font-size: 26px; margin: 14px 0 6px; }
+  .quiz :global(.hint) { color: var(--ink-soft); font-size: 15.5px; margin: 0 0 16px; }
+  .quiz :global(.opts) { display: grid; gap: 10px; }
+  .quiz :global(.opt) { display: flex; align-items: center; gap: 14px; border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 16px; cursor: pointer; font-size: 17.5px; font-weight: 600; background: #fff; text-align: left; font-family: inherit; color: var(--ink); width: 100%; }
+  .quiz :global(.opt:hover) { border-color: #c9d6e5; }
+  .quiz :global(.opt small) { display: block; font-weight: 500; font-size: 14.5px; color: var(--ink-soft); }
+  .quiz :global(.opt .mk) { margin-left: auto; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; display: grid; place-items: center; color: #fff; font-size: 14px; }
+  .quiz :global(.opt.multi .mk) { border-radius: 7px; }
+  .quiz :global(.opt[aria-pressed='true']) { border-color: var(--green-2); background: #f3f7fc; }
+  .quiz :global(.opt[aria-pressed='true'] .mk) { background: var(--green-2); border-color: var(--green-2); }
+  .quiz :global(.opt[aria-pressed='true'] .mk::after) { content: '✓'; }
+  .quiz :global(.opt .ill) { width: 64px; height: 48px; border-radius: 10px; flex: none; }
+  .quiz :global(.opt.loss) { background: var(--clay-soft); border-color: #f2d3ae; }
+  .q-nav { display: flex; justify-content: space-between; margin-top: 18px; gap: 10px; }
+  .q-nav .btn { width: auto; }
+  #q-next { margin-left: auto; }
+  .q-nav .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .result { margin-top: 8px; }
+  .result h2 { margin-top: 4px; }
+  .todo { list-style: none; padding: 0; margin: 18px 0 22px; counter-reset: t; }
+  .todo :global(li) { counter-increment: t; position: relative; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 18px 18px 18px 66px; margin-bottom: 12px; }
+  .todo :global(li::before) { content: counter(t); position: absolute; left: 18px; top: 18px; width: 34px; height: 34px; border-radius: 50%; background: var(--green-2); color: #fff; font-weight: 800; display: grid; place-items: center; }
+  .todo :global(li.first) { border-color: #f2d3ae; background: var(--clay-soft); }
+  .todo :global(li.first::before) { background: var(--clay); }
+  .todo :global(b) { display: block; font-size: 19px; color: var(--ink); letter-spacing: -0.02em; }
+  .todo :global(p) { margin: 4px 0 10px; color: var(--ink-soft); font-size: 16px; }
+  .todo :global(a.go) { font-weight: 800; text-decoration: none; }
+  @media (max-width: 600px) { .quiz { padding: 20px 16px; } .q-nav .btn { flex: 1; } }
+  @media print { .quiz, .page-illust { display: none !important; } .result { display: block !important; } }
+</style>
+
+<script>
+  import { track } from '../scripts/analytics.js';
+
+  type Opt = { v: string; label: string; sub?: string; ill?: string; cls?: string };
+  type Q = { id: string; title: string; hint?: string; multi?: boolean; opts: Opt[] };
+  type Answers = Record<string, string | string[]>;
+
+  const KEY = 'dajeongri-check-v1';
+  // 오프라인 미리보기 꾸러미에서는 주소를 파일 주소로 바꿔 줍니다(tools/make-preview.mjs 의 __href).
+  const H = (p: string) => ((window as any).__href ? (window as any).__href(p) : p);
+  const Q1: Q = {
+    id: 'situ', title: '지금 어떤 상황이신가요?', opts: [
+      { v: 'me', label: '나를 위해 미리 정리하고 싶어요', sub: '건강할 때 천천히', ill: 'situ-me' },
+      { v: 'parents', label: '부모님과 함께 정리하고 싶어요', sub: '말 꺼내는 법부터', ill: 'situ-parents' },
+      { v: 'urgent', label: '시간이 많지 않아요', sub: '꼭 필요한 것만 먼저', ill: 'situ-time' },
+      { v: 'after', label: '가족을 떠나보냈어요', sub: '기한이 있는 일부터', ill: 'situ-after', cls: 'loss' },
+    ],
+  };
+  const PLAN: Q[] = [
+    {
+      id: 'done', multi: true, title: '이미 해 두신 것을 모두 골라 주세요', hint: '해당하는 것이 없으면 "아직 아무것도"를 고르세요.', opts: [
+        { v: 'note', label: '엔딩노트나 메모를 써 두었다' },
+        { v: 'will', label: '유언장을 써 두었다' },
+        { v: 'lst', label: '사전연명의료의향서를 등록했다' },
+        { v: 'money', label: '은행·보험·빚을 한곳에 정리했다' },
+        { v: 'phone', label: '휴대폰·계정 여는 방법을 가족에게 알렸다' },
+        { v: 'none', label: '아직 아무것도' },
+      ],
+    },
+    {
+      id: 'worry', title: '가장 마음 쓰이는 것은 무엇인가요?', opts: [
+        { v: 'money', label: '재산과 빚', sub: '가족이 무엇이 있는지 모를까 봐' },
+        { v: 'care', label: '아플 때의 치료', sub: '연명의료, 호스피스' },
+        { v: 'funeral', label: '장례와 묘지', sub: '방식, 비용, 모셔질 곳' },
+        { v: 'digital', label: '휴대폰·사진·계정', sub: '잠금, 사진, 메신저' },
+        { v: 'heart', label: '가족에게 남길 말', sub: '고마움, 부탁' },
+        { v: 'alone', label: '혼자 지내고 있어 걱정', sub: '연락할 가족이 마땅치 않음' },
+      ],
+    },
+  ];
+  const AFTER: Q[] = [
+    {
+      id: 'when', title: '돌아가신 지 얼마나 되었나요?', opts: [
+        { v: 'w1', label: '일주일이 안 됐어요' },
+        { v: 'm1', label: '한 달이 안 됐어요' },
+        { v: 'm3', label: '한 달에서 석 달 사이예요' },
+        { v: 'over', label: '석 달이 넘었어요' },
+      ],
+    },
+    {
+      id: 'has', multi: true, title: '해당하는 것을 모두 골라 주세요', hint: '모르면 "잘 모르겠어요"를 고르세요.', opts: [
+        { v: 'debt', label: '빚이 있었을 수 있어요' },
+        { v: 'pension', label: '국민연금을 받고 계셨어요' },
+        { v: 'house', label: '집이나 땅이 있었어요' },
+        { v: 'car', label: '자동차가 있었어요' },
+        { v: 'phone', label: '휴대폰 사진·연락처를 남기고 싶어요' },
+        { v: 'unknown', label: '잘 모르겠어요' },
+      ],
+    },
+  ];
+
+  const body = document.getElementById('q-body') as HTMLElement;
+  const stepEl = document.getElementById('q-step') as HTMLElement;
+  const dots = Array.from(document.querySelectorAll('.dots i'));
+  const back = document.getElementById('q-back') as HTMLButtonElement;
+  const next = document.getElementById('q-next') as HTMLButtonElement;
+  const quiz = document.getElementById('quiz') as HTMLElement;
+  const result = document.getElementById('result') as HTMLElement;
+  let ans: Answers = {};
+  let step = 0;
+
+  const flow = (): Q[] => [Q1, ...(ans.situ === 'after' ? AFTER : PLAN)];
+  const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+
+  function render() {
+    const q = flow()[step];
+    stepEl.textContent = `질문 ${step + 1} / 3`;
+    dots.forEach((d, i) => d.classList.toggle('on', i <= step));
+    const cur = ans[q.id];
+    body.innerHTML = `<h2>${esc(q.title)}</h2>${q.hint ? `<p class="hint">${esc(q.hint)}</p>` : ''}<div class="opts">` +
+      q.opts.map((o) => {
+        const on = q.multi ? Array.isArray(cur) && cur.includes(o.v) : cur === o.v;
+        return `<button type="button" class="opt ${q.multi ? 'multi' : ''} ${o.cls ?? ''}" data-v="${o.v}" aria-pressed="${on}">` +
+          (o.ill ? `<img class="ill" src="${H(`/illust/${o.ill}.svg`)}" alt="" width="64" height="48">` : '') +
+          `<span>${esc(o.label)}${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</span><span class="mk"></span></button>`;
+      }).join('') + '</div>';
+    back.hidden = step === 0;
+    next.textContent = step === 2 ? '결과 보기' : '다음';
+    next.disabled = !(q.multi ? Array.isArray(cur) && cur.length : cur);
+  }
+
+  body.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.opt');
+    if (!b) return;
+    const q = flow()[step];
+    const v = b.dataset.v!;
+    if (q.multi) {
+      let list = Array.isArray(ans[q.id]) ? [...(ans[q.id] as string[])] : [];
+      const exclusive = v === 'none' || v === 'unknown';
+      if (exclusive) list = list.includes(v) ? [] : [v];
+      else { list = list.filter((x) => x !== 'none' && x !== 'unknown'); list = list.includes(v) ? list.filter((x) => x !== v) : [...list, v]; }
+      ans[q.id] = list;
+      render();
+    } else {
+      const changedSitu = q.id === 'situ' && ans.situ && ans.situ !== v;
+      ans[q.id] = v;
+      if (changedSitu) ans = { situ: v };
+      render();
+      setTimeout(() => go(1), 180); // 하나만 고르는 질문은 고르면 바로 다음으로
+    }
+  });
+  function go(d: number) {
+    const q = flow()[step];
+    if (d > 0 && !(q.multi ? (ans[q.id] as string[] | undefined)?.length : ans[q.id])) return;
+    if (d > 0 && step === 2) { finish(); return; }
+    step = Math.max(0, Math.min(2, step + d));
+    render();
+  }
+  back.addEventListener('click', () => go(-1));
+  next.addEventListener('click', () => go(1));
+
+  type Todo = { t: string; d: string; href: string; go: string };
+  function build(a: Answers): { title: string; sub: string; list: Todo[] } {
+    const L: Todo[] = [];
+    const add = (t: string, d: string, href: string, go = '바로 가기') => { if (!L.some((x) => x.href === href)) L.push({ t, d, href, go }); };
+    if (a.situ === 'after') {
+      const has = (a.has as string[]) ?? [];
+      if (a.when === 'w1') {
+        add('첫 3일에 챙길 것부터', '사망진단서를 여러 부 받고, 상조 가입 여부를 확인하고, 고인의 예금은 아직 건드리지 않습니다.', '/after/first-days/', '첫 3일 안내');
+        add('부고 알리기', '빈칸을 채우면 부고 문자가 만들어집니다.', '/tools/obituary/', '부고 문자 만들기');
+      }
+      if (a.when === 'w1' || a.when === 'm1') add('사망신고와 재산 조회', '사망 사실을 안 날부터 1개월 안에 사망신고. 이때 안심상속 원스톱서비스를 함께 신청하면 재산과 빚을 한 번에 조회할 수 있습니다.', '/after/first-month/', '한 달 안에 할 일');
+      add('내 마감 날짜 계산하기', '돌아가신 날을 넣으면 상속포기·상속세 신고 등 마감 8가지를 날짜로 보여 드립니다.', '/tools/deadlines/', '기한 계산기');
+      if (has.includes('debt') || has.includes('unknown') || a.when === 'over') add(a.when === 'over' ? '석 달이 지났다면: 상속포기·한정승인 기한 확인' : '빚이 걱정되면: 상속을 받을지 정하기', a.when === 'over' ? '상속포기·한정승인은 상속이 시작된 것을 안 날부터 3개월 안에 해야 합니다. 나중에 빚을 알게 된 경우의 절차는 가이드에서 확인하세요.' : '상속을 그대로 받을지, 포기할지, 한정승인할지 3개월 안에 정해야 합니다. 그 전에 고인의 예금을 쓰거나 재산을 팔면 안 됩니다.', '/guide/renounce/', '상속포기·한정승인');
+      if (has.includes('pension')) add('국민연금공단에 알리고 유족연금 확인', '연금 지급을 멈추고, 유족연금이나 사망일시금 대상인지 함께 확인합니다.', '/guide/insurance-pension/', '보험과 연금');
+      if (has.includes('house') || has.includes('car')) add('집·땅·자동차 명의 바꾸기', '부동산 취득세 신고와 자동차 이전등록에는 6개월 기한이 있습니다. 상속등기도 함께 챙기세요.', '/after/six-months/', '6개월 안에 할 일');
+      if (has.includes('phone')) add('휴대폰 해지 전에 사진·연락처 먼저', '해지하면 되돌리기 어렵습니다. 사진과 연락처를 먼저 옮겨 두세요.', '/guide/photos/', '휴대폰과 사진');
+      add('나에게 필요한 절차만 모아 보기', '몇 가지 질문에 답하면 해지·신고할 것만 골라 체크리스트로 만들어 드립니다.', '/tools/my-procedures/', '절차 목록 만들기');
+      return { title: '지금 이 순서로 해 보세요', sub: '마음이 힘드실 때입니다. 위에서부터 하나씩만 하셔도 됩니다.', list: L };
+    }
+    const done = (a.done as string[]) ?? [];
+    const w = a.worry as string;
+    if (a.situ === 'parents') add('부모님께 이야기 꺼내기', '좋은 때와 첫마디 예시, 피하면 좋은 말을 정리했습니다.', '/guide/talk-parents/', '이야기 꺼내는 법');
+    if (a.situ === 'urgent') add('시간이 많지 않을 때 꼭 할 것', '정말 필요한 몇 가지만 짧게 정리한 안내입니다.', '/start/urgent/', '안내 보기');
+    if (!done.includes('note')) add('엔딩노트 첫 칸부터', '"나에 대해"와 "꼭 연락해야 할 사람"부터 채워 보세요. 비워 둔 칸은 파일에 나오지 않습니다.', '/note/', '엔딩노트 쓰기');
+    const byWorry: Record<string, () => void> = {
+      money: () => {
+        if (!done.includes('money')) add('은행·보험·빚을 한곳에', '계좌번호 없이 기관 이름만 적어도 가족이 조회할 수 있습니다. 빚과 보증은 꼭 함께 적어 두세요.', '/note/', '엔딩노트의 재산 칸');
+        if (!done.includes('will')) add('재산을 누구에게 줄지 정하고 싶다면 유언', '유언은 민법이 정한 방식을 지켜야 효력이 있습니다.', '/guide/will/', '유언 방식');
+      },
+      care: () => { if (!done.includes('lst')) add('사전연명의료의향서 알아보기', '연명의료를 받을지에 대한 뜻은 등록기관에서 직접 작성·등록해야 효력이 생깁니다.', '/guide/life-sustaining/', '연명의료의향서'); add('호스피스·완화의료', '대상 질환과 이용 방법, 비용을 정리했습니다.', '/guide/hospice/', '호스피스 안내'); },
+      funeral: () => { add('장례 방식과 비용', '매장·화장·자연장의 차이와 장례비, 상조 확인법을 정리했습니다.', '/guide/funeral-types/', '장례 방식'); add('모셔질 곳 정하기', '봉안당, 자연장, 기존 묘 정리까지 미리 정해 두면 좋은 것.', '/guide/burial/', '묘지와 안치'); },
+      digital: () => { if (!done.includes('phone')) add('휴대폰 잠금 카드 만들기', '잠금을 푸는 방법을 적어 봉투에 넣어 두는 인쇄용 카드입니다.', '/tools/cards/', '카드 만들기'); add('계정과 사진 정리', '서비스별 사후 기능과 사진 남기는 법.', '/guide/digital/', '디지털 유산'); },
+      heart: () => { add('남기는 편지 쓰기', '쓰기 쉬운 순서와 첫 문장 예시가 있습니다.', '/guide/letters/', '편지 쓰는 법'); },
+      alone: () => { add('혼자 지내는 분이 미리 할 일', '연락할 사람, 장례와 사후 정리를 맡길 방법을 정리했습니다.', '/guide/living-alone/', '혼자 사는 분 안내'); add('지갑용 긴급 연락 카드', '쓰러지거나 입원할 때 누구에게 연락할지, 서류를 어디에 두었는지 적어 두는 카드입니다.', '/tools/cards/', '카드 만들기'); },
+    };
+    byWorry[w]?.();
+    if (a.situ === 'urgent' && !done.includes('lst')) add('사전연명의료의향서', '뜻을 남기려면 등록기관에서 직접 작성해야 합니다.', '/guide/life-sustaining/', '연명의료의향서');
+    if (a.situ === 'urgent' && !done.includes('phone')) add('휴대폰 여는 방법 남기기', '가족이 사진과 연락처를 꺼낼 수 있게.', '/tools/cards/', '휴대폰 잠금 카드');
+    add('정리 체크리스트로 전체 보기', '서류·재산·디지털·관계 순서로 하나씩 표시해 보세요. 표시는 이 기기에만 남습니다.', '/checklist/', '체크리스트');
+    const title = a.situ === 'urgent' ? '꼭 필요한 것부터, 이 순서로' : '이 순서로 해 보세요';
+    return { title, sub: '한 번에 다 하지 않아도 됩니다. 이번 주에는 1번 하나만 해도 충분합니다.', list: L.slice(0, 6) };
+  }
+
+  function finish(save = true) {
+    const r = build(ans);
+    (document.getElementById('r-title') as HTMLElement).textContent = r.title;
+    (document.getElementById('r-sub') as HTMLElement).textContent = r.sub;
+    (document.getElementById('r-list') as HTMLElement).innerHTML = r.list.map((x, i) =>
+      `<li class="${i === 0 ? 'first' : ''}"><b>${esc(x.t)}</b><p>${esc(x.d)}</p><a class="go" href="${H(x.href)}">${esc(x.go)} →</a></li>`).join('');
+    quiz.hidden = true;
+    result.hidden = false;
+    if (save) { try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch { /* 무시 */ } track('check_done'); }
+    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.getElementById('r-again')?.addEventListener('click', () => {
+    ans = {}; step = 0;
+    try { localStorage.removeItem(KEY); } catch { /* 무시 */ }
+    result.hidden = true; quiz.hidden = false; render();
+  });
+  document.getElementById('r-print')?.addEventListener('click', () => window.print());
+
+  // 시작: 첫 화면에서 상황을 고르고 왔으면(?s=) 질문 2부터, 전에 한 진단이 있으면 결과부터
+  const s = new URLSearchParams(location.search).get('s');
+  let saved: Answers | null = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { saved = null; }
+  if (s && Q1.opts.some((o) => o.v === s)) { ans = { situ: s }; step = 1; render(); track('check_start'); }
+  else if (saved && saved.situ) { ans = saved; step = 2; render(); finish(false); }
+  else { render(); }
+</script>

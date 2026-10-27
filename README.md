@@ -1,7 +1,8 @@
 # 다정리
 
-생전정리 무료 정보·체험 사이트입니다. 엔딩노트 작성기, 체크리스트, 상속 기한 계산기,
-부고 문자 만들기, 유족 해지·신고 체크리스트, 정리 가이드 15종을 제공합니다.
+생전정리 무료 정보·체험 사이트입니다. 엔딩노트 작성기, 체크리스트, 3분 진단, 상속 기한 계산기,
+나에게 필요한 사후 절차, 부고 문자 만들기, 유족 해지·신고 체크리스트, 휴대폰 잠금 카드·지갑 긴급 카드,
+정리 가이드를 제공합니다.
 
 서치잡(searchjob.co.kr)과 같은 구조입니다. 아스트로(Astro)로 정적 사이트를 짓고,
 클라우드플레어가 저장소를 받아 `npm run build` 로 빌드해서 `dist` 를 내보냅니다.
@@ -14,22 +15,37 @@
 - **개인정보를 받지 않습니다.** 상담 신청, 운영자 소개, 유료 상품은 아직 없습니다(사이트맵 2단계).
 - **확인한 정보만 씁니다.** 가이드마다 확인일과 출처를 둡니다. 내용 확인일: 2026년 10월 27일.
 
-## 페이지 (43개)
+## 디자인 (2026-10-27 개편, 최종 시안)
+
+- 바탕·색: 흰 바탕, 남색(#2C5282 주 버튼 / #1E3A5A 제목·로고), 호박색(#E8A13A 포인트, #B5650F 작은 강조 글자),
+  크림색(#FFF4E6 그림 칸), 민트(#2E9D7B 완료·안심), 연회색(#F5F7F9 구역). 값은 `src/styles/global.css` 맨 위.
+- 글꼴: 프리텐다드(SIL OFL 1.1) 한 가지. `public/fonts/pretendard/` 에 넣어 두었고(글자 조각 92개),
+  화면에 필요한 조각만 받습니다. 오프라인 저장 목록에서는 빼고, 쓴 조각만 그때그때 저장합니다(`pwa.mjs`).
+- 그림: `public/illust/*.svg` 12장. 부모님(흰머리·안경·가디건)과 자녀(검은 머리·하늘색 스웨터) 두 사람이
+  모든 장면에 같은 모습으로 나옵니다. 고칠 때는 `python3 tools/illust.py` 를 고쳐 다시 실행합니다(svg 직접 수정 금지).
+- 로고·앱 아이콘·파비콘·공유 썸네일: `node tools/make-icons.mjs` (작업 컴퓨터의 playwright 사용).
+- 머리말: 로고 · 처음 오셨나요 · 정리 도구 · 정리 가이드 · 떠나보낸 후 · [가족을 떠나보냈어요 →](첫 3일 안내) · [가 / 가+].
+
+## 페이지 (48개)
 
 | 묶음 | 주소 | 만드는 곳 |
 |---|---|---|
 | 첫 화면 | `/` | `src/pages/index.astro` |
 | 시작하기 | `/start/`, `/start/me/`, `/start/parents/`, `/start/urgent/` | 원고 데이터 → `src/pages/[...slug].astro` |
 | | `/start/after/` | `src/pages/start/after.astro` (떠나보낸 후로 안내) |
-| 정리 도구 | `/tools/` | 원고 데이터 → `[...slug].astro` |
+| 3분 진단 | `/check/` | `src/pages/check.astro` (질문 3개 → 할 일 순서. 규칙은 파일 안 `build()`) |
+| 정리 도구 | `/tools/` | `src/pages/tools/index.astro` (세 묶음 카드) |
 | | `/checklist/`, `/note/` | 각자의 파일 |
 | | `/tools/deadlines/` | `src/pages/tools/deadlines.astro` + `src/components/DeadlineCalc.astro` + `src/scripts/deadlines.js` |
 | | `/tools/obituary/` | `src/pages/tools/obituary.astro` |
 | | `/tools/after-checklist/` | `src/pages/tools/after-checklist.astro` (항목: `src/data/after-checklist.js`) |
+| | `/tools/my-procedures/` | `src/pages/tools/my-procedures.astro` (같은 항목 중 `need` 조건으로 고름, 체크 표시는 위 체크리스트와 공유) |
+| | `/tools/cards/` | `src/pages/tools/cards.astro` (휴대폰 잠금 카드·지갑 긴급 카드 인쇄. 입력 저장·전송 없음, 잠금 번호는 입력받지 않음) |
 | | `/tools/print/` | `src/pages/tools/print.astro` (항목은 작성기와 같은 `src/data/note.js`) |
 | 정리 가이드 | `/guide/` | `src/pages/guide/index.astro` (묶음: `src/data/guides.js`) |
 | | `/guide/will/` 등 먼저 만든 4개 | `src/pages/guide/*.astro` |
-| | 원고에서 옮긴 11개 | 원고 데이터 → `src/pages/guide/[slug].astro` |
+| | 새 가이드 2개 (2026-10-27): `/guide/burial/`(묘지와 안치), `/guide/living-alone/`(혼자 사는 분) | 원고 데이터 → `[slug].astro`. `/guide/funeral-cost/` 에 비용 한눈표 추가 |
+| | 원고에서 옮긴 11개 + 새 2개 | 원고 데이터 → `src/pages/guide/[slug].astro` |
 | 떠나보낸 후 | `/after/` 외 5개 | 원고 데이터 → `[...slug].astro` (`/after/` 에는 기한 계산기가 들어감) |
 | 다정리 안내 | `/about/`, `/glossary/` | 원고 데이터 → `[...slug].astro` |
 | | `/faq/`, `/links/` | 각자의 파일 (내용: `src/data/extra.json`) |
@@ -48,6 +64,8 @@
 - 글자 크게 보기: 머리말의 "가+" 버튼. 설정은 그 기기에만 기억.
 - 가족에게 보내기: 가이드·시작하기·떠나보낸 후 페이지. 휴대폰 공유 기능 또는 주소 복사.
 - 휴대폰 하단 탭: 처음 · 엔딩노트 · 정리 도구 · 가이드.
+- 엔딩노트 작성기: 왼쪽 13단계 · 가운데 한 칸씩 · 오른쪽 Word 미리보기 · 위 진행률과 저장 표시. 자동 저장은 하지 않습니다(함께 쓰는 컴퓨터 배려).
+- 가이드 공통 틀(`src/layouts/Guide.astro`): 맨 위 그림, 확인일·출처 수 배지, 소제목으로 만든 "이 가이드의 순서", 함께 쓰면 좋은 도구.
 - 웹앱(PWA): 홈 화면 설치, 인터넷 없이 작동. `pwa.mjs`, `src/sw-template.js`, `public/manifest.webmanifest`.
   서비스 워커는 서버가 `Vary` 머리말을 붙여도 저장본을 찾도록 `ignoreVary` 를 씁니다.
 

@@ -17,18 +17,29 @@ const CRUMB = {
 
 export function getStaticPaths() {
   return content.pages
-    .filter((p) => p.id !== 'start-after') // /start/after/ 는 /after/ 로 넘기는 별도 페이지
+    .filter((p) => p.id !== 'start-after' && p.id !== 'tools') // /start/after/ 는 /after/ 로 넘기는 별도 페이지, /tools/ 는 tools/index.astro
     .map((p) => ({ params: { slug: p.url.replace(/^\/|\/$/g, '') }, props: { p } }));
 }
 const { p } = Astro.props;
 const top = p.url.split('/')[1];
 const crumb = CRUMB[top] && p.url !== CRUMB[top][0] ? CRUMB[top] : null;
 const sharable = top === 'after' || top === 'start';
+/* 상황별 페이지 맨 위 그림 (public/illust, tools/illust.py 로 그림) */
+const ILLUST = {
+  '/start/': ['quiz', '갈림길 표지판 앞에서 길을 가리키는 그림'],
+  '/start/me/': ['situ-me', '혼자 공책을 펴고 정리하는 그림'],
+  '/start/parents/': ['situ-parents', '부모님과 자녀가 소파에 나란히 앉아 휴대폰을 보는 그림'],
+  '/start/urgent/': ['situ-time', '자녀가 부모님 어깨를 감싸 안은 그림'],
+  '/after/': ['situ-after', '가디건이 걸린 빈 의자와 찻잔이 놓인 조용한 그림'],
+  '/after/belongings/': ['done', '리본 달린 공책과 완료 표시'],
+};
+const ill = ILLUST[p.url];
 ---
 <Base title={p.title} description={p.meta}>
   <article class="wrap narrow article">
     <header class="page-head">
       {crumb && <p class="crumb"><a href={crumb[0]}>{crumb[1]}</a></p>}
+      {ill && <img class="page-illust" src={`/illust/${ill[0]}.svg`} alt={ill[1]} width="320" height="240" />}
       <h1>{p.title}</h1>
       {sharable && <div class="share-row no-print"><button class="share-btn" type="button" data-share>가족에게 보내기</button></div>}
     </header>

@@ -5,10 +5,10 @@ import { noteSections } from '../data/note.js';
 const isWide = (c) => c.kind === 'textarea';
 ---
 <Base title="엔딩노트 작성기" description="재산, 보험, 디지털 계정, 물건 나눔, 연락할 사람, 남기는 말을 항목별로 쓰고 Word 파일로 내려받는 무료 엔딩노트. 작성 내용은 서버에 저장되지 않습니다.">
-  <div class="wrap narrow">
-    <header class="page-head">
+  <div class="wrap">
+    <header class="page-head note-head">
       <p class="kicker">무료 엔딩노트</p>
-      <h1>엔딩노트 작성기</h1>
+      <h1>나의 엔딩노트</h1>
       <p class="lead">아는 것부터, 쓰고 싶은 칸부터 채우세요. 비워 둔 칸은 파일에 나오지 않습니다.</p>
     </header>
 
@@ -29,11 +29,25 @@ const isWide = (c) => c.kind === 'textarea';
       </div>
     </div>
 
+    <div class="progress-bar no-print">
+      <div class="pb-track"><i id="pb-fill"></i></div>
+      <span id="pb-text">13개 중 0개 작성</span>
+      <span class="saved" id="saved-chip">아직 저장 안 함</span>
+    </div>
+
+    <div class="note-layout">
+      <nav class="step-list no-print" aria-label="엔딩노트 항목">
+        {noteSections.map((s, i) => (
+          <button type="button" class="step" data-go={i}><span class="d">{i + 1}</span><span class="t">{s.title}</span></button>
+        ))}
+      </nav>
+      <div class="note-main">
     <form id="note" onsubmit="return false" autocomplete="off">
       {noteSections.map((s, i) => (
         <section class="sec" data-section={s.id} data-type={s.type}>
+          <p class="sec-no no-print">{i + 1} / {noteSections.length}</p>
           <h2><span class="num">{i + 1}</span>{s.title}</h2>
-          {s.hint && <p class="muted">{s.hint}</p>}
+          {s.hint && <p class="why"><span aria-hidden="true">💡</span><span><strong>도움말</strong> {s.hint}</span></p>}
 
           {s.type === 'fields' && (
             <div class="fields">
@@ -92,6 +106,20 @@ const isWide = (c) => c.kind === 'textarea';
         </section>
       ))}
     </form>
+        <div class="pager no-print">
+          <button class="btn ghost" type="button" id="btn-prev">← 이전</button>
+          <button class="btn" type="button" id="btn-next">다음 →</button>
+        </div>
+      </div>
+      <aside class="preview no-print" aria-label="미리보기">
+        <div class="pv-cap"><span>미리보기 (Word 파일 모양)</span></div>
+        <div class="sheet" id="preview"></div>
+        <div class="btn-row pv-btns">
+          <button class="btn small" type="button" data-proxy="btn-docx">Word로 내려받기</button>
+          <button class="btn small ghost" type="button" data-proxy="btn-save">이 기기에 임시저장</button>
+        </div>
+      </aside>
+    </div>
 
     <div class="actions no-print">
       <h2>다 쓰셨나요?</h2>
@@ -111,42 +139,85 @@ const isWide = (c) => c.kind === 'textarea';
 </Base>
 
 <style>
-  .sec { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 22px 22px; margin: 24px 0; }
-  .sec h2 { margin: 20px 0 8px; display: flex; align-items: center; gap: 12px; font-size: 24px; }
-  .num { flex: 0 0 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; font-family: var(--sans); font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
+  .note-head { padding-bottom: 0; }
+  .progress-bar { display: flex; align-items: center; gap: 14px; margin: 18px 0 20px; font-size: 15px; color: var(--ink-soft); position: sticky; top: 72px; z-index: 3; background: #fff; padding: 10px 0; }
+  .pb-track { flex: 1; max-width: 420px; height: 9px; background: var(--mint-t); border-radius: 99px; overflow: hidden; }
+  .pb-track i { display: block; height: 100%; width: 0; background: var(--amber); border-radius: 99px; transition: width .3s; }
+  .saved { margin-left: auto; font-size: 14px; font-weight: 700; padding: 6px 12px; border-radius: 99px; background: var(--bg); color: var(--ink-soft); }
+  .saved.ok { background: var(--mint-t); color: #1f6e55; }
+  .note-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
+  .step-list { position: sticky; top: 140px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 8px; display: grid; gap: 2px; }
+  .step { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: inherit; font-size: 15.5px; color: var(--ink); background: none; border: 0; border-radius: 10px; padding: 9px 10px; cursor: pointer; line-height: 1.35; }
+  .step:hover { background: var(--bg); }
+  .step .d { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+  .step.done .d { background: var(--mint); border-color: var(--mint); color: #fff; }
+  .step.done .d { font-size: 0; }
+  .step.done .d::after { content: '✓'; font-size: 13px; }
+  .step[aria-current='step'] { background: var(--clay-soft); font-weight: 800; }
+  .step[aria-current='step'] .d { border-color: var(--amber); color: var(--clay); }
+  .sec { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 10px 28px 26px; margin: 0 0 18px; }
+  .sec:not(.is-current) { display: none; }
+  .sec-no { margin: 18px 0 0; font-size: 14px; font-weight: 800; color: var(--clay); }
+  .sec h2 { margin: 2px 0 10px; display: flex; align-items: center; gap: 12px; font-size: 28px; }
+  .num { display: none; }
+  .why { display: flex; gap: 10px; background: var(--bg); border-radius: 14px; padding: 12px 16px; font-size: 15.5px; color: var(--ink-soft); margin: 6px 0 20px; }
+  .why strong { color: var(--green); margin-right: 4px; }
   .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px; }
   .field.wide, .fields .field:has(textarea), .fields .field:has(fieldset) { grid-column: 1 / -1; }
   label { display: block; }
   .lab, .choice legend { display: block; font-weight: 700; font-size: 16px; margin-bottom: 6px; color: var(--ink); }
   input[type=text], input[type=date], textarea, select {
-    width: 100%; font: inherit; font-size: 17px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink);
+    width: 100%; font: inherit; font-size: 17px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink);
   }
   textarea { resize: vertical; min-height: 96px; }
-  input:focus, textarea:focus, select:focus { border-color: var(--green-2); outline: none; box-shadow: 0 0 0 3px rgba(63, 101, 96, .15); }
+  input:focus, textarea:focus, select:focus { border-color: var(--green-2); outline: none; box-shadow: 0 0 0 3px rgba(44, 82, 130, .15); }
   small { display: block; color: var(--ink-soft); font-size: 15px; margin-top: 6px; }
   .choice { border: 0; padding: 0; margin: 0; }
   .choice legend { padding: 0; }
   .opt { display: inline-flex; align-items: center; gap: 8px; margin: 4px 16px 4px 0; font-size: 17px; cursor: pointer; }
-  .opt input { width: 22px; height: 22px; accent-color: var(--green); }
-  .rows { display: grid; gap: 14px; margin: 12px 0; }
-  .row { border: 1px dashed var(--line); border-radius: 12px; padding: 14px; background: var(--paper); }
+  .opt input { width: 22px; height: 22px; accent-color: var(--green-2); }
+  .rows { display: grid; gap: 12px; margin: 12px 0; }
+  .row { border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: var(--bg); }
   .row-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .row-fields label.wide { grid-column: 1 / -1; }
   .row-fields:has(> label:nth-child(2):last-child) { grid-template-columns: 1fr; }
+  .add { width: 100%; border-style: dashed !important; }
   .remove { margin-top: 10px; background: none; border: 0; color: var(--ink-soft); font: inherit; font-size: 15px; text-decoration: underline; cursor: pointer; padding: 4px 0; }
   .remove:hover { color: var(--clay); }
+  .pager { display: flex; justify-content: space-between; gap: 10px; margin: 4px 0 8px; }
+  .pager .btn { width: auto; }
   .restore { background: var(--clay-soft); border-radius: var(--radius); padding: 16px 20px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .preview { position: sticky; top: 140px; }
+  .pv-cap { font-size: 14px; color: var(--ink-soft); margin-bottom: 8px; }
+  .sheet { background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 16px 40px rgba(22, 33, 44, .10); padding: 22px 20px; min-height: 320px; font-size: 13px; line-height: 1.6; overflow: hidden; }
+  .sheet :global(h4) { font-size: 15px; font-weight: 800; color: var(--green); margin: 0 0 8px; border-bottom: 2px solid var(--green); padding-bottom: 4px; }
+  .sheet :global(table) { font-size: 12px; margin-bottom: 10px; }
+  .sheet :global(th), .sheet :global(td) { padding: 4px 6px; border: 1px solid var(--line); }
+  .sheet :global(.empty) { color: #9aa5b1; }
+  .pv-btns { margin-top: 12px; }
+  .pv-btns .btn { flex: 1; }
   .actions { margin-top: 32px; }
   .actions h2 { margin-top: 32px; }
   .status { min-height: 1.5em; margin-top: 12px; font-weight: 700; color: var(--green); }
-  @media (max-width: 640px) {
+  @media (max-width: 1100px) {
+    .note-layout { grid-template-columns: 220px minmax(0, 1fr); }
+    .preview { display: none; }
+  }
+  @media (max-width: 760px) {
+    .progress-bar { top: 60px; }
+    .note-layout { grid-template-columns: 1fr; }
+    .step-list { position: static; display: flex; overflow-x: auto; gap: 6px; padding: 6px; border-radius: 14px; }
+    .step { flex: none; width: auto; white-space: nowrap; padding: 8px 12px; }
     .fields, .row-fields { grid-template-columns: 1fr; }
     .sec { padding: 6px 16px 18px; }
+    .saved { display: none; }
   }
   @media print {
-    .sec { border: 0; padding: 0; break-inside: auto; }
+    .sec, .sec:not(.is-current) { display: block; border: 0; padding: 0; break-inside: auto; }
+    .why { background: none; padding: 0; }
     .row { background: #fff; }
     input, textarea, select { border: 0; border-bottom: 1px solid #999; border-radius: 0; padding: 4px 0; }
+    .note-layout { display: block; }
   }
 </style>
 
@@ -260,11 +331,11 @@ const isWide = (c) => c.kind === 'textarea';
 
   document.getElementById('btn-load')?.addEventListener('click', () => {
     const d = storageGet();
-    if (d) { fill(d); say('임시저장한 내용을 불러왔습니다.'); }
+    if (d) { fill(d); say('임시저장한 내용을 불러왔습니다.'); refresh(); }
     restoreBox.hidden = true;
   });
   document.getElementById('btn-forget')?.addEventListener('click', () => {
-    try { localStorage.removeItem(KEY); } catch { /* 무시 */ }
+    try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '-meta'); } catch { /* 무시 */ }
     restoreBox.hidden = true;
     say('이 기기에 저장된 노트를 지웠습니다.');
   });
@@ -272,6 +343,7 @@ const isWide = (c) => c.kind === 'textarea';
     try {
       localStorage.setItem(KEY, JSON.stringify(collect()));
       say('이 기기에 임시저장했습니다. 다음에 이 페이지를 열면 이어서 쓸 수 있습니다.');
+      markSaved();
     } catch {
       say('이 브라우저에서는 임시저장을 할 수 없습니다. 파일로 내려받아 보관해 주세요.');
     }
@@ -289,8 +361,9 @@ const isWide = (c) => c.kind === 'textarea';
     btn.textContent = '처음부터 다시 쓰기';
     form.reset();
     resetRows();
-    try { localStorage.removeItem(KEY); } catch { /* 무시 */ }
+    try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '-meta'); } catch { /* 무시 */ }
     restoreBox.hidden = true;
+    refresh();
     say('모두 지웠습니다.');
   });
 
@@ -329,5 +402,64 @@ const isWide = (c) => c.kind === 'textarea';
     }
   });
 
+
+  /* ── 한 칸씩 보기: 단계 목록 · 이전/다음 · 진행률 · 미리보기 ── */
+  const secs = Array.from(form.querySelectorAll<HTMLElement>('[data-section]'));
+  const steps = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-go]'));
+  const prevBtn = document.getElementById('btn-prev') as HTMLButtonElement;
+  const nextBtn = document.getElementById('btn-next') as HTMLButtonElement;
+  const preview = document.getElementById('preview') as HTMLElement;
+  let cur = 0;
+  const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  const filled = (v: unknown) => Array.isArray(v) ? v.some((r) => Object.values(r).some(Boolean)) : Object.values((v ?? {}) as object).some(Boolean);
+  function show(i: number, focus = false) {
+    cur = Math.max(0, Math.min(secs.length - 1, i));
+    secs.forEach((s, k) => s.classList.toggle('is-current', k === cur));
+    steps.forEach((b, k) => { if (k === cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    prevBtn.disabled = cur === 0;
+    prevBtn.style.visibility = cur === 0 ? 'hidden' : 'visible';
+    nextBtn.textContent = cur === secs.length - 1 ? '다 썼어요 →' : `다음: ${noteSections[cur + 1].title} →`;
+    refresh();
+    if (focus) secs[cur].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function refresh() {
+    const data = collect();
+    let n = 0;
+    noteSections.forEach((s, k) => { const ok = filled(data[s.id]); if (ok) n++; steps[k]?.classList.toggle('done', ok); });
+    (document.getElementById('pb-fill') as HTMLElement).style.width = `${Math.round((n / noteSections.length) * 100)}%`;
+    (document.getElementById('pb-text') as HTMLElement).textContent = `${noteSections.length}개 중 ${n}개 작성`;
+    const s = noteSections[cur];
+    const v = data[s.id];
+    let html = `<h4>${cur + 1}. ${esc(s.title)}</h4>`;
+    if (!filled(v)) html += '<p class="empty">아직 쓰지 않았습니다. 비워 둔 항목은 파일에 나오지 않습니다.</p>';
+    else if (s.type === 'fields') {
+      html += '<table>' + s.fields.filter((f) => (v as Record<string, string>)[f.id]).map((f) => `<tr><th>${esc(f.label)}</th><td>${esc((v as Record<string, string>)[f.id])}</td></tr>`).join('') + '</table>';
+    } else {
+      const rows = (v as Row[]).filter((r) => Object.values(r).some(Boolean));
+      html += '<table><tr>' + s.cols.map((c) => `<th>${esc(c.label)}</th>`).join('') + '</tr>' + rows.map((r) => '<tr>' + s.cols.map((c) => `<td>${esc(r[c.id] ?? '')}</td>`).join('') + '</tr>').join('') + '</table>';
+    }
+    preview.innerHTML = html;
+  }
+  steps.forEach((b) => b.addEventListener('click', () => show(Number(b.dataset.go), true)));
+  prevBtn.addEventListener('click', () => show(cur - 1, true));
+  nextBtn.addEventListener('click', () => {
+    if (cur === secs.length - 1) { document.querySelector('.actions')?.scrollIntoView({ behavior: 'smooth' }); return; }
+    show(cur + 1, true);
+  });
+  form.addEventListener('input', () => { refresh(); markUnsaved(); });
+  form.addEventListener('click', () => setTimeout(refresh, 0));
+  document.querySelectorAll<HTMLElement>('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy!)?.click()));
+
+  /* 저장 표시: 임시저장을 누른 때를 보여 줍니다(자동 저장은 하지 않습니다. 함께 쓰는 컴퓨터를 위해). */
+  const chip = document.getElementById('saved-chip') as HTMLElement;
+  function markSaved() {
+    const t = new Date();
+    chip.textContent = `✓ 이 기기에 저장됨 · ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+    chip.classList.add('ok');
+    try { localStorage.setItem(KEY + '-meta', JSON.stringify({ at: t.toISOString(), n: noteSections.filter((s) => filled(collect()[s.id])).length })); } catch { /* 무시 */ }
+  }
+  function markUnsaved() { if (chip.classList.contains('ok')) { chip.textContent = '고친 내용은 아직 저장 안 함'; chip.classList.remove('ok'); } }
+
   resetRows();
+  show(0);
 </script>

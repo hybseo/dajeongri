@@ -11,7 +11,7 @@ const path = Astro.url.pathname;
  * 위쪽 메뉴 (사이트맵 4장). match 에 있는 주소로 시작하는 페이지에서 그 메뉴가 켜집니다.
  */
 const nav = [
-  { href: '/start/', label: '시작하기', match: ['/start/'] },
+  { href: '/start/', label: '처음 오셨나요', match: ['/start/', '/check/'], first: true },
   { href: '/tools/', label: '정리 도구', match: ['/tools/', '/checklist/', '/note/'] },
   { href: '/guide/', label: '정리 가이드', match: ['/guide/'] },
   { href: '/after/', label: '떠나보낸 후', match: ['/after/'] },
@@ -65,7 +65,7 @@ const footLinks = [
   {site && <meta property="og:image" content={`${site}/og.png`} />}
   {site && <meta property="og:image:width" content="1200" />}
   {site && <meta property="og:image:height" content="630" />}
-  <meta name="theme-color" content="#2f4b47" />
+  <meta name="theme-color" content="#1e3a5a" />
 
   {/* 웹앱(PWA) 설치 정보. 휴대폰 홈 화면에 "다정리" 아이콘으로 설치됩니다. */}
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -79,9 +79,8 @@ const footLinks = [
     등록할 때 발급됩니다. 아직 발급 전이라 넣지 않았습니다.
   */}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+  {/* 글꼴: 프리텐다드(SIL OFL 1.1). 사이트 안에 넣어 두었고, 화면에 필요한 글자 조각만 받습니다. */}
+  <link rel="stylesheet" href="/fonts/pretendard/pretendard.css" />
 
   {GA_ID && (
     <>
@@ -109,18 +108,21 @@ const footLinks = [
   <header class="site">
     <div class="wrap bar">
       <a class="mark" href="/" aria-label="다정리 처음으로">
-        <span class="dot" aria-hidden="true"></span>다정리
+        <svg viewBox="0 0 30 30" aria-hidden="true"><rect x="4" y="3" width="22" height="24" rx="5" fill="#1E3A5A"/><path d="M10 11h10M10 16h10M10 21h6" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="23" cy="6" r="4" fill="#E8A13A"/></svg>다정리
       </a>
       <nav class="top-nav" aria-label="주요 메뉴">
         {nav.map((n) => (
-          <a href={n.href} aria-current={isActive(n) ? 'page' : undefined}>{n.label}</a>
+          <a href={n.href} class={n.first ? 'first' : undefined} aria-current={isActive(n) ? 'page' : undefined}>{n.first && <span class="mk">처음</span>}{n.label}</a>
         ))}
       </nav>
       <div class="head-tools">
+        {/* 급한 분 입구: 어느 페이지에서나 첫 3일 안내로 바로 갑니다. */}
+        <a class="urgent-btn" href="/after/first-days/"><span class="long">가족을 떠나보냈어요 →</span><span class="short">떠나보냈어요</span></a>
         <button class="install-chip" type="button" data-install hidden>앱으로 설치</button>
-        <button class="font-btn" type="button" data-font aria-pressed="false" title="글자 크게 보기">
-          <span aria-hidden="true">가</span><span class="font-plus" aria-hidden="true">+</span><span class="sr">글자 크게 보기</span>
-        </button>
+        <div class="font-toggle" role="group" aria-label="글자 크기">
+          <button type="button" data-font-set="normal" aria-pressed="true">가<span class="sr"> 보통 글자</span></button>
+          <button type="button" data-font-set="large" aria-pressed="false">가+<span class="sr"> 큰 글자</span></button>
+        </div>
       </div>
     </div>
   </header>
@@ -171,17 +173,20 @@ const footLinks = [
      * 안드로이드 크롬·삼성 인터넷이 "설치할 수 있다"고 알려 줄 때만 버튼을 보여 줍니다.
      * 그 신호가 없는 브라우저(아이폰 등)에서는 버튼이 숨어 있고, /app/ 안내 페이지를 씁니다.
      */
-    /* 글자 크게 보기: 누를 때마다 보통 ↔ 크게. 이 기기에만 기억합니다. */
-    const fontBtn = document.querySelector<HTMLButtonElement>('[data-font]');
-    const syncFont = () => fontBtn?.setAttribute('aria-pressed', String(document.documentElement.dataset.size === 'large'));
+    /* 글자 크기: "가"(보통) / "가+"(크게). 이 기기에만 기억합니다. */
+    const fontBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-font-set]'));
+    const syncFont = () => {
+      const large = document.documentElement.dataset.size === 'large';
+      fontBtns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.fontSet === 'large') === large)));
+    };
     syncFont();
-    fontBtn?.addEventListener('click', () => {
-      const large = document.documentElement.dataset.size !== 'large';
+    fontBtns.forEach((b) => b.addEventListener('click', () => {
+      const large = b.dataset.fontSet === 'large';
       if (large) document.documentElement.dataset.size = 'large'; else delete document.documentElement.dataset.size;
       try { localStorage.setItem('dajeongri-font', large ? 'large' : 'normal'); } catch { /* 저장이 막혀도 화면은 바뀜 */ }
       syncFont();
       track(large ? 'font_large' : 'font_normal');
-    });
+    }));
 
     /*
      * "가족에게 보내기" 버튼 ([data-share]).
