@@ -25,7 +25,7 @@ export const guides = [
   { slug: 'donation', short: '장기기증', group: 'care', title: '장기·인체조직 기증, 뜻을 남기는 법', summary: '희망등록 방법, 가족 동의, 취소' },
   { slug: 'will', short: '유언', group: 'law', title: '유언, 어떤 방식으로 남겨야 효력이 있을까', summary: '민법이 정한 다섯 가지 방식과 요건' },
   { slug: 'heirs', short: '상속 순위', group: 'law', title: '누가, 얼마나 상속받나: 상속 순위와 몫', summary: '상속 순서, 배우자의 몫, 계산 예시' },
-  { slug: 'renounce', short: '상속포기', group: 'law', title: '빚이 더 많을 때: 상속포기와 한정승인', summary: '3개월 기한, 신고 법원, 주의할 점' },
+  { slug: 'renounce', short: '상속포기', group: 'law', title: '빚이 더 많을 때: 상속포기와 한정승인', summary: '3개월 기한, 빚만 있을 때, 한정승인 뒤 할 일' },
   { slug: 'inheritance-tax', short: '상속세', group: 'law', title: '상속세, 우리 집은 낼까: 공제와 계산 순서', summary: '공제 한눈에, 세율, 10년 안 증여 합산, 미리 알아 둘 것' },
   { slug: 'insurance-pension', short: '보험·연금', group: 'law', title: '보험과 연금, 미리 확인할 것', summary: '수익자, 청구 기한, 유족연금' },
   { slug: 'digital', short: '디지털 유산', group: 'digital', title: '디지털 유산, 미리 해 둘 수 있는 것', summary: '계정 목록과 서비스별 사후 기능' },
