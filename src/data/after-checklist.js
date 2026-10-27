@@ -20,7 +20,7 @@ export const afterChecklist = [
       { id: 'b1', text: '사망신고 (사망 사실을 안 날부터 1개월)', docs: '주민센터·시·구청. 신고인 신분증, 사망진단서 또는 시체검안서 원본. 늦으면 과태료.', link: '/after/first-month/' },
       { id: 'b2', text: '안심상속 원스톱서비스 신청', docs: '사망신고 때 함께 신청하거나 정부24에서 온라인 신청. 금융·토지·자동차·세금·연금을 한 번에 조회.', link: '/after/first-month/' },
       { id: 'b3', need: 'nhis', text: '건강보험: 지역가입자였다면 자격상실 신고 확인', docs: '국민건강보험공단 1577-1000', link: '/after/first-month/' },
-      { id: 'b4', need: 'pension', text: '국민연금을 받고 계셨다면 국민연금공단에 확인하기', docs: '사망신고를 1개월 안에 했다면 공단에 따로 신고하지 않아도 됩니다(국민연금법 제121조). 유족연금·사망일시금 대상인지는 국민연금공단 1355에 확인.', link: '/guide/insurance-pension/' },
+      { id: 'b4', need: 'pension', text: '국민연금에 가입했거나 연금을 받고 계셨다면 국민연금공단에 확인하기', docs: '사망신고를 1개월 안에 했다면 공단에 따로 신고하지 않아도 됩니다(국민연금법 제121조). 유족연금·사망일시금 대상인지는 국민연금공단 1355에 확인.', link: '/guide/insurance-pension/' },
     ],
   },
   {
@@ -58,7 +58,7 @@ export const afterChecklist = [
 
 /* "나에게 필요한 절차만"의 질문. key 는 위 항목의 need 와 짝을 이룹니다. */
 export const procedureQuestions = [
-  { key: 'pension', label: '국민연금을 받고 계셨어요' },
+  { key: 'pension', label: '국민연금에 가입했거나 연금을 받고 계셨어요' },
   { key: 'nhis', label: '건강보험 지역가입자였어요', sub: '직장에 다니지 않고 보험료를 따로 내셨다면' },
   { key: 'insurance', label: '사망보험·생명보험이 있었어요' },
   { key: 'house', label: '집이나 땅이 있었어요' },

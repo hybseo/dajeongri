@@ -20,7 +20,7 @@ const isPath = (s) => typeof s === 'string' && /^\/[a-z0-9\-/]*$/i.test(s);
     </ol>
   )
   : b.table ? (
-    <div class="table-wrap">
+    <div class="table-wrap" tabindex="0" role="region" aria-label={`표: ${b.table.head.join('·')} (${String(b.table.rows[0]?.[0] ?? '').slice(0, 14)}…)`}>
       <table>
         <thead><tr>{b.table.head.map((h) => <th scope="col">{h}</th>)}</tr></thead>
         <tbody>

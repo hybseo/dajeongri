@@ -31,7 +31,7 @@ export const guides = [
   { slug: 'photos', short: '휴대폰과 사진', group: 'digital', title: '휴대폰과 사진, 가족에게 남기는 법', summary: '사진 모으기, 백업, 잠금 해제 방법 전하기' },
   { slug: 'funeral-types', short: '장례 방식', group: 'funeral', title: '장례 방식 고르기: 매장, 화장, 자연장', summary: '방식별 뜻, 신고, 작은 장례' },
   { slug: 'funeral-cost', short: '장례 비용', group: 'funeral', title: '장례 비용과 상조: 비용 한눈표와 계약 전 확인할 것', summary: '비용 한눈표, 가격 비교, 상조 확인, 폐업 시 대처' },
-  { slug: 'burial', short: '묘지와 안치', group: 'funeral', title: '모셔질 곳 정하기: 봉안·자연장·산분장과 묘 정리', summary: '매장 신고와 묘지 기간, 산분장, 개장(이장) 신고' },
+  { slug: 'burial', short: '모셔질 곳', group: 'funeral', title: '모셔질 곳 정하기: 봉안·자연장·산분장과 묘 정리', summary: '매장 신고와 묘지 기간, 산분장, 개장(이장) 신고' },
   { slug: 'talk-parents', short: '이야기 꺼내기', group: 'heart', title: '부모님께 정리 이야기, 어떻게 꺼낼까', summary: '좋은 때, 첫마디 예시, 피할 말' },
   { slug: 'letters', short: '편지 쓰기', group: 'heart', title: '남기는 편지, 어떻게 쓸까', summary: '쓰기 쉬운 순서와 첫 문장 예시' },
   { slug: 'inheritance', short: '상속 절차', group: 'after', title: '가족이 떠난 뒤 상속 절차와 기한', summary: '사망신고부터 상속세 신고까지' },

@@ -34,7 +34,7 @@ const panels = [
 ];
 const guideGroups = groups.map((g) => ({ ...g, list: guides.filter((x) => x.group === g.key) }));
 ---
-<Base title="정리 도구" description="무료로 바로 쓰는 생전정리 도구 모음. 엔딩노트 작성기, 체크리스트, 3분 진단, 상속 기한 계산기, 나에게 필요한 사후 절차, 부고 문자, 휴대폰 잠금 카드.">
+<Base title="정리 도구" description="무료로 바로 쓰는 생전정리 도구 모음. 엔딩노트 작성기, 생전정리 체크리스트, 3분 진단, 상속 기한 계산기, 나에게 필요한 절차만, 부고 문자 만들기, 휴대폰 잠금 카드 · 지갑 긴급 카드.">
   <div class="wrap">
     <header class="page-head">
       <p class="kicker">모두 무료 · 가입 없음</p>
@@ -75,7 +75,7 @@ const guideGroups = groups.map((g) => ({ ...g, list: guides.filter((x) => x.grou
   .ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; flex: none; font-size: 17px; color: var(--green); }
   .before .ic { background: var(--mint-t); } .after .ic { background: var(--clay-soft); } .know .ic { background: var(--navy-t); }
   .tx b { display: block; font-size: 17px; line-height: 1.35; letter-spacing: -0.02em; }
-  .tx b em { display: inline-block; white-space: nowrap; font-style: normal; font-size: 13px; background: var(--amber); color: #fff; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .tx b em { display: inline-block; white-space: nowrap; font-style: normal; font-size: 13px; background: var(--amber); color: var(--ink); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
   .tx > span { display: block; font-size: 14.5px; color: var(--ink-soft); line-height: 1.45; }
   .gt { margin-left: auto; color: var(--ink-soft); font-size: 20px; }
   @media (max-width: 1000px) { .panels { grid-template-columns: 1fr; } }

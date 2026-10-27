@@ -24,7 +24,7 @@ const rules = [
     <DeadlineCalc />
 
     <h2>어떤 기준으로 계산하나요</h2>
-    <div class="table-wrap">
+    <div class="table-wrap" tabindex="0" role="region" aria-label="기한 계산 기준 표">
       <table>
         <thead><tr><th>할 일</th><th>기한</th><th>근거</th></tr></thead>
         <tbody>{rules.map(([a, b, c]) => <tr><th scope="row" class="row-head">{a}</th><td>{b}</td><td>{c}</td></tr>)}</tbody>

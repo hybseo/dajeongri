@@ -216,10 +216,10 @@ const isWide = (c) => c.kind === 'textarea';
   .preview { position: sticky; top: 140px; }
   .pv-cap { font-size: 14px; color: var(--ink-soft); margin-bottom: 8px; }
   .sheet { background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 16px 40px rgba(22, 33, 44, .10); padding: 22px 20px; min-height: 320px; font-size: 13px; line-height: 1.6; overflow: hidden; }
-  .sheet :global(h4) { font-size: 15px; font-weight: 800; color: var(--green); margin: 0 0 8px; border-bottom: 2px solid var(--green); padding-bottom: 4px; }
+  .sheet :global(.pv-h) { font-size: 15px; font-weight: 800; color: var(--green); margin: 0 0 8px; border-bottom: 2px solid var(--green); padding-bottom: 4px; }
   .sheet :global(table) { font-size: 12px; margin-bottom: 10px; }
   .sheet :global(th), .sheet :global(td) { padding: 4px 6px; border: 1px solid var(--line); }
-  .sheet :global(.empty) { color: #9aa5b1; }
+  .sheet :global(.empty) { color: #6b7682; }
   .pv-btns { margin-top: 12px; }
   .pv-btns .btn { flex: 1; }
   .actions { margin-top: 32px; }
@@ -551,7 +551,7 @@ const isWide = (c) => c.kind === 'textarea';
     (document.getElementById('pb-text') as HTMLElement).textContent = `${noteSections.length}개 중 ${n}개 작성`;
     const s = noteSections[cur];
     const v = data[s.id];
-    let html = `<h4>${cur + 1}. ${esc(s.title)}</h4>`;
+    let html = `<p class="pv-h">${cur + 1}. ${esc(s.title)}</p>`;
     if (!filled(v)) html += '<p class="empty">아직 쓰지 않았습니다. 비워 둔 항목은 파일에 나오지 않습니다.</p>';
     else if (s.type === 'fields') {
       html += '<table>' + s.fields.filter((f) => (v as Record<string, string>)[f.id]).map((f) => `<tr><th>${esc(f.label)}</th><td>${esc((v as Record<string, string>)[f.id])}</td></tr>`).join('') + '</table>';
