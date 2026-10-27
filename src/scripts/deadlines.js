@@ -105,7 +105,26 @@ export function daysLeft(due, today = new Date()) {
 
 export const korean = (d) => `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${'일월화수목금토'[d.getDay()]})`;
 
-/** 캘린더 파일(.ics) 내용 */
+/**
+ * 달력 파일 한 줄이 75바이트를 넘으면 표준(RFC 5545)대로 접습니다.
+ * 한글이 중간에서 잘리지 않도록 글자 단위로 셉니다.
+ */
+export function foldICS(text) {
+  const enc = new TextEncoder();
+  return text.split('\r\n').map((line) => {
+    if (enc.encode(line).length <= 75) return line;
+    const out = []; let cur = ''; let size = 0; let limit = 75;
+    for (const ch of line) {
+      const n = enc.encode(ch).length;
+      if (size + n > limit) { out.push(cur); cur = ''; size = 0; limit = 74; }
+      cur += ch; size += n;
+    }
+    out.push(cur);
+    return out.join('\r\n ');
+  }).join('\r\n');
+}
+
+/** 달력 파일(.ics) 내용 */
 export function toICS(items) {
   const esc = (s) => String(s).replace(/[\\,;]/g, (m) => '\\' + m);
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
@@ -120,5 +139,5 @@ export function toICS(items) {
       'END:VEVENT');
   });
   lines.push('END:VCALENDAR');
-  return lines.join('\r\n');
+  return foldICS(lines.join('\r\n'));
 }

@@ -22,12 +22,12 @@ const nav = [
  * 나중에 안드로이드 앱으로 감쌀 때도 이 메뉴를 그대로 씁니다.
  */
 const tabs = [
-  { href: '/', label: '처음', icon: 'M4 11 12 4l8 7v9h-5v-6H9v6H4z', match: [] },
+  { href: '/', label: '처음', icon: 'M4 11 12 4l8 7v9h-5v-6H9v6H4z', match: ['/start/', '/check/', '/after/'] },
   { href: '/note/', label: '엔딩노트', icon: 'M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5', match: ['/note/'] },
   { href: '/tools/', label: '정리 도구', icon: 'M5 4h14v16H5zM8 9l2 2 4-4M8 15h8', match: ['/tools/', '/checklist/'] },
-  { href: '/guide/', label: '가이드', icon: 'M4 5c3-1 5-1 8 1 3-2 5-2 8-1v14c-3-1-5-1-8 1-3-2-5-2-8-1zM12 6v14', match: ['/guide/', '/after/', '/start/'] },
+  { href: '/guide/', label: '가이드', icon: 'M4 5c3-1 5-1 8 1 3-2 5-2 8-1v14c-3-1-5-1-8 1-3-2-5-2-8-1zM12 6v14', match: ['/guide/'] },
 ];
-const isActive = (item) => (item.href === '/' ? path === '/' : item.match.some((m) => path.startsWith(m)));
+const isActive = (item) => (item.href === '/' && path === '/') || item.match.some((m) => path.startsWith(m));
 const footLinks = [
   { href: '/about/', label: '다정리 소개' },
   { href: '/faq/', label: '자주 묻는 질문' },

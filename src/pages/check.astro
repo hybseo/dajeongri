@@ -50,6 +50,7 @@ import Base from '../layouts/Base.astro';
   .dots i { width: 28px; height: 6px; border-radius: 9px; background: var(--line); }
   .dots i.on { background: var(--green-2); }
   .quiz :global(h2) { font-size: 26px; margin: 14px 0 6px; }
+  .quiz :global(h2:focus), #r-title:focus { outline: none; }
   .quiz :global(.hint) { color: var(--ink-soft); font-size: 15.5px; margin: 0 0 16px; }
   .quiz :global(.opts) { display: grid; gap: 10px; }
   .quiz :global(.opt) { display: flex; align-items: center; gap: 14px; border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 16px; cursor: pointer; font-size: 17.5px; font-weight: 600; background: #fff; text-align: left; font-family: inherit; color: var(--ink); width: 100%; }
@@ -154,7 +155,8 @@ import Base from '../layouts/Base.astro';
   const flow = (): Q[] => [Q1, ...(ans.situ === 'after' ? AFTER : PLAN)];
   const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 
-  function render() {
+  // focus: 'heading' 이면 새 질문 제목으로, 보기 값이면 그 보기로 키보드 위치를 옮깁니다(화면 읽기·키보드 사용자를 위해).
+  function render(focus?: string) {
     const q0 = flow()[step];
     // 부모님과 함께 정리하는 경우 질문 2는 "부모님이" 해 두신 것을 묻습니다.
     const q = q0.id === 'done' && ans.situ === 'parents' ? { ...q0, title: '부모님이 이미 해 두신 것을 모두 골라 주세요' } : q0;
@@ -171,6 +173,8 @@ import Base from '../layouts/Base.astro';
     back.hidden = step === 0;
     next.textContent = step === 2 ? '결과 보기' : '다음';
     next.disabled = !(q.multi ? Array.isArray(cur) && cur.length : cur);
+    if (focus === 'heading') { const h = body.querySelector('h2') as HTMLElement; h.tabIndex = -1; h.focus(); }
+    else if (focus) body.querySelector<HTMLElement>(`.opt[data-v="${focus}"]`)?.focus();
   }
 
   body.addEventListener('click', (e) => {
@@ -186,12 +190,12 @@ import Base from '../layouts/Base.astro';
       if (exclusive) list = list.includes(v) ? [] : [v];
       else { list = list.filter((x) => x !== 'none' && x !== 'unknown'); list = list.includes(v) ? list.filter((x) => x !== v) : [...list, v]; }
       ans[q.id] = list;
-      render();
+      render(v);
     } else {
       const changedSitu = q.id === 'situ' && ans.situ && ans.situ !== v;
       ans[q.id] = v;
       if (changedSitu) ans = { situ: v };
-      render();
+      render(v);
       setTimeout(() => go(1), 180); // 하나만 고르는 질문은 고르면 바로 다음으로
     }
   });
@@ -202,7 +206,7 @@ import Base from '../layouts/Base.astro';
     if (d > 0 && !(q.multi ? (ans[q.id] as string[] | undefined)?.length : ans[q.id])) return;
     if (d > 0 && step === 2) { finish(); return; }
     step = Math.max(0, Math.min(2, step + d));
-    render();
+    render('heading');
   }
   back.addEventListener('click', () => go(-1));
   next.addEventListener('click', () => go(1));
@@ -243,7 +247,7 @@ import Base from '../layouts/Base.astro';
       funeral: () => { add('장례 방식과 비용', '매장·화장·자연장의 차이와 장례비, 상조 확인법을 정리했습니다.', '/guide/funeral-types/', '장례 방식'); add('모셔질 곳 정하기', '봉안당, 자연장, 기존 묘 정리까지 미리 정해 두면 좋은 것.', '/guide/burial/', '묘지와 안치'); },
       digital: () => { if (!done.includes('phone')) add('휴대폰 잠금 카드 만들기', '잠금을 푸는 방법을 적어 봉투에 넣어 두는 인쇄용 카드입니다.', '/tools/cards/', '카드 만들기'); add('계정과 사진 정리', '서비스별 사후 기능과 사진 남기는 법.', '/guide/digital/', '디지털 유산'); },
       heart: () => { add('남기는 편지 쓰기', '쓰기 쉬운 순서와 첫 문장 예시가 있습니다.', '/guide/letters/', '편지 쓰는 법'); },
-      alone: () => { add('혼자 지내는 분이 미리 할 일', '연락할 사람, 장례와 사후 정리를 맡길 방법을 정리했습니다.', '/guide/living-alone/', '혼자 사는 분 안내'); add('지갑용 긴급 연락 카드', '쓰러지거나 입원할 때 누구에게 연락할지, 서류를 어디에 두었는지 적어 두는 카드입니다.', '/tools/cards/', '카드 만들기'); },
+      alone: () => { add('혼자 지내는 분이 미리 할 일', '연락할 사람, 장례와 사후 정리를 맡길 방법을 정리했습니다.', '/guide/living-alone/', '혼자 사는 분 안내'); add('지갑 긴급 카드', '쓰러지거나 입원할 때 누구에게 연락할지, 서류를 어디에 두었는지 적어 두는 카드입니다.', '/tools/cards/', '카드 만들기'); },
     };
     byWorry[w]?.();
     if (a.situ === 'urgent' && !done.includes('lst')) add('사전연명의료의향서', '뜻을 남기려면 등록기관에서 직접 작성해야 합니다.', '/guide/life-sustaining/', '사전연명의료의향서');
@@ -264,11 +268,12 @@ import Base from '../layouts/Base.astro';
     result.hidden = false;
     if (save) { try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch { /* 무시 */ } track('check_done'); }
     result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (save) { const t = document.getElementById('r-title') as HTMLElement; t.tabIndex = -1; t.focus({ preventScroll: true }); }
   }
   document.getElementById('r-again')?.addEventListener('click', () => {
     ans = {}; step = 0;
     try { localStorage.removeItem(KEY); } catch { /* 무시 */ }
-    result.hidden = true; quiz.hidden = false; render();
+    result.hidden = true; quiz.hidden = false; render('heading');
   });
   document.getElementById('r-print')?.addEventListener('click', () => window.print());
 

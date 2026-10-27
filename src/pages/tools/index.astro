@@ -75,7 +75,7 @@ const guideGroups = groups.map((g) => ({ ...g, list: guides.filter((x) => x.grou
   .ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; flex: none; font-size: 17px; color: var(--green); }
   .before .ic { background: var(--mint-t); } .after .ic { background: var(--clay-soft); } .know .ic { background: var(--navy-t); }
   .tx b { display: block; font-size: 17px; line-height: 1.35; letter-spacing: -0.02em; }
-  .tx b em { font-style: normal; font-size: 13px; background: var(--amber); color: #fff; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .tx b em { display: inline-block; white-space: nowrap; font-style: normal; font-size: 13px; background: var(--amber); color: #fff; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
   .tx > span { display: block; font-size: 14.5px; color: var(--ink-soft); line-height: 1.45; }
   .gt { margin-left: auto; color: var(--ink-soft); font-size: 20px; }
   @media (max-width: 1000px) { .panels { grid-template-columns: 1fr; } }

@@ -250,6 +250,7 @@ const isWide = (c) => c.kind === 'textarea';
 <script>
   import { noteSections } from '../data/note.js';
   import { track } from '../scripts/analytics.js';
+  import { foldICS } from '../scripts/deadlines.js';
 
   type Row = Record<string, string>;
   type NoteData = Record<string, Record<string, string> | Row[]>;
@@ -514,7 +515,7 @@ const isWide = (c) => c.kind === 'textarea';
       'BEGIN:VALARM', 'TRIGGER:PT9H', 'ACTION:DISPLAY', `DESCRIPTION:${esc('엔딩노트 다시 보기')}`, 'END:VALARM',
       'END:VEVENT', 'END:VCALENDAR',
     ].join('\r\n');
-    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const url = URL.createObjectURL(new Blob([foldICS(ics)], { type: 'text/calendar;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url; a.download = '엔딩노트_해마다_다시보기.ics';
     document.body.appendChild(a); a.click(); a.remove();
