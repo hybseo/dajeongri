@@ -9,7 +9,7 @@ import { guides } from '../data/guides.js';
 import content from '../data/content.json';
 
 const fixed = ['/', '/check/', '/checklist/', '/note/', '/tools/', '/tools/deadlines/', '/tools/obituary/', '/tools/after-checklist/', '/tools/print/',
-  '/tools/my-procedures/', '/tools/cards/',
+  '/tools/my-procedures/', '/tools/cards/', '/tools/inheritance-tax/',
   '/guide/', '/faq/', '/links/', '/app/', '/privacy/'];
 const fromContent = content.pages.filter((p) => p.id !== 'start-after' && p.id !== 'tools').map((p) => p.url);
 const fromGuides = guides.map((g) => `/guide/${g.slug}/`);

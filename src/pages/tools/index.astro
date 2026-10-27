@@ -26,6 +26,7 @@ const panels = [
     key: 'after', title: '떠나보낸 뒤', ill: 'situ-after',
     items: [
       { href: '/tools/deadlines/', icon: '⏳', title: '상속 기한 계산기', desc: '마감 8가지 · 달력 저장' },
+      { href: '/tools/inheritance-tax/', icon: '₩', title: '상속세 가늠 계산기', desc: '세금이 나올지, 대략 얼마인지', fresh: true },
       { href: '/tools/my-procedures/', icon: '☰', title: '나에게 필요한 절차만', desc: '질문에 답하면 할 일 목록', fresh: true },
       { href: '/tools/obituary/', icon: '✉', title: '부고 문자 만들기', desc: '문안 고르고 바로 보내기' },
       { href: '/tools/after-checklist/', icon: '☑', title: '유족 해지·신고 체크리스트', desc: `${afterCount}가지 · 서류 안내` },
@@ -34,7 +35,7 @@ const panels = [
 ];
 const guideGroups = groups.map((g) => ({ ...g, list: guides.filter((x) => x.group === g.key) }));
 ---
-<Base title="정리 도구" description="무료로 바로 쓰는 생전정리 도구 모음. 엔딩노트 작성기, 생전정리 체크리스트, 3분 진단, 상속 기한 계산기, 나에게 필요한 절차만, 부고 문자 만들기, 휴대폰 잠금 카드 · 지갑 긴급 카드.">
+<Base title="정리 도구" description="무료로 바로 쓰는 생전정리 도구 모음. 엔딩노트 작성기, 생전정리 체크리스트, 3분 진단, 상속 기한 계산기, 상속세 가늠 계산기, 나에게 필요한 절차만, 부고 문자 만들기, 휴대폰 잠금 카드 · 지갑 긴급 카드.">
   <div class="wrap">
     <header class="page-head">
       <p class="kicker">모두 무료 · 가입 없음</p>

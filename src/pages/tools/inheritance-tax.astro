@@ -1,0 +1,393 @@
+---
+/*
+ * 상속세 가늠 계산기 (2026-10-27 추가).
+ * 계산은 src/scripts/inheritance-tax.js 에서 기기 안에서만 합니다. 입력한 숫자는 저장하지도, 보내지도 않습니다.
+ * 법 근거와 확인일은 그 파일 머리말과 /guide/inheritance-tax/ 를 함께 고쳐 주세요.
+ */
+import Base from '../../layouts/Base.astro';
+const L = 'https://www.law.go.kr/법령/';
+const sources = [
+  ['상속세 및 증여세법 제13조(상속세 과세가액)', '상속세및증여세법/제13조'],
+  ['상속세 및 증여세법 제14조(상속재산의 가액에서 빼는 공과금 등)', '상속세및증여세법/제14조'],
+  ['상속세 및 증여세법 시행령 제9조(공과금 및 장례비용)', '상속세및증여세법시행령/제9조'],
+  ['상속세 및 증여세법 제18조(기초공제)', '상속세및증여세법/제18조'],
+  ['상속세 및 증여세법 제19조(배우자 상속공제)', '상속세및증여세법/제19조'],
+  ['상속세 및 증여세법 제20조(그 밖의 인적공제)', '상속세및증여세법/제20조'],
+  ['상속세 및 증여세법 제21조(일괄공제)', '상속세및증여세법/제21조'],
+  ['상속세 및 증여세법 제22조(금융재산 상속공제)', '상속세및증여세법/제22조'],
+  ['상속세 및 증여세법 제23조의2(동거주택 상속공제)', '상속세및증여세법/제23조의2'],
+  ['상속세 및 증여세법 제24조(공제 적용의 한도)', '상속세및증여세법/제24조'],
+  ['상속세 및 증여세법 제25조(상속세의 과세표준 및 과세최저한)', '상속세및증여세법/제25조'],
+  ['상속세 및 증여세법 제26조(상속세 세율)', '상속세및증여세법/제26조'],
+  ['상속세 및 증여세법 제28조(증여세액 공제)', '상속세및증여세법/제28조'],
+  ['상속세 및 증여세법 제69조(신고세액 공제)', '상속세및증여세법/제69조'],
+  ['상속세 및 증여세법 제71조(연부연납)', '상속세및증여세법/제71조'],
+];
+const money = (id: string, label: string, hint?: string) => ({ id, label, hint });
+const assets = [
+  money('realEstate', '집·땅 등 부동산', '아파트는 비슷한 집의 최근 거래가, 그 밖에는 공시가격 등으로 평가합니다. 모르면 대략 넣으세요.'),
+  money('financial', '예금·적금·주식·펀드·사망보험금', '돌아가신 분이 보험료를 낸 사망보험금도 상속재산입니다.'),
+  money('other', '그 밖의 재산', '자동차, 회원권, 남에게 빌려준 돈, 회사에서 나오는 퇴직금 등'),
+];
+const minus = [
+  money('debts', '갚아야 할 빚', '대출, 돌려줄 전세보증금, 내지 못한 세금·공과금 등 모두'),
+  money('finDebts', '그중 은행·카드사 등 금융회사 빚', '금융재산 공제를 계산할 때 씁니다. 모르면 비워 두세요.'),
+  money('funeral', '장례비', '영수증이 없어도 500만 원은 빼 줍니다. 많이 썼어도 1천만 원까지만 빼 줍니다.'),
+  money('burial', '봉안당·자연장지 비용', '따로 500만 원까지 더 빼 줍니다.'),
+];
+const gifts = [
+  money('giftsHeirs', '돌아가시기 전 10년 안에 상속인에게 준 재산', '배우자·자녀 등에게 준 돈이나 집. 준 날의 시세로 넣습니다.'),
+  money('giftsOthers', '5년 안에 상속인이 아닌 사람에게 준 재산', '며느리, 사위, 손자녀(상속인이 아닌 경우) 등'),
+  money('giftDeducted', '그때 증여세 없이 공제받은 금액', '예: 성인 자녀 1명에게 10년 동안 5천만 원까지. 모르면 비워 두세요(세금이 조금 많게 나옵니다).'),
+  money('giftTaxPaid', '그때 낸 증여세', '모르면 비워 두세요.'),
+];
+---
+<Base title="상속세 가늠 계산기" description="재산과 가족을 넣으면 상속세가 나오는지, 나온다면 대략 얼마인지 보여 드립니다. 일괄공제·배우자 공제·금융재산 공제와 세율을 2026년 10월 확인한 법대로 계산하며, 입력한 숫자는 기기 밖으로 보내지 않습니다.">
+  <div class="wrap narrow article">
+    <header class="page-head">
+      <p class="crumb"><a href="/tools/">정리 도구</a></p>
+      <h1>상속세 가늠 계산기</h1>
+      <p class="lead">재산과 가족을 넣으면 상속세가 나오는지, 나온다면 대략 얼마인지 보여 드립니다. 미리 내 재산으로 해 봐도 되고, 가족을 떠나보낸 뒤 신고 전에 가늠해 봐도 됩니다.</p>
+    </header>
+
+    <div class="notice">
+      <p style="margin:0 0 6px"><strong>가늠용입니다</strong></p>
+      <ul style="margin:0;padding-left:1.2em">
+        <li>2026년 10월 27일 국가법령정보센터에서 확인한 상속세 및 증여세법대로 계산합니다.</li>
+        <li>실제 세금은 재산 평가 방법, 가족 사정, 공제 요건에 따라 달라집니다. 신고 전에는 세무사나 국세상담센터(국번 없이 126)에 확인하세요.</li>
+        <li>넣은 숫자는 이 기기 안에서만 계산하고 저장하지도, 보내지도 않습니다.</li>
+      </ul>
+    </div>
+
+    <form class="tx-form no-print" id="tx" onsubmit="return false" novalidate autocomplete="off">
+      <fieldset class="tx-sec">
+        <legend><span class="no">1</span>재산 <small>만 원 단위로 넣으세요</small></legend>
+        {assets.map((f) => (
+          <label class="money">
+            <span class="lab">{f.label}</span>
+            <span class="in"><input type="text" inputmode="numeric" name={f.id} data-money aria-describedby={`h-${f.id}`} /><span class="unit">만 원</span></span>
+            <span class="read" data-read={f.id} aria-hidden="true"></span>
+            {f.hint && <small id={`h-${f.id}`}>{f.hint}</small>}
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset class="tx-sec">
+        <legend><span class="no">2</span>빼 주는 것</legend>
+        {minus.map((f) => (
+          <label class="money">
+            <span class="lab">{f.label}</span>
+            <span class="in"><input type="text" inputmode="numeric" name={f.id} data-money aria-describedby={`h-${f.id}`} /><span class="unit">만 원</span></span>
+            <span class="read" data-read={f.id} aria-hidden="true"></span>
+            {f.hint && <small id={`h-${f.id}`}>{f.hint}</small>}
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset class="tx-sec">
+        <legend><span class="no">3</span>가족</legend>
+        <fieldset class="choice">
+          <legend class="lab">배우자</legend>
+          <label class="opt"><input type="radio" name="spouse" value="yes" checked /> <span>있음</span></label>
+          <label class="opt"><input type="radio" name="spouse" value="no" /> <span>없음</span></label>
+        </fieldset>
+        <label class="money">
+          <span class="lab">자녀 수</span>
+          <select name="children">
+            {Array.from({ length: 11 }).map((_, k) => <option value={k} selected={k === 2}>{k}명</option>)}
+          </select>
+          <small>먼저 세상을 떠난 자녀의 자녀(손자녀)가 대신 상속받으면 그 자녀도 1명으로 셉니다.</small>
+        </label>
+        <fieldset class="choice" data-when="spouse-nochild" hidden>
+          <legend class="lab">돌아가신 분의 부모님 중 살아 계신 분</legend>
+          <label class="opt"><input type="radio" name="parents" value="0" checked /> <span>없음</span></label>
+          <label class="opt"><input type="radio" name="parents" value="1" /> <span>1명</span></label>
+          <label class="opt"><input type="radio" name="parents" value="2" /> <span>2명</span></label>
+          <small>자녀와 부모님이 모두 없으면 배우자 혼자 상속받고, 이때는 일괄공제 5억 원이 없습니다.</small>
+        </fieldset>
+        <fieldset class="choice" data-when="spouse">
+          <legend class="lab">배우자가 받을 몫</legend>
+          <label class="opt block"><input type="radio" name="spouseMode" value="legal" checked /> <span>법정상속분만큼 받는다고 보고 계산 <small>배우자 공제를 가장 많이 받는 경우</small></span></label>
+          <label class="opt block"><input type="radio" name="spouseMode" value="amount" /> <span>받을 금액을 직접 넣기</span></label>
+          <label class="opt block"><input type="radio" name="spouseMode" value="min" /> <span>아직 모름 (가장 적은 5억 원으로 계산)</span></label>
+          <label class="money" data-when="spouse-amount" hidden>
+            <span class="lab">배우자가 받을 금액</span>
+            <span class="in"><input type="text" inputmode="numeric" name="spouseAmount" data-money /><span class="unit">만 원</span></span>
+            <span class="read" data-read="spouseAmount" aria-hidden="true"></span>
+          </label>
+        </fieldset>
+      </fieldset>
+
+      <details class="tx-more">
+        <summary>더 정확하게: 미리 준 재산, 미성년 자녀, 함께 산 집</summary>
+        <fieldset class="tx-sec">
+          <legend><span class="no">4</span>미리 준 재산</legend>
+          {gifts.map((f) => (
+            <label class="money">
+              <span class="lab">{f.label}</span>
+              <span class="in"><input type="text" inputmode="numeric" name={f.id} data-money aria-describedby={`h-${f.id}`} /><span class="unit">만 원</span></span>
+              <span class="read" data-read={f.id} aria-hidden="true"></span>
+              {f.hint && <small id={`h-${f.id}`}>{f.hint}</small>}
+            </label>
+          ))}
+        </fieldset>
+        <fieldset class="tx-sec">
+          <legend><span class="no">5</span>그 밖의 가족 공제</legend>
+          <label class="money">
+            <span class="lab">미성년 상속인·함께 살던 미성년 가족의 나이</span>
+            <input type="text" name="minorAges" placeholder="예: 12, 15" inputmode="text" />
+            <small>여러 명이면 쉼표로 나눠 넣으세요. 배우자는 빼고 셉니다.</small>
+          </label>
+          <label class="money">
+            <span class="lab">65세 이상인 상속인·함께 살던 가족 수 (배우자 제외)</span>
+            <select name="seniors">{Array.from({ length: 6 }).map((_, k) => <option value={k}>{k}명</option>)}</select>
+          </label>
+          <small>이 공제들은 기초공제 2억 원과 함께 더한 금액이 5억 원을 넘을 때만 차이가 납니다(보통은 일괄공제 5억 원이 더 큽니다).</small>
+        </fieldset>
+        <fieldset class="tx-sec">
+          <legend><span class="no">6</span>함께 산 집 (동거주택 공제)</legend>
+          <label class="opt block"><input type="checkbox" name="house" /> <span>돌아가신 분과 10년 이상 한집에 살았고(미성년 기간 제외) 그동안 1세대 1주택이었으며, 함께 산 자녀가 집이 없거나 그 집만 함께 가진 상태에서 그 집을 상속받음</span></label>
+          <div data-when="house" hidden>
+            <label class="money">
+              <span class="lab">그 집의 값</span>
+              <span class="in"><input type="text" inputmode="numeric" name="houseValue" data-money /><span class="unit">만 원</span></span>
+              <span class="read" data-read="houseValue" aria-hidden="true"></span>
+            </label>
+            <label class="money">
+              <span class="lab">그 집에 걸린 돌아가신 분의 빚</span>
+              <span class="in"><input type="text" inputmode="numeric" name="houseLoan" data-money /><span class="unit">만 원</span></span>
+              <span class="read" data-read="houseLoan" aria-hidden="true"></span>
+            </label>
+          </div>
+        </fieldset>
+      </details>
+
+      <button class="btn clay" type="submit" id="run">상속세 가늠해 보기</button>
+      <p class="tx-err" id="err" role="alert" hidden></p>
+    </form>
+
+    <section class="tx-result" id="result" hidden aria-labelledby="r-head">
+      <p class="kicker">가늠 결과</p>
+      <h2 id="r-head" tabindex="-1"></h2>
+      <p class="r-sub" id="r-sub"></p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="계산 과정 표">
+        <table class="steps-t">
+          <thead><tr><th scope="col">계산 과정</th><th scope="col" style="text-align:right">금액</th></tr></thead>
+          <tbody id="r-rows"></tbody>
+        </table>
+      </div>
+      <ul class="r-notes" id="r-notes"></ul>
+      <div class="btn-row no-print">
+        <button class="btn ghost small" type="button" id="print">결과 인쇄하기</button>
+        <a class="btn ghost small" href="/guide/inheritance-tax/">상속세 안내 자세히</a>
+        <a class="btn ghost small" href="/tools/deadlines/">상속 기한 계산기</a>
+      </div>
+    </section>
+
+    <h2>이 계산기가 넣지 않은 것</h2>
+    <ul>
+      <li>재산 평가: 넣은 금액을 그대로 씁니다. 실제로는 시가(비슷한 거래가·감정가)를 쓰고, 시가가 없으면 공시가격 등으로 평가합니다.</li>
+      <li>가업·영농상속공제, 장애인 공제, 공익단체에 낸 재산, 상속인이 아닌 사람에게 남긴 유언(유증), 손자녀에게 바로 갈 때의 할증(30%), 감정평가 수수료</li>
+      <li>배우자가 미리 증여받은 재산이 있을 때 배우자 공제 한도에서 빼는 금액</li>
+      <li>돌아가시기 1~2년 안에 큰돈을 찾거나 판 뒤 쓴 곳을 밝히지 못해 상속재산으로 보는 금액</li>
+    </ul>
+
+    <section class="sources" id="sources">
+      <p><strong>참고한 법령 (확인일 2026년 10월 27일)</strong></p>
+      <ul>{sources.map(([t, u]) => <li><a href={L + u} rel="nofollow noopener" target="_blank">국가법령정보센터 – {t}</a></li>)}</ul>
+      <p>법이 바뀌면 계산 결과가 달라집니다. 실제 신고 전에는 세무서·세무사에 확인하세요.</p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .tx-form { display: grid; gap: 18px; margin-top: 8px; }
+  .tx-sec { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px 20px; margin: 0; display: grid; gap: 16px; background: #fff; min-width: 0; }
+  .tx-sec > legend { font-weight: 800; font-size: 19px; color: var(--green); padding: 0 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tx-sec > legend small { font-weight: 600; font-size: 14.5px; color: var(--ink-soft); }
+  .no { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--green-2); color: #fff; font-size: 15px; }
+  .lab { display: block; font-weight: 700; font-size: 16.5px; margin-bottom: 6px; }
+  .money { display: block; }
+  .in { display: flex; align-items: center; gap: 8px; max-width: 360px; }
+  .tx-form input[type=text], .tx-form select { width: 100%; font: inherit; font-size: 18px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+  .tx-form select { max-width: 200px; }
+  .in input { text-align: right; }
+  .unit { flex: none; font-weight: 700; color: var(--ink-soft); }
+  .read { display: block; font-size: 15px; color: var(--green-2); font-weight: 700; min-height: 1.2em; margin-top: 4px; }
+  .read:empty { display: none; }
+  small { display: block; color: var(--ink-soft); font-size: 15px; margin-top: 6px; line-height: 1.55; }
+  .choice { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .choice > legend { padding: 0; }
+  .opt { display: inline-flex; align-items: flex-start; gap: 8px; margin: 4px 18px 4px 0; font-size: 17px; cursor: pointer; }
+  .opt.block { display: flex; margin-right: 0; }
+  .opt input { flex: none; width: 22px; height: 22px; margin-top: 3px; accent-color: var(--green); }
+  .opt small { margin-top: 2px; }
+  .tx-more { border: 1.5px dashed #c9d6e5; border-radius: var(--radius); padding: 6px 18px; }
+  .tx-more[open] { padding-bottom: 18px; }
+  .tx-more summary { cursor: pointer; font-weight: 700; color: var(--green-2); padding: 10px 0; font-size: 17px; }
+  .tx-more .tx-sec { margin-top: 12px; }
+  .tx-form > .btn { justify-self: start; }
+  .tx-err { margin: 0; font-weight: 700; color: #b42318; }
+  .tx-result { margin: 28px 0; padding: 24px; border-radius: var(--radius); background: var(--bg); scroll-margin-top: 16px; }
+  .tx-result h2 { margin: 4px 0 8px; font-size: clamp(24px, 4vw, 30px); }
+  .tx-result h2:focus { outline: none; }
+  .r-sub { margin: 0 0 16px; color: var(--ink-soft); }
+  /* 결과 표와 메모는 스크립트가 만들어 넣으므로 :global 로 꾸밉니다. */
+  .steps-t :global(td) { text-align: right; white-space: nowrap; }
+  .steps-t :global(tbody th) { font-weight: 700; color: var(--ink); background: var(--card); }
+  .steps-t :global(tr.sum th), .steps-t :global(tr.sum td) { font-weight: 800; color: var(--green); background: var(--navy-t); }
+  .steps-t :global(tr.sub th) { font-weight: 500; padding-left: 26px; color: var(--ink-soft); }
+  .steps-t :global(tr.sub td) { color: var(--ink-soft); }
+  .r-notes { margin: 16px 0; padding-left: 1.2em; }
+  .r-notes :global(li) { margin-bottom: 8px; }
+  @media (max-width: 600px) {
+    .tx-sec { padding: 14px 14px 16px; }
+    .tx-form > .btn { justify-self: stretch; }
+    .tx-result { padding: 18px 16px; }
+  }
+  @media print {
+    .tx-result { background: none; padding: 0; }
+    .notice { break-inside: avoid; }
+  }
+</style>
+
+<script>
+  import { computeInheritanceTax } from '../../scripts/inheritance-tax.js';
+  import { track } from '../../scripts/analytics.js';
+
+  const form = document.getElementById('tx') as HTMLFormElement;
+  const result = document.getElementById('result') as HTMLElement;
+  const err = document.getElementById('err') as HTMLElement;
+  const MAN = 10000;
+
+  /* 금액 읽기: "1억 5,751만 원" */
+  const won = (v: number) => {
+    const m = Math.round(v / MAN);
+    if (v > 0 && m === 0) return `${v.toLocaleString('ko-KR')}원`;
+    const eok = Math.floor(m / 10000), rest = m % 10000;
+    if (!eok && !rest) return '0원';
+    return `${eok ? `${eok.toLocaleString('ko-KR')}억 ` : ''}${rest ? `${rest.toLocaleString('ko-KR')}만 ` : ''}원`;
+  };
+  const digits = (s: string) => s.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '').slice(0, 9); // 만 원 단위 9자리 = 9,999억 원까지
+  const val = (name: string) => {
+    const el = form.elements.namedItem(name) as HTMLInputElement | null;
+    return el ? Number(digits(el.value) || 0) * MAN : 0;
+  };
+
+  /* 입력할 때 세 자리마다 쉼표, 아래에 "○억 ○만 원"으로 읽어 줌 */
+  form.querySelectorAll<HTMLInputElement>('[data-money]').forEach((el) => {
+    const read = form.querySelector<HTMLElement>(`[data-read="${el.name}"]`);
+    const sync = () => {
+      const d = digits(el.value);
+      const f = d ? Number(d).toLocaleString('ko-KR') : '';
+      if (el.value !== f) el.value = f;
+      if (read) read.textContent = d && Number(d) > 0 ? `= ${won(Number(d) * MAN)}` : '';
+    };
+    el.addEventListener('input', sync);
+    sync();
+  });
+
+  /* 보이고 숨기는 칸 */
+  const radio = (name: string) => (form.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.value ?? '');
+  function toggles() {
+    const spouse = radio('spouse') === 'yes';
+    const children = Number((form.elements.namedItem('children') as HTMLSelectElement).value);
+    form.querySelectorAll<HTMLElement>('[data-when="spouse"]').forEach((e) => { e.hidden = !spouse; });
+    form.querySelectorAll<HTMLElement>('[data-when="spouse-nochild"]').forEach((e) => { e.hidden = !(spouse && children === 0); });
+    form.querySelectorAll<HTMLElement>('[data-when="spouse-amount"]').forEach((e) => { e.hidden = !(spouse && radio('spouseMode') === 'amount'); });
+    form.querySelectorAll<HTMLElement>('[data-when="house"]').forEach((e) => { e.hidden = !(form.elements.namedItem('house') as HTMLInputElement).checked; });
+  }
+  form.addEventListener('change', toggles);
+  toggles();
+
+  const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  let shown = false;
+
+  function run(fromUser: boolean) {
+    const spouse = radio('spouse') === 'yes';
+    const children = Number((form.elements.namedItem('children') as HTMLSelectElement).value);
+    const input = {
+      realEstate: val('realEstate'), financial: val('financial'), other: val('other'),
+      debts: val('debts'), finDebts: val('finDebts'), funeral: val('funeral'), burial: val('burial'),
+      giftsHeirs: val('giftsHeirs'), giftsOthers: val('giftsOthers'), giftDeducted: val('giftDeducted'), giftTaxPaid: val('giftTaxPaid'),
+      spouse, spouseMode: radio('spouseMode'), spouseAmount: val('spouseAmount'),
+      children, parents: spouse && children === 0 ? Number(radio('parents') || 0) : 1,
+      minorAges: (form.elements.namedItem('minorAges') as HTMLInputElement).value.split(/[,\s]+/).filter(Boolean).map(Number).filter((a) => Number.isFinite(a)),
+      seniors: Number((form.elements.namedItem('seniors') as HTMLSelectElement).value),
+      house: (form.elements.namedItem('house') as HTMLInputElement).checked, houseValue: val('houseValue'), houseLoan: val('houseLoan'),
+    };
+    const gross = input.realEstate + input.financial + input.other;
+    if (!gross && !input.giftsHeirs && !input.giftsOthers) {
+      err.textContent = '재산을 하나 이상 넣어 주세요.'; err.hidden = false; result.hidden = true; shown = false;
+      if (fromUser) (form.elements.namedItem('realEstate') as HTMLInputElement).focus();
+      return;
+    }
+    if (spouse && input.spouseMode === 'amount' && !input.spouseAmount) {
+      err.textContent = '배우자가 받을 금액을 넣거나, 다른 방법을 골라 주세요.'; err.hidden = false;
+      if (fromUser) (form.elements.namedItem('spouseAmount') as HTMLInputElement).focus();
+      return;
+    }
+    err.hidden = true;
+    const r = computeInheritanceTax(input);
+
+    const head = document.getElementById('r-head') as HTMLElement;
+    const sub = document.getElementById('r-sub') as HTMLElement;
+    if (r.taxable === 0) {
+      head.textContent = '낼 상속세가 없습니다';
+      sub.textContent = '빚과 장례비를 빼면 남는 재산이 없습니다.';
+    } else if (r.payable === 0) {
+      head.textContent = '낼 상속세가 없을 가능성이 큽니다';
+      sub.textContent = r.margin > 0 ? `공제가 과세가액보다 ${won(r.margin)} 많습니다.` : '공제를 빼면 과세표준이 남지 않습니다.';
+    } else {
+      head.textContent = `예상 상속세 약 ${won(r.payable)}`;
+      sub.textContent = '기한 안에 신고해 3% 공제를 받았을 때의 금액입니다.';
+    }
+
+    const rows: [string, string, string?][] = [
+      ['재산 합계', won(r.gross)],
+      ['− 빚·세금·공과금', won(r.debts), 'sub'],
+      ['− 장례비 (인정되는 금액)', won(r.funeralDed), 'sub'],
+    ];
+    if (r.gifts) rows.push(['+ 미리 준 재산', won(r.gifts), 'sub']);
+    rows.push(['과세가액', won(r.taxable), 'sum']);
+    rows.push([r.spouseSole ? '기초공제·인적공제 (배우자 단독 상속)' : r.usedLump ? '일괄공제' : '기초공제·인적공제 (5억 원보다 커서 이것으로)', won(r.personal), 'sub']);
+    if (input.spouse) rows.push(['배우자 공제', won(r.spouseDed), 'sub']);
+    if (r.finDed) rows.push(['금융재산 공제', won(r.finDed), 'sub']);
+    if (r.houseDed) rows.push(['동거주택 공제', won(r.houseDed), 'sub']);
+    rows.push([r.cutByLimit ? '공제 합계 (과세가액·한도까지만 적용)' : '공제 합계', won(r.appliedDed), 'sum']);
+    rows.push(['과세표준', won(r.base), 'sum']);
+    if (r.base > 0) {
+      rows.push([`산출세액 (세율 ${Math.round(r.rate * 100)}% 구간)`, won(r.computed)]);
+      if (r.giftCredit) rows.push(['− 미리 낸 증여세', won(r.giftCredit), 'sub']);
+      rows.push(['− 신고세액 공제 (3%)', won(r.filingCredit), 'sub']);
+      rows.push(['예상 납부세액', won(r.payable), 'sum']);
+    }
+    (document.getElementById('r-rows') as HTMLElement).innerHTML = rows
+      .map(([a, b, c]) => `<tr${c ? ` class="${c}"` : ''}><th scope="row">${esc(a)}</th><td>${esc(b)}</td></tr>`).join('');
+
+    const notes: string[] = [];
+    if (r.taxable === 0) notes.push('빚이 재산보다 많다면 상속세보다 <a href="/guide/renounce/">상속포기·한정승인</a>을 먼저 살펴보세요. 돌아가신 것을 안 날부터 3개월 안에 정해야 합니다.');
+    if (input.spouse && r.spouseDed > 5e8) notes.push(`배우자 공제 ${esc(won(r.spouseDed))}은 배우자가 실제로 그만큼 받고, 신고기한 다음 날부터 9개월 안에 재산을 나눠 등기 등을 마쳐야 받을 수 있습니다. 그렇지 않으면 5억 원만 공제됩니다.`);
+    if (input.spouse && input.spouseMode === 'min') notes.push('배우자가 법정상속분만큼 받으면 배우자 공제가 늘어 세금이 줄어들 수 있습니다. "법정상속분만큼"으로 바꿔 비교해 보세요.');
+    if (r.payable > 0 && r.installment) notes.push('상속세가 2천만 원을 넘으면 담보를 맡기고 최대 10년 동안 나눠 낼 수 있습니다(연부연납). 세무서에 신청합니다.');
+    if (r.payable === 0 && r.taxable > 0) notes.push('낼 세금이 없어도, 상속받은 집을 나중에 팔 계획이 있다면 신고해 두는 것이 좋을 수 있습니다. 상속 때 정한 금액이 나중에 판 집의 산 가격이 되기 때문입니다. 세무사와 상의하세요.');
+    if (r.payable > 0 || r.taxable > 5e8) notes.push('신고와 납부 기한은 돌아가신 달의 말일부터 6개월입니다(돌아가신 분이나 상속인이 외국에 주소를 두었다면 9개월).');
+    if (input.giftsHeirs || input.giftsOthers) notes.push('미리 준 재산은 증여 당시의 시세로 더합니다. 그때 신고한 금액과 공제받은 금액을 확인해 넣으면 더 정확합니다.');
+    notes.push('가늠 결과입니다. 재산 평가와 공제 요건에 따라 실제 세금은 달라질 수 있으니 신고 전 세무사나 국세상담센터(국번 없이 126)에 확인하세요.');
+    (document.getElementById('r-notes') as HTMLElement).innerHTML = notes.map((x) => `<li>${x}</li>`).join('');
+
+    result.hidden = false;
+    if (fromUser) {
+      result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      head.focus({ preventScroll: true });
+      track('tax_calc');
+    }
+    shown = true;
+  }
+
+  form.addEventListener('submit', (e) => { e.preventDefault(); run(true); });
+  // 결과를 본 뒤 숫자를 고치면 결과도 바로 바뀌게
+  form.addEventListener('input', () => { if (shown) run(false); });
+  form.addEventListener('change', () => { if (shown) run(false); });
+  document.getElementById('print')?.addEventListener('click', () => window.print());
+</script>

@@ -33,7 +33,7 @@
 - 로고·앱 아이콘·파비콘·공유 썸네일: `node tools/make-icons.mjs` (작업 컴퓨터의 playwright 사용).
 - 머리말: 로고 · 처음 오셨나요 · 정리 도구 · 정리 가이드 · 떠나보낸 후 · [가족을 떠나보냈어요 →](첫 3일 안내) · [가 / 가+].
 
-## 페이지 (48개)
+## 페이지 (50개)
 
 | 묶음 | 주소 | 만드는 곳 |
 |---|---|---|
@@ -49,10 +49,12 @@
 | | `/tools/my-procedures/` | `src/pages/tools/my-procedures.astro` (같은 항목 중 `need` 조건으로 고름, 체크 표시는 위 체크리스트와 공유) |
 | | `/tools/cards/` | `src/pages/tools/cards.astro` (휴대폰 잠금 카드·지갑 긴급 카드 인쇄. 입력 저장·전송 없음, 잠금 번호는 입력받지 않음) |
 | | `/tools/print/` | `src/pages/tools/print.astro` (항목은 작성기와 같은 `src/data/note.js`) |
+| | `/tools/inheritance-tax/` | `src/pages/tools/inheritance-tax.astro` + `src/scripts/inheritance-tax.js` (상속세 가늠 계산기, 2026-10-27 추가. 입력 저장·전송 없음) |
 | 정리 가이드 | `/guide/` | `src/pages/guide/index.astro` (묶음: `src/data/guides.js`) |
 | | `/guide/will/` 등 먼저 만든 4개 | `src/pages/guide/*.astro` |
 | | 새 가이드 2개 (2026-10-27): `/guide/burial/`(묘지와 안치), `/guide/living-alone/`(혼자 사는 분) | 원고 데이터 → `[slug].astro`. `/guide/funeral-cost/` 에 비용 한눈표 추가 |
 | | 원고에서 옮긴 11개 + 새 2개 | 원고 데이터 → `src/pages/guide/[slug].astro` |
+| | `/guide/inheritance-tax/` (상속세, 2026-10-27 추가) | 원고 데이터 → `[slug].astro` |
 | 떠나보낸 후 | `/after/` 외 5개 | 원고 데이터 → `[...slug].astro` (`/after/` 에는 기한 계산기가 들어감) |
 | 다정리 안내 | `/about/`, `/glossary/` | 원고 데이터 → `[...slug].astro` |
 | | `/faq/`, `/links/` | 각자의 파일 (내용: `src/data/extra.json`) |
@@ -70,6 +72,15 @@
 취득세는 외국에 주소를 둔 상속인이 있는 경우에만 9개월(지방세법 제20조)이라 체크 칸을 둘로 나눴습니다.
 날짜 확인: 돌아가신 날이 미래이거나 "안 날"이 돌아가신 날보다 앞서면 계산하지 않고 안내합니다.
 "휴대폰 달력에 저장"에는 아직 지나지 않은 마감만 넣고, 달력 파일은 표준(RFC 5545)대로 75바이트마다 줄을 접습니다(`foldICS`).
+
+## 상속세 가늠 계산 규칙 (2026-10-27)
+
+`src/scripts/inheritance-tax.js` 맨 위 `LAW` 에 숫자가 모여 있습니다. 상속세 및 증여세법(법률 제21219호, 2026.1.1. 시행)과
+시행령 제9조·제17조를 국가법령정보센터에서 2026-10-27에 확인했습니다. 과세가액(제13조) → 공제(제18~24조) → 세율(제26조)
+→ 증여세액 공제(제28조) → 신고세액 공제 3%(제69조) 순서. 장례비는 500만~1천만 원 + 봉안 500만 원, 배우자 공제는
+max(5억, min(실제 받는 금액, (A+C)×법정상속분, 30억)). 단순화한 것(재산 평가, 가업·영농·장애인 공제, 유증, 할증,
+배우자 사전증여 E)은 화면 "이 계산기가 넣지 않은 것"에 적어 두었습니다. 법이 바뀌면(유산취득세 개편안 등)
+`LAW`, 계산식, `/guide/inheritance-tax/`(content.json) 를 함께 고치고 확인일을 바꾸세요.
 
 ## 공통 기능
 
