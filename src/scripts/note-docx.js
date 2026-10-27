@@ -9,6 +9,15 @@ import {
   Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
   Table, TableRow, TableCell, WidthType, ShadingType, BorderStyle, Footer, PageNumber,
 } from 'docx';
+import JSZip from 'jszip';
+
+/*
+ * 이어 쓰기 정보: 내려받는 Word 파일 안에 "dajeongri/note.json" 을 함께 넣어 둡니다.
+ * 다른 기기에서 "내 파일 불러오기"로 그 파일을 고르면 이 정보를 읽어 쓰던 내용을 되살립니다.
+ * Word 화면에는 보이지 않고, 파일을 Word에서 고쳐 다시 저장하면 이 정보는 빠질 수 있습니다.
+ */
+const DATA_PATH = 'dajeongri/note.json';
+const APP = 'dajeongri-note';
 
 const FONT = '맑은 고딕';
 const GREEN = '2F4B47';
@@ -115,5 +124,59 @@ export async function buildDocx(sections, data) {
     }],
   });
 
-  return Packer.toBlob(doc);
+  const blob = await Packer.toBlob(doc);
+  return embed(blob, data);
+}
+
+async function embed(blob, data) {
+  const zip = await JSZip.loadAsync(blob);
+  const types = await zip.file('[Content_Types].xml').async('string');
+  if (!/Extension="json"/.test(types)) {
+    zip.file('[Content_Types].xml', types.replace('<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">',
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="json" ContentType="application/json"/>'));
+  }
+  zip.file(DATA_PATH, JSON.stringify({ app: APP, v: 1, savedAt: new Date().toISOString(), data }));
+  // 파일 목록(관계)에 등록해 두어야 Word가 "손상된 파일"로 보지 않습니다.
+  const rels = await zip.file('_rels/.rels').async('string');
+  if (!rels.includes(DATA_PATH)) {
+    zip.file('_rels/.rels', rels.replace('</Relationships>',
+      `<Relationship Id="rIdDajeongriNote" Type="https://dajeongri.com/rel/note-data" Target="${DATA_PATH}"/></Relationships>`));
+  }
+  return zip.generateAsync({
+    type: 'blob', compression: 'DEFLATE',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+}
+
+/**
+ * 다정리에서 받은 Word 파일에서 이어 쓰기 정보를 꺼냅니다.
+ * 알고 있는 항목·칸만 글자로 받아들이고 나머지는 버립니다.
+ * 결과: { ok: true, data } 또는 { ok: false, reason: 'notzip' | 'nodata' }
+ */
+export async function readNoteFile(file, sections) {
+  let zip;
+  try { zip = await JSZip.loadAsync(file); } catch { return { ok: false, reason: 'notzip' }; }
+  const f = zip.file(DATA_PATH);
+  if (!f) return { ok: false, reason: 'nodata' };
+  let raw;
+  try { raw = JSON.parse(await f.async('string')); } catch { return { ok: false, reason: 'nodata' }; }
+  if (!raw || raw.app !== APP || typeof raw.data !== 'object' || !raw.data) return { ok: false, reason: 'nodata' };
+  const str = (x) => (typeof x === 'string' ? x.slice(0, 5000) : '');
+  const data = {};
+  for (const s of sections) {
+    const v = raw.data[s.id];
+    if (!v) continue;
+    if (s.type === 'fields') {
+      const o = {};
+      for (const fd of s.fields) o[fd.id] = str(v[fd.id]);
+      data[s.id] = o;
+    } else if (Array.isArray(v)) {
+      data[s.id] = v.slice(0, 200).map((r) => {
+        const row = {};
+        for (const c of s.cols) row[c.id] = str(r && r[c.id]);
+        return row;
+      });
+    }
+  }
+  return { ok: true, data, savedAt: typeof raw.savedAt === 'string' ? raw.savedAt : '' };
 }

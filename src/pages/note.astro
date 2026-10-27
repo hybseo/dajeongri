@@ -21,6 +21,12 @@ const isWide = (c) => c.kind === 'textarea';
       </ul>
     </div>
 
+    <div class="import-row no-print">
+      <p style="margin:0"><strong>다른 기기에서 쓰던 노트가 있나요?</strong> 다정리에서 내려받은 Word 파일을 고르면 쓰던 곳부터 이어 쓸 수 있습니다. 파일은 이 기기 안에서만 읽습니다.</p>
+      <button class="btn small ghost" type="button" id="btn-import">내 파일 불러오기</button>
+      <input type="file" id="file-import" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden />
+    </div>
+
     <div class="restore no-print" id="restore" hidden>
       <p style="margin:0">이 기기에 임시저장해 둔 노트가 있습니다.</p>
       <div class="btn-row">
@@ -134,6 +140,18 @@ const isWide = (c) => c.kind === 'textarea';
       </div>
       <p class="status muted" id="status" role="status" aria-live="polite"></p>
       <p class="muted">여러 사람이 함께 쓰는 컴퓨터라면 임시저장을 쓰지 마시고, 다 쓴 뒤 파일로만 내려받으세요.</p>
+
+      <div class="keep">
+        <h3>잃어버리지 않게 보관하는 법</h3>
+        <p class="muted" style="margin:0 0 12px">다정리는 쓰신 내용을 보관하지 않습니다. 그래서 파일을 잃어버리면 저희도 되살려 드릴 수 없습니다.</p>
+        <ol>
+          <li><strong>Word 파일을 두 곳에 두세요.</strong> 휴대폰과 컴퓨터, 또는 USB와 클라우드처럼요. 이 파일을 다시 불러오면 언제든 이어 쓸 수 있습니다.</li>
+          <li><strong>인쇄본을 가족이 아는 곳에 두세요.</strong> 파일은 비밀번호에 막힐 수 있지만 종이는 바로 펼쳐 볼 수 있습니다. 어디 두었는지 가족 한 명에게 꼭 알려 주세요.</li>
+          <li><strong>1년에 한 번 다시 열어 고치세요.</strong> 계좌, 보험, 연락처는 해마다 바뀝니다.</li>
+        </ol>
+        <button class="btn small" type="button" id="btn-remind">해마다 다시 보기 알림을 달력에 넣기</button>
+        <p class="muted" style="margin:8px 0 0;font-size:14.5px">휴대폰 달력에 1년 뒤부터 해마다 한 번 알림이 들어가는 파일을 받습니다. 노트 내용은 들어가지 않습니다.</p>
+      </div>
     </div>
   </div>
 </Base>
@@ -186,6 +204,14 @@ const isWide = (c) => c.kind === 'textarea';
   .remove:hover { color: var(--clay); }
   .pager { display: flex; justify-content: space-between; gap: 10px; margin: 4px 0 8px; }
   .pager .btn { width: auto; }
+  .import-row { display: flex; align-items: center; justify-content: space-between; gap: 12px 18px; flex-wrap: wrap; border: 1.5px dashed #c9d6e5; border-radius: var(--radius); padding: 14px 20px; margin: 16px 0 0; font-size: 15.5px; color: var(--ink-soft); }
+  .import-row strong { color: var(--ink); }
+  .import-row .btn { flex: none; }
+  .import-row :global(.import-msg) { flex-basis: 100%; margin: 0; font-weight: 700; color: var(--green); }
+  .keep { margin-top: 28px; background: var(--navy-t); border-radius: 22px; padding: 22px 24px; }
+  .keep h3 { margin: 0 0 6px; font-size: 21px; color: var(--green); }
+  .keep ol { margin: 0 0 16px; padding-left: 1.3em; display: grid; gap: 8px; }
+  .keep li { line-height: 1.6; }
   .restore { background: var(--clay-soft); border-radius: var(--radius); padding: 16px 20px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
   .preview { position: sticky; top: 140px; }
   .pv-cap { font-size: 14px; color: var(--ink-soft); margin-bottom: 8px; }
@@ -263,6 +289,7 @@ const isWide = (c) => c.kind === 'textarea';
       const rows = row.parentElement as HTMLElement;
       row.remove();
       if (!rows.children.length) addRow(rows.dataset.rows!);
+      dirty = true;
     }
   });
   /* ── 모으기·채우기 ───────────────────────── */
@@ -322,6 +349,21 @@ const isWide = (c) => c.kind === 'textarea';
   const isEmpty = (d: NoteData) => Object.values(d).every((v) =>
     Array.isArray(v) ? v.every((r) => !Object.values(r).some(Boolean)) : !Object.values(v).some(Boolean));
 
+  /* ── 저장하지 않은 내용이 있을 때 창 닫기 경고 ── */
+  let dirty = false;
+  window.addEventListener('beforeunload', (e) => {
+    if (!dirty) return;
+    e.preventDefault();
+    e.returnValue = '';   // 브라우저가 "저장하지 않은 내용이 있습니다" 안내를 띄웁니다(문구는 브라우저가 정합니다).
+  });
+
+  /* 아이폰·아이패드 사파리: 7일 넘게 열지 않으면 임시저장이 지워질 수 있습니다(홈 화면 앱은 예외). */
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isApp = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+  const iosTip = isIOS && !isApp
+    ? ' 아이폰·아이패드에서는 7일 넘게 열지 않으면 임시저장이 지워질 수 있습니다. 공유 버튼에서 "홈 화면에 추가"를 해 두시면 더 오래 보관됩니다.'
+    : '';
+
   /* ── 임시저장 (이 기기에만) ───────────────── */
   function storageGet(): NoteData | null {
     try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -342,8 +384,9 @@ const isWide = (c) => c.kind === 'textarea';
   document.getElementById('btn-save')?.addEventListener('click', () => {
     try {
       localStorage.setItem(KEY, JSON.stringify(collect()));
-      say('이 기기에 임시저장했습니다. 다음에 이 페이지를 열면 이어서 쓸 수 있습니다.');
+      say('이 기기에 임시저장했습니다. 다음에 이 페이지를 열면 이어서 쓸 수 있습니다. 다만 브라우저 기록을 지우거나 기기를 바꾸면 사라지니, Word 파일로도 받아 두세요.' + iosTip);
       markSaved();
+      dirty = false;
     } catch {
       say('이 브라우저에서는 임시저장을 할 수 없습니다. 파일로 내려받아 보관해 주세요.');
     }
@@ -363,6 +406,7 @@ const isWide = (c) => c.kind === 'textarea';
     resetRows();
     try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '-meta'); } catch { /* 무시 */ }
     restoreBox.hidden = true;
+    dirty = false;
     refresh();
     say('모두 지웠습니다.');
   });
@@ -395,13 +439,89 @@ const isWide = (c) => c.kind === 'textarea';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
       track('note_download');
-      say(`"${filename}" 파일을 내려받았습니다. 안전한 곳에 보관하고, 어디 두었는지 가족 한 명에게 알려 두세요.`);
+      dirty = false;
+      say(`"${filename}" 파일을 내려받았습니다. 안전한 곳에 보관하고, 어디 두었는지 가족 한 명에게 알려 두세요. 다른 기기에서 이 파일을 "내 파일 불러오기"로 고르면 이어 쓸 수 있습니다.`);
     } catch (err) {
       console.error(err);
       say('파일을 만들지 못했습니다. 인쇄하기로 저장하시거나 잠시 후 다시 시도해 주세요.');
     }
   });
 
+
+  /* ── 내 파일 불러오기 (다른 기기에서 이어 쓰기) ── */
+  const importBtn = document.getElementById('btn-import') as HTMLButtonElement;
+  const fileInput = document.getElementById('file-import') as HTMLInputElement;
+  let importArmed = false;
+  importBtn.addEventListener('click', () => {
+    if (!isEmpty(collect()) && !importArmed) {
+      importArmed = true;
+      importBtn.textContent = '한 번 더 누르면 지금 쓴 내용 대신 파일을 불러옵니다';
+      setTimeout(() => { importArmed = false; importBtn.textContent = '내 파일 불러오기'; }, 5000);
+      return;
+    }
+    importArmed = false;
+    importBtn.textContent = '내 파일 불러오기';
+    fileInput.value = '';
+    fileInput.click();
+  });
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    const box = document.querySelector('.import-row') as HTMLElement;
+    const tell = (msg: string) => { say(msg); let p = box.querySelector<HTMLElement>('.import-msg'); if (!p) { p = document.createElement('p'); p.className = 'import-msg'; p.setAttribute('role', 'status'); box.appendChild(p); } p.textContent = msg; };
+    if (file.size > 20 * 1024 * 1024) { tell('파일이 너무 큽니다. 다정리에서 내려받은 엔딩노트 Word 파일을 골라 주세요.'); return; }
+    tell('파일을 읽는 중입니다…');
+    try {
+      const { readNoteFile } = await import('../scripts/note-docx.js');
+      const r = await readNoteFile(file, noteSections);
+      if (!r.ok) {
+        tell(r.reason === 'notzip'
+          ? 'Word(.docx) 파일이 아닙니다. 다정리에서 내려받은 엔딩노트 파일을 골라 주세요.'
+          : '이 파일에는 이어 쓰기 정보가 없습니다. 다정리에서 내려받은 그대로의 파일을 골라 주세요. (Word에서 고쳐 다시 저장한 파일은 불러올 수 없습니다.)');
+        track('note_import_fail');
+        return;
+      }
+      fill(r.data as NoteData);
+      restoreBox.hidden = true;
+      show(0);
+      dirty = false;
+      const when = r.savedAt ? new Date(r.savedAt) : null;
+      const whenText = when && !isNaN(+when) ? ` (${when.getFullYear()}년 ${when.getMonth() + 1}월 ${when.getDate()}일에 받은 파일)` : '';
+      tell(`파일을 불러왔습니다${whenText}. 이어서 쓰신 뒤 다시 Word 파일로 내려받아 두세요.`);
+      chip.textContent = '파일에서 불러옴';
+      chip.classList.remove('ok');
+      track('note_import');
+    } catch (err) {
+      console.error(err);
+      tell('파일을 읽지 못했습니다. 다정리에서 내려받은 엔딩노트 Word 파일이 맞는지 확인해 주세요.');
+    }
+  });
+
+  /* ── 해마다 다시 보기 알림 (.ics) ─────────── */
+  document.getElementById('btn-remind')?.addEventListener('click', () => {
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    const d = new Date(); d.setFullYear(d.getFullYear() + 1);
+    const e = new Date(d); e.setDate(e.getDate() + 1);
+    const ymd = (x: Date) => `${x.getFullYear()}${p2(x.getMonth() + 1)}${p2(x.getDate())}`;
+    const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+    const esc = (t: string) => t.replace(/[\\,;]/g, (m) => '\\' + m);
+    const ics = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//dajeongri//note-reminder//KO', 'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT', `UID:dajeongri-note-review-${ymd(new Date())}-${Math.random().toString(36).slice(2, 8)}`, `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${ymd(d)}`, `DTEND;VALUE=DATE:${ymd(e)}`, 'RRULE:FREQ=YEARLY',
+      `SUMMARY:${esc('엔딩노트 다시 보기')}`,
+      `DESCRIPTION:${esc('보관해 둔 엔딩노트를 열어 바뀐 것(계좌, 보험, 연락처, 휴대폰)을 고쳐 주세요. 다정리 엔딩노트에서 "내 파일 불러오기"로 이어 쓸 수 있습니다. https://dajeongri.com/note/')}`,
+      'BEGIN:VALARM', 'TRIGGER:PT9H', 'ACTION:DISPLAY', `DESCRIPTION:${esc('엔딩노트 다시 보기')}`, 'END:VALARM',
+      'END:VEVENT', 'END:VCALENDAR',
+    ].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = '엔딩노트_해마다_다시보기.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    track('note_reminder');
+    say('달력 파일을 받았습니다. 파일을 열면 휴대폰 달력에 "엔딩노트 다시 보기"가 해마다 한 번 들어갑니다.');
+  });
 
   /* ── 한 칸씩 보기: 단계 목록 · 이전/다음 · 진행률 · 미리보기 ── */
   const secs = Array.from(form.querySelectorAll<HTMLElement>('[data-section]'));
@@ -446,7 +566,7 @@ const isWide = (c) => c.kind === 'textarea';
     if (cur === secs.length - 1) { document.querySelector('.actions')?.scrollIntoView({ behavior: 'smooth' }); return; }
     show(cur + 1, true);
   });
-  form.addEventListener('input', () => { refresh(); markUnsaved(); });
+  form.addEventListener('input', () => { refresh(); markUnsaved(); dirty = true; });
   form.addEventListener('click', () => setTimeout(refresh, 0));
   document.querySelectorAll<HTMLElement>('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy!)?.click()));
 
