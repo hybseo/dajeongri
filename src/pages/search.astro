@@ -134,15 +134,19 @@ import { POPULAR } from '../scripts/search.js';
       none.hidden = false;
       return;
     }
+    // 오타를 고쳐 찾았으면 무엇으로 찾았는지 알려 드립니다. "상속포끼" → "상속포기"
+    const shown = (res as any).corrected ? `"${(res as any).corrected}"(으)로 고쳐 찾은` : `"${q}"`;
     status.textContent = (res as any).partial
-      ? `"${q}"의 낱말이 모두 들어간 글은 없어, 일부 낱말이 들어간 글 ${res.length}건을 보여 드립니다.`
-      : `"${q}" 검색 결과 ${res.length}건${res.length >= 30 ? ' (앞의 30건)' : ''}`;
+      ? `${(res as any).corrected ? `"${(res as any).corrected}"(으)로 고쳐 찾았습니다. ` : ''}"${(res as any).corrected || q}"의 낱말이 모두 들어간 글은 없어, 일부 낱말이 들어간 글 ${res.length}건을 보여 드립니다.`
+      : `${shown} 검색 결과 ${res.length}건${res.length >= 30 ? ' (앞의 30건)' : ''}`;
     const frag = document.createDocumentFragment();
     for (const r of res) {
       const li = document.createElement('li');
       li.className = 'sp-item';
       const p = r.page;
       li.innerHTML = `<p class="sp-g">${esc(p.g)}</p><a class="sp-t" href="${esc(href(p.u))}">${esc(p.t)}</a>`
+        // 본문에서 찾은 칸이 없으면(제목·설명에만 있음) 페이지 설명을 보여 줍니다.
+        + (!r.hits.length && p.d ? `<p class="sp-snip">${esc(p.d)}</p>` : '')
         + (r.hits.length ? `<ul class="sp-hits">${r.hits.map((h) => `<li>${h.h ? `<a class="sp-h" href="${esc(href(p.u + (h.a ? '#' + h.a : '')))}">${esc(h.h)}</a>` : ''}<p class="sp-snip">${marked(h.snippet)}</p></li>`).join('')}</ul>` : '');
       frag.appendChild(li);
     }

@@ -6,7 +6,7 @@
  */
 const { compact = false } = Astro.props;
 ---
-<section class="calc card" data-calc>
+<section class="calc card" data-calc data-nosearch>
   {compact ? <h2 class="calc-title">돌아가신 날을 넣으면 마감 날짜를 계산해 드립니다</h2> : null}
   <form class="calc-form" onsubmit="return false" novalidate>
     <label>

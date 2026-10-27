@@ -32,11 +32,13 @@ export const SYNONYMS = [
   ['통장', '계좌', '예금'],
   ['세금', '상속세', '취득세', '국세', '지방세'],
   ['부모님', '부모'],
-  ['아버지', '어머니', '부모님', '부모', '가족'],
+  ['아버지', '어머니', '엄마', '아빠', '부모님', '부모', '가족'],
+  ['자식', '자녀', '아들', '딸'],
   ['돌아가시면', '돌아가신', '돌아가셨', '사망', '떠나보낸', '세상을 떠난'],
   ['해야할일', '해야 할 일', '할 일', '할일'],
   ['이장', '개장', '묘 정리'],
   ['독거', '혼자 사는', '혼자 지내는', '1인 가구'],
+  ['공영장례', '무연고'],
   ['치매', '후견', '성년후견'],
   ['유품', '유품정리', '유품 정리'],
   ['엔딩노트', '엔딩 노트'],
@@ -49,61 +51,142 @@ export const SYNONYMS = [
   ['사망신고', '사망 신고'],
   ['부고', '부고 문자'],
   ['안심상속', '원스톱서비스', '재산 조회'],
+  ['기간', '기한', '마감'],
+  ['명의 변경', '명의 이전', '상속등기'],
+  ['맡길', '맡을', '맡아'],
+  ['글씨', '글자'],
+  ['워드', 'word'],
+  ['인출', '찾아 쓰', '꺼내 쓰'],
+  ['정지', '해지', '중지'],
+  ['장제비', '장례비', '장제급여'],
+  ['무빈소', '빈소 없이', '가족장'],
+  ['간소', '작은 장례', '가족장'],
+  ['바다장', '해양장', '산분장'],
+  ['반려견', '반려동물', '반려묘', '강아지', '고양이'],
+  ['샘플', '예시', '양식', '견본'],
+  ['설득', '말 꺼내', '이야기 꺼내', '꺼낼', '꺼내'],
+  ['짐', '부담'],
+  ['사전증여', '증여'],
+  ['분할', '나누', '나눌'],
+  ['분쟁', '다툼'],
+  ['같이 산', '함께 산', '같이 살', '함께 살', '동거'],
+  ['풀기', '해제', '열기'],
+  ['아이폰', 'iphone'],
+  ['사과', '미안'],
+  ['기부', '기증', '나눔'],
+  ['손주', '손자', '손녀', '손자녀'],
+  ['인터넷 없이', '오프라인', '인터넷이 없어도', '인터넷이 끊겨도'],
 ];
 
+/* 찾는 데 꼭 필요하지 않은 말(있으면 점수에 조금 보탬). 다 이런 말뿐이면 그대로 찾습니다. */
+const OPTIONAL = new Set(['방법', '하는법', '쓰는법', '어떻게', '어디서', '어디', '언제', '얼마', '얼마나', '무엇', '뭐', '뭔가요',
+  '하나요', '해야', '해야하나', '되나요', '있나요', '알려줘', '알려주세요', '싶어', '싶어요', '싶다', '좀', '제일', '먼저', '관련',
+  '정보', '문의', '뜻', '의미', '몇', '장', '개', '번', '명', '한', '채', '어제', '오늘', '방금', '지금', '모르겠어요', '모르겠다', '모름', '부터', '뭐부터', '무엇부터', '어디부터', '법', '쓰는', '하는', '쓰기', '안', '못', '잘', '다', '더', '꼭', '미리', '준비', '하려면', '받고', '되게', '안되게', '어떡해',
+  '어떡하나요', '좋은', '있어요', '없어요', '했어요', '해요', '합니다', '주세요', '들', '것', '수', '때', '경우', '하면', '하기']);
+
 // 낱말 끝에 붙는 조사. 긴 것부터 확인합니다.
-const JOSA = ['에서는', '에게서', '으로는', '이라도', '에서', '에게', '한테', '께서', '으로', '이랑', '하고', '까지', '부터', '보다', '처럼', '이나', '은', '는', '이', '가', '을', '를', '에', '의', '로', '와', '과', '도', '만', '랑', '나'];
+const JOSA = ['에서는', '에게서', '으로는', '이라도', '에서', '에게', '한테', '께서', '으로', '이랑', '하고', '까지', '부터', '보다', '처럼', '이나', '은', '는', '이', '가', '을', '를', '에', '의', '로', '와', '과', '도', '만', '랑', '나', '간'];
+// 말끝(어미). "돌아가셨어요" → "돌아가셨"
+const ENDING = ['었어요', '았어요', '셨어요', '셨는데', '습니다', '어요', '아요', '에요', '예요', '해요', '세요', '나요', '까요', '는데', '니다', '시면', '려면', '어서', '아서', '으면', '인지', '면'];
 
 export const ns = (s) => String(s).toLowerCase().replace(/\s+/g, '');
 
-/** 조사를 뗀 형태. 남는 글자가 두 글자 이상일 때만 뗍니다. */
+/** 조사를 뗀 형태. 남는 글자가 두 글자 이상일 때만 뗍니다. "자식들한테" → "자식" */
 export function stripJosa(w) {
+  let r = w;
   for (const j of JOSA) {
-    if (w.length - j.length >= 2 && w.endsWith(j)) return w.slice(0, -j.length);
+    if (r.length - j.length >= 2 && r.endsWith(j)) { r = r.slice(0, -j.length); break; }
   }
-  return w;
+  if (r.length >= 3 && r.endsWith('들')) r = r.slice(0, -1);
+  return r;
 }
+const stripEnding = (w) => { for (const e of ENDING) if (w.length - e.length >= 2 && w.endsWith(e)) return w.slice(0, -e.length); return w; };
 
-/** 검색어 → 낱말마다 "이 중 하나만 있으면 됨" 목록(띄어쓰기 없는 형태) */
-export function parseQuery(q) {
+/**
+ * 검색어 → 낱말 목록. 낱말마다 alts(이 중 하나만 있으면 됨, 띄어쓰기 없는 형태)와 optional(꼭 필요하지 않음)을 둡니다.
+ * corpus: 색인 전체 글(띄어쓰기 없는 형태). 띄어 쓴 말을 붙였을 때 사이트에 있는 말이면 한 낱말로 봅니다("유언 장" → "유언장").
+ */
+export function parseQuery(q, corpus = '') {
   const raw = String(q || '').trim().replace(/[^\p{L}\p{N}\s·-]/gu, ' ');
-  const words = raw.split(/\s+/).filter(Boolean).slice(0, 8);
+  let words = raw.split(/\s+/).filter(Boolean).slice(0, 8);
   const whole = ns(raw);
-  // 낱말로 쪼개기 전에, 띄어 쓴 말이 비슷한 말 묶음에 통째로 있으면 한 낱말로 봅니다("사망 신고").
+  let joined = false;
+  const joinedBase = words.length > 1 ? ns(words.slice(0, -1).join('') + stripJosa(words[words.length - 1])) : '';
+  const synAll = new Set(SYNONYMS.flat().map(ns));
+  if (words.length > 1 && joinedBase.length >= 3 && corpus) {
+    const inHead = corpus.headings.includes(joinedBase) || synAll.has(joinedBase);
+    const shortWord = words.some((w) => w.length === 1);
+    if (inHead || (shortWord && corpus.text.includes(joinedBase))) { words = [joinedBase]; joined = true; }
+  }
   const terms = [];
   const used = new Set();
+  // 띄어 쓴 말이 비슷한 말 묶음에 통째로 있으면 한 낱말로 봅니다("사망 신고", "명의 변경").
   for (const group of SYNONYMS) {
-    const hit = group.find((g) => g.includes(' ') && whole.includes(ns(g)));
+    const hit = group.find((g) => g.includes(' ') && ns(words.join('')).includes(ns(g)));
     if (hit && words.length > 1) {
-      terms.push(new Set(group.map(ns)));
+      terms.push({ alts: new Set(group.map(ns)), word: hit, optional: false });
       hit.split(/\s+/).forEach((p) => used.add(p));
     }
   }
   for (const w of words) {
-    if (used.has(w)) continue;
-    const alts = new Set([ns(w)]);
-    const base = stripJosa(w);
-    alts.add(ns(base));
+    if (used.has(w) || used.has(stripJosa(w)) || [...used].some((u) => u.length >= 2 && w.startsWith(u))) continue;
+    const cands = [...new Set([w, stripJosa(w), stripEnding(w), stripEnding(stripJosa(w))].map(ns))];
+    const alts = new Set(cands);
     for (const group of SYNONYMS) {
-      if (group.some((g) => ns(g) === ns(w) || ns(g) === ns(base))) group.forEach((g) => alts.add(ns(g)));
+      // 말끝을 떼고 남은 말이 묶음 안 낱말의 앞부분이어도 같은 묶음으로 봅니다. "돌아가셨어요" → "돌아가" → 돌아가신
+      if (group.some((g) => cands.includes(ns(g)) || cands.some((c) => c.length >= 3 && ns(g).startsWith(c)))) group.forEach((g) => alts.add(ns(g)));
     }
-    // 한 글자 낱말은 그대로 두되(예: "빚"), 비어 있으면 뺍니다.
     // 한 글자 낱말은 한글(예: "빚")만 씁니다. 영문 한 글자 등은 너무 많이 걸려 뺍니다.
     const list = [...alts].filter((a) => a.length > 1 || /[가-힣]/.test(a));
-    if (list.length) terms.push(new Set(list));
+    if (!list.length) continue;
+    // 숫자만 있는 낱말(금액, 전화번호 등)은 찾는 데 쓰지 않습니다.
+    if (!list.some((a) => /[^\d\-.,#]/.test(a))) continue;
+    terms.push({ alts: new Set(list), word: w, optional: cands.some((c) => OPTIONAL.has(c)) });
   }
+  if (terms.length && terms.every((t) => t.optional)) terms.forEach((t) => { t.optional = false; });
   // 띄어 쓴 말을 붙인 형태("상속 포기를" → "상속포기")도 한 덩어리로 찾아 더 앞에 둡니다.
-  const phrases = words.length > 1 ? [...new Set([whole, ns(words.slice(0, -1).join('') + stripJosa(words[words.length - 1]))])] : [];
+  const phrases = joinedBase && !joined ? [...new Set([whole, joinedBase])] : [];
   return { terms, whole, raw, phrases };
 }
 
-/** 색인을 검색하기 좋게 한 번만 가공합니다. */
+/** 색인을 검색하기 좋게 한 번만 가공합니다. 오타 고치기에 쓸 낱말 목록도 만듭니다. */
 export function prepare(index) {
-  return index.pages.map((p) => ({
+  const pages = index.pages.map((p) => ({
     ...p,
     tN: ns(p.t), dN: ns(p.d),
     sN: p.s.map(([a, h, t]) => ({ a, h, t, hN: ns(h), tN: ns(t) })),
   }));
+  pages.forEach((p) => { p._all = p.tN + ' ' + p.dN + ' ' + p.sN.map((s) => s.hN + s.tN).join(' '); });
+  const vocab = new Map();
+  for (const p of index.pages) {
+    for (const w of (p.t + ' ' + p.s.map((s) => s[1] + ' ' + s[2]).join(' ')).split(/[^가-힣a-z0-9]+/i)) {
+      const b = stripJosa(w).toLowerCase();
+      if (b.length >= 2 && /[가-힣]/.test(b)) vocab.set(b, (vocab.get(b) || 0) + 1);
+    }
+  }
+  pages.vocab = vocab;
+  pages.corpus = { text: pages.map((p) => p._all).join(' '), headings: pages.map((p) => p.tN + ' ' + p.sN.map((s) => s.hN).join(' ')).join(' ') };
+  return pages;
+}
+
+/** 한 글자만 틀린 낱말 찾기(오타). 세 글자 이상에서, 한 글자의 자음·모음 하나만 다른 경우("상속포끼" → "상속포기"). */
+const jamo = (c) => { const k = c.charCodeAt(0) - 0xac00; return k < 0 || k > 11171 ? null : [Math.floor(k / 588), Math.floor((k % 588) / 28), k % 28]; };
+function oneJamo(a, b) {
+  const x = jamo(a), y = jamo(b);
+  if (!x || !y) return false;
+  const diff = [0, 1, 2].filter((i) => x[i] !== y[i]);
+  return diff.length === 1;
+}
+function fixTypo(word, vocab) {
+  if (!vocab || word.length < 3 || !/^[가-힣]+$/.test(word)) return null;
+  let best = null, bestN = 0;
+  for (const [v, n] of vocab) {
+    if (v.length !== word.length) continue;
+    let d = 0, ok = true;
+    for (let i = 0; i < v.length; i++) if (v[i] !== word[i]) { d++; if (d > 1 || !oneJamo(v[i], word[i])) { ok = false; break; } }
+    if (ok && d === 1 && n > bestN) { best = v; bestN = n; }
+  }
+  return best;
 }
 
 const count = (hay, needle) => {
@@ -114,63 +197,107 @@ const count = (hay, needle) => {
 };
 const best = (hay, alts) => { let m = 0; for (const a of alts) m = Math.max(m, count(hay, a)); return m; };
 
+/*
+ * 추천 결과: 가족을 막 떠나보낸 분이 흔히 치는 말에는 날짜순 안내를 맨 앞에 둡니다.
+ * test 는 검색어 원문(띄어쓰기 포함)에 대한 검사입니다.
+ */
+const PINS = [
+  { test: (q) => /돌아가|떠나보|임종|별세|사망했/.test(q) && /어제|오늘|방금|지금|먼저|뭐부터|무엇부터|처음|당장/.test(q), url: '/after/first-days/', bonus: 20 },
+  { test: (q) => /돌아가셨|떠나보냈|별세/.test(q), url: '/after/', bonus: 10 },
+];
+
 // 목록만 모아 둔 페이지는 덜 앞에 둡니다.
-const HUB = new Set(['/guide/', '/tools/', '/start/', '/after/']);
+const HUB = new Set(['/guide/', '/tools/', '/start/']);
 
 /**
  * @returns [{ page, score, hits: [{a, h, snippet}] }]
+ *   결과 배열에 .partial(일부 낱말만 맞음), .corrected(오타를 고쳐 찾은 검색어)가 붙을 수 있습니다.
  */
 export function search(prepared, q, limit = 30) {
-  const parsed = parseQuery(q);
+  const parsed = parseQuery(q, prepared.corpus);
   const { whole, phrases } = parsed;
-  // 숫자만 있는 낱말(금액, 전화번호 등)은 찾는 데 쓰지 않습니다.
-  const terms = parsed.terms.filter((alts) => [...alts].some((a) => /[^\d\-.,#]/.test(a)));
-  const hasPhrase = (h) => phrases.some((ph) => ph.length > 1 && h.includes(ph));
+  let terms = parsed.terms;
   if (!terms.length) return [];
-  const all = (p) => (p._all ??= p.tN + ' ' + p.dN + ' ' + p.sN.map((s) => s.hN + s.tN).join(' '));
   const has = (h, alts) => [...alts].some((a) => h.includes(a));
-  // 거의 모든 페이지에 나오는 말("정리" 등)은 덜 중요하게, 드문 말은 더 중요하게 셉니다.
   const N = prepared.length;
-  const dfs = terms.map((alts) => prepared.filter((p) => has(all(p), alts)).length);
-  const weight = dfs.map((df) => Math.min(1, Math.max(0.15, Math.log((N + 1) / (df + 0.5)) / Math.log(N + 1))));
-  // 절반이 넘는 페이지에 나오는 흔한 말(예: "정리")은 꼭 있어야 하는 말에서 뺍니다. 다 흔하면 모두 필요.
-  let need = terms.map((_, i) => dfs[i] <= N * 0.5);
+  let dfOf = (alts) => prepared.filter((p) => has(p._all, alts)).length;
+  // 어디에도 없는 낱말은 한 글자 틀린 말(오타)인지 봅니다. "상속포끼" → "상속포기"
+  let corrected = null;
+  terms = terms.map((t) => {
+    if (t.optional || dfOf(t.alts) > 0) return t;
+    const fix = fixTypo(ns(stripJosa(t.word)), prepared.vocab);
+    if (!fix) return t;
+    corrected = (corrected || String(q).trim()).replace(stripJosa(t.word), fix);
+    const alts = new Set([fix]);
+    for (const group of SYNONYMS) if (group.some((g) => ns(g) === fix)) group.forEach((g) => alts.add(ns(g)));
+    return { ...t, alts };
+  });
+  // 거의 모든 페이지에 나오는 말("정리" 등)은 덜 중요하게, 드문 말은 더 중요하게 셉니다.
+  const dfs = terms.map((t) => dfOf(t.alts));
+  const weight = dfs.map((df, i) => (terms[i].optional ? 0.1 : Math.min(1, Math.max(0.15, Math.log((N + 1) / (df + 0.5)) / Math.log(N + 1)))));
+  // 꼭 있어야 하는 말: 흔한 말(절반이 넘는 페이지)과 OPTIONAL 낱말은 뺍니다. 다 빠지면 모두 필요.
+  let need = terms.map((t, i) => !t.optional && dfs[i] <= N * 0.5);
+  if (!need.some(Boolean)) need = terms.map((t) => !t.optional);
   if (!need.some(Boolean)) need = terms.map(() => true);
   const needCount = need.filter(Boolean).length;
+  const hasPhrase = (h) => phrases.some((ph) => ph.length > 1 && h.includes(ph));
   const out = [];
   for (const p of prepared) {
-    // 기본은 모든 낱말이 페이지 어딘가(제목·설명·본문)에 있어야 합니다.
-    const matched = terms.filter((alts, i) => need[i] && has(all(p), alts)).length;
+    const hit = terms.map((t, i) => need[i] && has(p._all, t.alts));
+    const matched = hit.filter(Boolean).length;
     if (!matched) continue;
+    const matchedW = hit.reduce((n, h, i) => n + (h ? weight[i] : 0), 0);
     let score = 0;
-    terms.forEach((alts, i) => {
-      if (has(p.tN, alts)) score += 12 * weight[i];
-      if (has(p.dN, alts)) score += 3 * weight[i];
+    terms.forEach((t, i) => {
+      if (has(p.tN, t.alts)) score += 12 * weight[i];
+      if (has(p.dN, t.alts)) score += 3 * weight[i];
     });
     if ((whole.length > 1 && p.tN.includes(whole)) || hasPhrase(p.tN)) score += 10;
     const secs = p.sN.map((s) => {
-      let v = 0;
-      terms.forEach((alts, i) => {
-        if (has(s.hN, alts)) v += 6 * weight[i];
-        v += Math.min(best(s.tN, alts), 5) * weight[i];
+      let v = 0, cover = 0;
+      terms.forEach((t, i) => {
+        const inH = has(s.hN, t.alts), inT = has(s.tN, t.alts);
+        if (inH) v += 6 * weight[i];
+        v += Math.min(best(s.tN, t.alts), 5) * weight[i];
+        if (inH || inT) cover += weight[i];
       });
       if (hasPhrase(s.hN) || hasPhrase(s.tN)) v += 8;
-      return { s, v };
-    }).filter((x) => x.v > 0).sort((a, b) => b.v - a.v);
+      return { s, v, cover };
+    }).filter((x) => x.v > 0)
+      // 드문(중요한) 낱말이 들어간 소제목을 먼저 보여 줍니다. "코인 상속" → 가상자산이 나오는 칸
+      .sort((a, b) => b.cover - a.cover || b.v - a.v);
     score += (secs[0]?.v || 0) + secs.slice(1, 4).reduce((n, x) => n + x.v * 0.25, 0);
     if (HUB.has(p.u)) score *= 0.6;
-    out.push({ page: p, score, matched, hits: secs.slice(0, 2).map((x) => ({ a: x.s.a, h: x.s.h, snippet: snippet(x.s.t, terms, phrases) })) });
+    for (const pin of PINS) if (pin.url === p.u && pin.test(String(q))) score += pin.bonus;
+    // 강조는 꼭 필요한 낱말만, 드문(중요한) 낱말부터. 조각은 가장 드문 낱말이 나온 자리를 중심으로 자릅니다.
+    const order = terms.map((t, i) => i).filter((i) => !terms[i].optional).sort((x, y) => weight[y] - weight[x]);
+    const alts = order.map((i) => terms[i].alts);
+    out.push({ page: p, score, matched, matchedW, hits: secs.slice(0, 2).map((x) => ({ a: x.s.a, h: x.s.h, snippet: snippet(x.s.t, alts, phrases) })) });
+  }
+  // 추천 결과 페이지가 낱말 조건에 걸려 빠졌어도 함께 보여 줍니다.
+  for (const pin of PINS) {
+    if (!pin.test(String(q))) continue;
+    const have = out.find((r) => r.page.u === pin.url);
+    if (have) { have.matched = needCount; have.matchedW = 99; continue; }
+    const page = prepared.find((p) => p.u === pin.url);
+    if (page) out.push({ page, score: pin.bonus, matched: needCount, matchedW: 99, hits: [] });
   }
   const strict = out.filter((r) => r.matched === needCount);
-  if (strict.length || needCount === 1) return strict.sort((a, b) => b.score - a.score).slice(0, limit);
-  // 모든 낱말이 들어간 글이 없으면, 낱말이 많이 들어간 글부터 보여 줍니다(화면에 "일부 낱말" 안내).
-  const loose = out.sort((a, b) => b.matched - a.matched || b.score - a.score).slice(0, limit);
-  loose.partial = true;
-  return loose;
+  let res;
+  if (strict.length || needCount === 1) res = strict.sort((a, b) => b.score - a.score).slice(0, limit);
+  else {
+    // 모든 낱말이 들어간 글이 없으면, 중요한(드문) 낱말이 많이 들어간 글부터 보여 줍니다(화면에 "일부 낱말" 안내).
+    res = out.sort((a, b) => b.matchedW - a.matchedW || b.score - a.score).slice(0, limit);
+    res.partial = true;
+  }
+  if (corrected && res.length) res.corrected = corrected;
+  return res;
 }
 
 /** 찾은 말 앞뒤로 글을 잘라 보여 줄 조각. 찾은 말은 [[ ]]로 표시해 두고 화면에서 강조합니다. */
 export function snippet(text, terms, phrases = [], before = 34, after = 86) {
+  // terms 는 중요한 순서(앞이 더 드문 말)로 받습니다.
+  const rank = (str) => { const k = terms.findIndex((t) => t.has(str)); return k < 0 ? 99 : k; };
   const flat = [...new Set([...phrases.filter((x) => x.length > 1), ...terms.flatMap((t) => [...t]).sort((a, b) => b.length - a.length)])].filter((a) => a.length >= 1);
   // 띄어쓰기 무시 비교를 위해, 글자 위치 지도(띄어쓰기 뺀 위치 → 원래 위치)를 만듭니다.
   const map = []; let flatText = '';
@@ -180,12 +307,12 @@ export function snippet(text, terms, phrases = [], before = 34, after = 86) {
     let i = flatText.indexOf(a);
     while (i !== -1 && marks.length < 12) {
       const s = map[i], e = map[i + a.length - 1] + 1;
-      if (!marks.some(([ms, me]) => s < me && e > ms)) marks.push([s, e, phrases.includes(a)]);
+      if (!marks.some(([ms, me]) => s < me && e > ms)) marks.push([s, e, phrases.includes(a), rank(a)]);
       i = flatText.indexOf(a, i + a.length);
     }
   }
   // 붙인 형태(phrases)가 찾아졌으면 그 자리를, 아니면 처음 찾은 자리를 중심으로 자릅니다.
-  const focus = marks.find((m) => m[2]) || marks.slice().sort((x, y) => x[0] - y[0])[0];
+  const focus = marks.find((m) => m[2]) || marks.slice().sort((x, y) => x[3] - y[3] || x[0] - y[0])[0];
   marks.sort((x, y) => x[0] - y[0]);
   const at = focus ? focus[0] : 0;
   const start = Math.max(0, at - before);
