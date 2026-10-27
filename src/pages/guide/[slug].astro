@@ -1,0 +1,17 @@
+---
+/*
+ * 원고에서 옮긴 가이드 11개 (src/data/content.json 의 guides).
+ * 먼저 만든 4개(will, life-sustaining, digital, inheritance)는 각자의 파일이 있습니다.
+ */
+import Guide from '../../layouts/Guide.astro';
+import Blocks from '../../components/Blocks.astro';
+import content from '../../data/content.json';
+
+export function getStaticPaths() {
+  return content.guides.map((g) => ({ params: { slug: g.url.split('/')[2] }, props: { g } }));
+}
+const { g } = Astro.props;
+---
+<Guide slug={g.url.split('/')[2]} title={g.title} description={g.meta} checked="2026년 10월 27일" sources={g.sources}>
+  <Blocks blocks={g.blocks} />
+</Guide>

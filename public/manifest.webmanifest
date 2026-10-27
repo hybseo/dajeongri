@@ -1,0 +1,24 @@
+{
+  "name": "다정리 · 생전정리와 엔딩노트",
+  "short_name": "다정리",
+  "description": "남은 사람이 헤매지 않도록 지금 다정하게 정리해 두는 무료 엔딩노트와 체크리스트",
+  "lang": "ko",
+  "dir": "ltr",
+  "id": "/",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf7f1",
+  "theme_color": "#2f4b47",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "엔딩노트 쓰기", "url": "/note/?source=shortcut", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "체크리스트", "url": "/checklist/?source=shortcut", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

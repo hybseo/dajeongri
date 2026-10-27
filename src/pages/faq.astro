@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import extra from '../data/extra.json';
+const { faq } = extra;
+---
+<Base title={faq.title} description={faq.meta}>
+  <div class="wrap narrow">
+    <header class="page-head">
+      <p class="kicker">다정리 안내</p>
+      <h1>{faq.title}</h1>
+      <p class="lead">궁금한 질문을 누르면 답이 펼쳐집니다.</p>
+    </header>
+    <div class="faq">
+      {faq.qa.map((x, i) => (
+        <details class="faq-item" open={i === 0}>
+          <summary>{x.q}</summary>
+          <p>{x.a}</p>
+        </details>
+      ))}
+    </div>
+    <p class="muted" style="margin-top:24px">찾는 답이 없다면 <a href="/guide/">정리 가이드</a>나 <a href="/links/">공식 기관 바로가기</a>를 확인해 보세요.</p>
+  </div>
+</Base>
+
+<style>
+  .faq { display: grid; gap: 10px; }
+  .faq-item { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 0 20px; }
+  .faq-item summary { cursor: pointer; font-weight: 700; padding: 16px 0; list-style: none; display: flex; justify-content: space-between; gap: 12px; color: var(--green); }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after { content: '+'; font-size: 22px; line-height: 1; color: var(--clay); }
+  .faq-item[open] summary::after { content: '−'; }
+  .faq-item p { margin: 0 0 18px; }
+</style>

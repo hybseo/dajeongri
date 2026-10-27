@@ -1,0 +1,212 @@
+/*
+ * 다정리 공통 스타일.
+ *
+ * 주 사용자는 40~60대입니다. 그래서 일반 사이트보다 글자를 크게(본문 18px),
+ * 줄 간격을 넓게, 글자와 배경의 대비를 분명하게 잡았습니다.
+ * 색은 차분한 짙은 초록(먹색에 가까운)과 따뜻한 종이색, 포인트로 흙빛 주황입니다.
+ */
+
+:root {
+  --paper: #faf7f1;
+  --paper-2: #f2ece2;
+  --card: #ffffff;
+  --ink: #23302e;
+  --ink-soft: #4e5a57;
+  --line: #ddd4c6;
+  --green: #2f4b47;
+  --green-2: #3f6560;
+  --clay: #b5643c;
+  --clay-soft: #f6e6dc;
+  --warn-bg: #fff6e0;
+  --warn-line: #e5c574;
+  --radius: 14px;
+  --serif: 'Gowun Batang', 'Noto Serif KR', serif;
+  --sans: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 18px;
+  line-height: 1.75;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+img { max-width: 100%; height: auto; }
+a { color: var(--green-2); text-underline-offset: 3px; }
+a:hover { color: var(--clay); }
+:focus-visible { outline: 3px solid var(--clay); outline-offset: 2px; border-radius: 4px; }
+
+.wrap { width: 100%; max-width: 980px; margin: 0 auto; padding: 0 20px; }
+.narrow { max-width: 760px; }
+
+.skip { position: absolute; left: -9999px; }
+.skip:focus { left: 12px; top: 12px; background: var(--card); padding: 8px 12px; z-index: 10; }
+
+/* ── 머리말 ─────────────────────────────── */
+header.site { background: var(--paper); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+header.site .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; flex-wrap: wrap; }
+.mark { font-family: var(--serif); font-weight: 700; font-size: 24px; color: var(--green); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.mark .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--clay); display: inline-block; }
+header.site nav { display: flex; gap: 4px; flex-wrap: wrap; }
+header.site nav a { text-decoration: none; color: var(--ink); padding: 8px 12px; border-radius: 999px; font-size: 16px; font-weight: 500; }
+header.site nav a:hover { background: var(--paper-2); color: var(--ink); }
+header.site nav a[aria-current='page'] { background: var(--green); color: #fff; }
+
+/* ── 꼬리말 ─────────────────────────────── */
+footer.site { margin-top: 80px; border-top: 1px solid var(--line); background: var(--paper-2); padding: 32px 0 48px; font-size: 15px; color: var(--ink-soft); }
+footer.site p { margin: 6px 0; }
+.foot-name { font-family: var(--serif); font-weight: 700; color: var(--green); font-size: 18px; }
+
+/* ── 제목과 본문 ────────────────────────── */
+h1, h2, h3 { font-family: var(--serif); color: var(--green); line-height: 1.35; letter-spacing: -0.01em; }
+h1 { font-size: clamp(30px, 5vw, 44px); margin: 0 0 16px; }
+h2 { font-size: clamp(24px, 3.4vw, 30px); margin: 56px 0 16px; }
+h3 { font-size: 21px; margin: 32px 0 10px; }
+p { margin: 0 0 16px; }
+.lead { font-size: 20px; color: var(--ink-soft); }
+.muted { color: var(--ink-soft); font-size: 16px; }
+.page-head { padding: 48px 0 8px; }
+.kicker { font-size: 15px; font-weight: 700; color: var(--clay); letter-spacing: 0.04em; margin-bottom: 8px; }
+
+/* ── 버튼 ───────────────────────────────── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 12px 24px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 17px; text-decoration: none; cursor: pointer; border: 2px solid var(--green); background: var(--green); color: #fff; }
+.btn:hover { background: var(--green-2); border-color: var(--green-2); color: #fff; }
+.btn.ghost { background: transparent; color: var(--green); }
+.btn.ghost:hover { background: var(--paper-2); color: var(--green); }
+.btn.clay { background: var(--clay); border-color: var(--clay); }
+.btn.clay:hover { background: #9d5432; border-color: #9d5432; }
+.btn.small { min-height: 42px; padding: 8px 16px; font-size: 15px; }
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ── 카드와 상자 ────────────────────────── */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.card h3 { margin-top: 0; }
+a.card { text-decoration: none; color: var(--ink); display: block; transition: border-color .15s, transform .15s; }
+a.card:hover { border-color: var(--green-2); transform: translateY(-2px); color: var(--ink); }
+.card .more { color: var(--clay); font-weight: 700; font-size: 16px; }
+.notice { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: var(--radius); padding: 18px 22px; margin: 24px 0; font-size: 17px; }
+.notice strong { color: #7a5200; }
+.calm { background: var(--clay-soft); border-radius: var(--radius); padding: 18px 22px; margin: 24px 0; }
+
+/* ── 표 ─────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin: 16px 0 24px; }
+table { border-collapse: collapse; width: 100%; background: var(--card); font-size: 16px; }
+th, td { border: 1px solid var(--line); padding: 12px 14px; text-align: left; vertical-align: top; }
+th { background: var(--paper-2); color: var(--green); font-weight: 700; }
+
+/* ── 가이드 본문 ────────────────────────── */
+.article ol, .article ul { padding-left: 1.3em; }
+.article li { margin-bottom: 8px; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps > li { counter-increment: s; position: relative; padding: 16px 16px 16px 64px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 12px; }
+.steps > li::before { content: counter(s); position: absolute; left: 16px; top: 16px; width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.steps > li strong { display: block; color: var(--green); font-size: 19px; margin-bottom: 4px; }
+.sources { font-size: 15px; color: var(--ink-soft); border-top: 1px solid var(--line); margin-top: 48px; padding-top: 16px; }
+.sources ul { padding-left: 1.2em; }
+.updated { font-size: 15px; color: var(--ink-soft); }
+
+/* ── 첫 화면 ─────────────────────────────── */
+.hero { padding: 64px 0 32px; }
+.hero h1 { font-size: clamp(34px, 6vw, 54px); }
+.hero .lead { max-width: 640px; }
+.pill-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 32px; padding: 0; list-style: none; }
+.pill-list li { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 15px; color: var(--ink-soft); }
+
+@media (max-width: 600px) {
+  body { font-size: 17px; }
+  .wrap { padding: 0 16px; }
+  header.site .bar { padding-top: 8px; padding-bottom: 8px; }
+  header.site nav a { padding: 6px 10px; font-size: 15px; }
+  .btn { width: 100%; }
+  .hero { padding-top: 40px; }
+  .hero h1 { font-size: clamp(28px, 7.4vw, 54px); }
+}
+
+@media print {
+  header.site, footer.site, .no-print { display: none !important; }
+  body { background: #fff; font-size: 13pt; }
+  .card, .notice { break-inside: avoid; }
+}
+
+[hidden] { display: none !important; }
+
+/* ── 앱으로 설치 버튼 (머리말 오른쪽) ───────── */
+.install-chip { font: inherit; font-size: 15px; font-weight: 700; border: 2px solid var(--clay); color: var(--clay); background: #fff; border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.install-chip:hover { background: var(--clay); color: #fff; }
+
+/* ── 휴대폰 하단 탭 메뉴 ─────────────────────
+ * 화면 폭이 좁을 때만 보입니다. 이때 위쪽 메뉴는 숨겨, 메뉴가 두 번 나오지 않게 합니다.
+ * env(safe-area-inset-bottom) 은 화면 아래 둥근 모서리·제스처 막대만큼 띄우는 값입니다.
+ */
+.tabbar { display: none; }
+@media (max-width: 700px) {
+  header.site .top-nav { display: none; }
+  body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .tabbar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+    background: var(--card); border-top: 1px solid var(--line);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 16px rgba(35, 48, 46, .06);
+  }
+  .tabbar a { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; text-decoration: none; color: var(--ink-soft); font-size: 13px; font-weight: 500; border-radius: 10px; }
+  .tabbar svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .tabbar a[aria-current='page'] { color: var(--green); font-weight: 700; background: var(--paper-2); }
+  footer.site { margin-top: 48px; }
+}
+
+/* 홈 화면에 설치해서 연 경우(앱 모드): 설치 안내는 숨깁니다. */
+.is-app .hide-in-app { display: none !important; }
+
+@media print { .tabbar, .install-chip { display: none !important; } body { padding-bottom: 0; } }
+
+/* ── 머리말 오른쪽 도구 (앱 설치, 글자 크게) ───────── */
+.head-tools { display: flex; align-items: center; gap: 8px; }
+.font-btn { font: inherit; font-weight: 700; font-size: 17px; min-width: 48px; height: 40px; padding: 0 10px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 1px; }
+.font-btn .font-plus { font-size: 13px; margin-top: -8px; }
+.font-btn[aria-pressed='true'] { background: var(--green); border-color: var(--green); color: #fff; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── 꼬리말 링크 ───────────────────────────── */
+.foot-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; }
+.foot-links a { color: var(--ink-soft); }
+
+/* ── 원고 블록 공통 ────────────────────────── */
+.article h2 { font-size: clamp(22px, 3vw, 27px); margin: 44px 0 14px; }
+.cta-row { margin: 28px 0 8px; }
+th.row-head { background: var(--card); color: var(--ink); font-weight: 700; }
+.share-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 8px; }
+.share-btn { font: inherit; font-size: 15px; font-weight: 700; color: var(--green-2); background: var(--card); border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.share-btn:hover { border-color: var(--green-2); }
+.crumb { font-size: 15px; color: var(--ink-soft); margin-bottom: 6px; }
+.crumb a { color: var(--clay); font-weight: 700; text-decoration: none; }
+
+/* ── 첫 화면 상황 버튼 ────────────────────── */
+.situations { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 8px 0 8px; }
+.situation { display: block; text-decoration: none; background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 18px 20px; color: var(--ink); transition: border-color .15s, transform .15s; }
+.situation:hover { border-color: var(--green-2); transform: translateY(-2px); color: var(--ink); }
+.situation strong { display: block; font-family: var(--serif); font-size: 21px; color: var(--green); margin-bottom: 4px; }
+.situation span { color: var(--ink-soft); font-size: 16px; }
+.situation.after { background: var(--paper-2); }
+@media (max-width: 600px) { .situations { grid-template-columns: 1fr; } }
+
+/* ── 글자 크게 보기 ───────────────────────────
+ * 60대 이상 사용자를 위해 주요 글자를 한 단계씩 키웁니다.
+ */
+html[data-size='large'] body { font-size: 21px; }
+html[data-size='large'] .lead { font-size: 23px; }
+html[data-size='large'] .muted, html[data-size='large'] small, html[data-size='large'] .small { font-size: 18px; }
+html[data-size='large'] table { font-size: 18px; }
+html[data-size='large'] header.site nav a { font-size: 18px; }
+html[data-size='large'] input, html[data-size='large'] textarea, html[data-size='large'] select { font-size: 20px !important; }
+html[data-size='large'] .btn { font-size: 19px; }
+html[data-size='large'] .tabbar a { font-size: 14px; }
+html[data-size='large'] h1 { font-size: clamp(32px, 5.6vw, 50px); }
+
+@media print { .head-tools, .share-row, .crumb { display: none !important; } }

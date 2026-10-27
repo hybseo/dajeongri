@@ -1,0 +1,96 @@
+---
+/*
+ * 인쇄용 빈 엔딩노트. 작성기와 같은 항목(src/data/note.js)으로 만들어,
+ * 작성기 항목을 고치면 인쇄 양식도 함께 바뀝니다.
+ */
+import Base from '../../layouts/Base.astro';
+import { noteSections } from '../../data/note.js';
+const rowsFor = (id) => (id === 'letters' ? 3 : id === 'contacts' || id === 'digital' ? 6 : 4);
+---
+<Base title="인쇄용 빈 엔딩노트" description="손으로 쓰고 싶은 분을 위한 인쇄용 엔딩노트 양식. A4로 인쇄해 펜으로 채우세요.">
+  <div class="wrap narrow">
+    <header class="page-head no-print">
+      <p class="crumb"><a href="/tools/">정리 도구</a></p>
+      <h1>인쇄용 빈 엔딩노트</h1>
+      <p class="lead">휴대폰보다 종이가 편한 분을 위해, 엔딩노트 작성기와 같은 항목을 A4 용지에 손으로 쓸 수 있게 만들었습니다.</p>
+      <div class="btn-row">
+        <button class="btn clay" type="button" data-print>인쇄하기</button>
+        <button class="btn ghost" type="button" data-print>PDF로 저장하기</button>
+      </div>
+      <p class="muted" style="margin-top:12px">PDF로 저장하려면 인쇄 창에서 프린터를 "PDF로 저장"으로 고르세요.</p>
+      <div class="calm">
+        <p style="margin:0 0 6px"><strong>쓰실 때</strong></p>
+        <p style="margin:0">계좌번호, 카드번호, 비밀번호는 쓰지 마세요. 다 쓴 뒤 봉투에 넣어 중요 서류와 함께 두고, 어디 두었는지 가족 한 명에게 알려 주세요. 1년에 한 번 꺼내 고치고 고친 날짜를 적어 두세요. 이 양식은 법적 효력이 있는 유언장이 아닙니다.</p>
+      </div>
+      <h2>미리보기</h2>
+    </header>
+
+    <div class="sheet">
+      <div class="sheet-head">
+        <p class="sheet-title">나의 엔딩노트</p>
+        <p class="sheet-sub">이 노트는 남은 가족이 헤매지 않도록 제가 아는 것을 모아 둔 기록입니다. 법적 효력이 있는 유언장이 아닙니다.</p>
+      </div>
+      {noteSections.map((s, i) => (
+        <section class="sheet-sec">
+          <h3>{i + 1}. {s.title}</h3>
+          {s.hint && <p class="sheet-hint">{s.hint}</p>}
+          {s.type === 'fields' ? (
+            <div class="sheet-fields">
+              {s.fields.map((f) => (
+                <div class={`sf ${f.kind === 'textarea' ? 'tall' : ''}`}>
+                  <span class="sf-label">{f.label}</span>
+                  {f.kind === 'choice'
+                    ? <span class="sf-choices">{f.options.map((o) => <span>☐ {o}</span>)}</span>
+                    : <span class="sf-line"></span>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <table class="sheet-table">
+              <thead><tr>{s.cols.map((c) => <th>{c.label}</th>)}</tr></thead>
+              <tbody>
+                {Array.from({ length: rowsFor(s.id) }).map(() => (
+                  <tr class={s.id === 'letters' ? 'tall' : ''}>{s.cols.map(() => <td></td>)}</tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      ))}
+      <p class="sheet-foot">처음 쓴 날 ________ · 고친 날 ________ · ________ · ________ &nbsp;&nbsp; 다정리 인쇄용 엔딩노트</p>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .sheet { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 32px; color: #222; font-size: 15px; line-height: 1.5; }
+  .sheet-title { font-family: var(--serif); font-size: 28px; font-weight: 700; color: var(--green); margin: 0 0 6px; }
+  .sheet-sub { color: #666; font-size: 13px; margin: 0 0 18px; }
+  .sheet-sec { break-inside: avoid; margin: 0 0 18px; }
+  .sheet-sec h3 { font-family: var(--serif); font-size: 18px; color: var(--green); border-bottom: 1.5px solid var(--green); padding-bottom: 4px; margin: 0 0 8px; }
+  .sheet-hint { font-size: 12.5px; color: #666; margin: 0 0 8px; }
+  .sheet-fields { display: grid; gap: 10px; }
+  .sf { display: flex; gap: 10px; align-items: flex-end; }
+  .sf-label { flex: 0 0 auto; font-weight: 700; font-size: 14px; }
+  .sf-line { flex: 1; border-bottom: 1px solid #999; height: 26px; }
+  .sf.tall { flex-direction: column; align-items: stretch; }
+  .sf.tall .sf-line { height: 72px; background: repeating-linear-gradient(to bottom, transparent 0 23px, #bbb 23px 24px); border-bottom: 0; }
+  .sf-choices { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; }
+  .sheet-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sheet-table th { background: #f2ece2; color: var(--green); padding: 6px 8px; border: 1px solid #bbb; text-align: left; }
+  .sheet-table td { border: 1px solid #bbb; height: 32px; }
+  .sheet-table tr.tall td { height: 80px; }
+  .sheet-foot { font-size: 12px; color: #777; margin: 16px 0 0; }
+  @media (max-width: 600px) { .sheet { padding: 18px; } }
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    .wrap { max-width: none; padding: 0; }
+    .sheet { border: 0; padding: 0; }
+    main { padding: 0; }
+  }
+</style>
+
+<script>
+  import { track } from '../../scripts/analytics.js';
+  document.querySelectorAll('[data-print]').forEach((b) => b.addEventListener('click', () => { track('print_note'); window.print(); }));
+</script>

@@ -1,0 +1,16 @@
+{
+  "name": "dajeongri",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "preview:offline": "astro build && node tools/make-preview.mjs"
+  },
+  "dependencies": {
+    "astro": "^4.16.0",
+    "docx": "^9.0.0"
+  }
+}

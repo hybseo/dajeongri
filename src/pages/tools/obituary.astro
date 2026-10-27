@@ -1,0 +1,142 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="부고 문자 만들기" description="빈칸만 채우면 부고 문자 문안이 완성됩니다. 복사해서 문자나 카카오톡으로 보내세요. 입력 내용은 저장되지 않습니다.">
+  <div class="wrap narrow">
+    <header class="page-head">
+      <p class="crumb"><a href="/tools/">정리 도구</a></p>
+      <h1>부고 문자 만들기</h1>
+      <p class="lead">경황이 없을 때 문장을 다듬기는 어렵습니다. 빈칸을 채우면 보내기 좋은 부고 문안이 만들어집니다. 모르는 칸은 비워 두셔도 됩니다.</p>
+    </header>
+
+    <form id="ob" class="card ob-form" onsubmit="return false" autocomplete="off">
+      <fieldset class="ob-type">
+        <legend>문안 종류</legend>
+        <label class="opt"><input type="radio" name="type" value="basic" checked /> <span>기본형</span></label>
+        <label class="opt"><input type="radio" name="type" value="family" /> <span>가족장 (조문은 마음으로)</span></label>
+        <label class="opt"><input type="radio" name="type" value="after" /> <span>장례 후 알림</span></label>
+      </fieldset>
+      <div class="ob-grid">
+        <label><span class="lab">돌아가신 분 성함 *</span><input name="name" placeholder="홍길동" /></label>
+        <label><span class="lab">관계 (누구의)</span><input name="rel" placeholder="홍지수의 부친" /></label>
+        <label><span class="lab">돌아가신 날</span><input type="date" name="date" /></label>
+        <label data-hide="after"><span class="lab">빈소</span><input name="place" placeholder="○○병원 장례식장 3호실" /></label>
+        <label data-hide="after"><span class="lab">발인</span><input name="out" placeholder="10월 29일 오전 7시" /></label>
+        <label><span class="lab">장지</span><input name="rest" placeholder="○○추모공원" /></label>
+        <label class="wide"><span class="lab">상주</span><input name="chief" placeholder="홍지수, 홍민수" /></label>
+      </div>
+      <fieldset class="ob-type" data-hide="after">
+        <legend>조의금 안내</legend>
+        <label class="opt"><input type="radio" name="gift" value="none" checked /> <span>넣지 않음</span></label>
+        <label class="opt"><input type="radio" name="gift" value="decline" /> <span>정중히 사양</span></label>
+        <label class="opt"><input type="radio" name="gift" value="account" /> <span>계좌 안내</span></label>
+      </fieldset>
+      <label class="wide" data-account hidden><span class="lab">계좌 (은행, 번호, 예금주)</span><input name="account" placeholder="○○은행 123-456-789 홍지수" /><small>입력한 계좌는 문안에만 들어가고 저장하지 않습니다.</small></label>
+    </form>
+
+    <h2>만들어진 문안</h2>
+    <div class="ob-out card">
+      <pre id="out" aria-live="polite"></pre>
+    </div>
+    <div class="btn-row no-print" style="margin-top:12px">
+      <button class="btn clay" type="button" id="copy">문안 복사하기</button>
+      <a class="btn ghost" id="sms" href="sms:">문자로 보내기</a>
+      <button class="btn ghost" type="button" id="share">카카오톡 등으로 공유</button>
+    </div>
+    <p class="status muted" id="status" role="status" aria-live="polite"></p>
+
+    <div class="calm">
+      <p style="margin:0">입력한 이름과 내용은 이 기기 밖으로 보내지 않고, 페이지를 닫으면 사라집니다. 공유 버튼을 누르면 휴대폰의 공유 기능이 열리고, 받는 사람은 직접 고릅니다.</p>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .ob-form { display: grid; gap: 18px; }
+  .ob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .ob-grid .wide, .ob-form > .wide { grid-column: 1 / -1; }
+  .lab { display: block; font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+  .ob-form input:not([type=radio]) { width: 100%; font: inherit; font-size: 17px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+  .ob-type { border: 0; padding: 0; margin: 0; }
+  .ob-type legend { font-weight: 700; font-size: 16px; margin-bottom: 6px; padding: 0; }
+  .opt { display: inline-flex; align-items: center; gap: 8px; margin: 4px 16px 4px 0; font-size: 17px; cursor: pointer; }
+  .opt input { width: 22px; height: 22px; accent-color: var(--green); }
+  small { display: block; color: var(--ink-soft); font-size: 15px; margin-top: 6px; }
+  .ob-out pre { margin: 0; white-space: pre-wrap; word-break: keep-all; font-family: var(--sans); font-size: 17px; line-height: 1.8; }
+  .status { min-height: 1.4em; font-weight: 700; color: var(--green); }
+  @media (max-width: 600px) { .ob-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { track } from '../../scripts/analytics.js';
+
+  const form = document.getElementById('ob') as HTMLFormElement;
+  const out = document.getElementById('out') as HTMLElement;
+  const status = document.getElementById('status') as HTMLElement;
+  const sms = document.getElementById('sms') as HTMLAnchorElement;
+  const v = (n: string) => ((form.elements.namedItem(n) as HTMLInputElement)?.value || '').trim();
+  const radio = (n: string) => (form.querySelector(`input[name="${n}"]:checked`) as HTMLInputElement)?.value;
+
+  function dateText(s: string) {
+    if (!s) return '';
+    const [y, m, d] = s.split('-').map(Number);
+    return `${y}년 ${m}월 ${d}일`;
+  }
+
+  function build() {
+    const type = radio('type');
+    const gift = radio('gift');
+    form.querySelectorAll<HTMLElement>('[data-hide="after"]').forEach((el) => { el.hidden = type === 'after'; });
+    (form.querySelector('[data-account]') as HTMLElement).hidden = !(type !== 'after' && gift === 'account');
+
+    const name = v('name') || '○○○';
+    const who = v('rel') ? `${v('rel')} ` : '';
+    const when = dateText(v('date'));
+    const lines: string[] = ['[부고]'];
+    if (type === 'after') {
+      lines.push(`${who}${name} 님께서 ${when ? when + '에 ' : ''}별세하셨습니다.`);
+      lines.push('장례는 고인의 뜻에 따라 가족끼리 조용히 마쳤습니다.');
+      if (v('rest')) lines.push(`장지: ${v('rest')}`);
+      if (v('chief')) lines.push(`상주: ${v('chief')}`);
+      lines.push('뒤늦게 알려 드려 송구합니다. 그동안 고인께 보내 주신 마음에 깊이 감사드립니다.');
+    } else {
+      lines.push(`${who}${name} 님께서 ${when ? when + ' ' : ''}별세하셨기에 삼가 알려 드립니다.`);
+      if (type === 'family') lines.push('가족과 가까운 분들만 모여 조용히 장례를 치르려 합니다. 조문은 마음으로만 받겠습니다.');
+      if (v('place')) lines.push(`빈소: ${v('place')}`);
+      if (v('out')) lines.push(`발인: ${v('out')}`);
+      if (v('rest')) lines.push(`장지: ${v('rest')}`);
+      if (v('chief')) lines.push(`상주: ${v('chief')}`);
+      if (gift === 'decline') lines.push('조의금은 정중히 사양합니다.');
+      if (gift === 'account' && v('account')) lines.push(`마음 전하실 곳: ${v('account')}`);
+      lines.push('마음으로 함께해 주시는 모든 분께 감사드립니다.');
+    }
+    const text = lines.join('\n');
+    out.textContent = text;
+    sms.href = `sms:?&body=${encodeURIComponent(text)}`;
+    return text;
+  }
+
+  form.addEventListener('input', build);
+  form.addEventListener('change', build);
+  build();
+
+  document.getElementById('copy')?.addEventListener('click', async () => {
+    const text = build();
+    try { await navigator.clipboard.writeText(text); status.textContent = '문안을 복사했습니다. 문자나 카카오톡에 붙여 넣으세요.'; }
+    catch {
+      const r = document.createRange(); r.selectNodeContents(out);
+      const s = getSelection(); s?.removeAllRanges(); s?.addRange(r);
+      status.textContent = '문안을 선택해 두었습니다. 길게 눌러 복사하세요.';
+    }
+    track('obituary_copy');
+  });
+  document.getElementById('share')?.addEventListener('click', async () => {
+    const text = build();
+    try {
+      if (navigator.share) { await navigator.share({ text }); track('obituary_share'); return; }
+      await navigator.clipboard.writeText(text);
+      status.textContent = '이 기기에는 공유 기능이 없어 문안을 복사했습니다.';
+    } catch { /* 공유 창을 닫은 경우 */ }
+  });
+  sms.addEventListener('click', () => track('obituary_sms'));
+</script>

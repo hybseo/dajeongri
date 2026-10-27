@@ -1,0 +1,53 @@
+---
+/*
+ * 정리 가이드 공통 틀.
+ *
+ * checked 는 내용을 마지막으로 공식 출처와 대조한 날입니다. 법과 기관 안내는
+ * 바뀔 수 있으니, 내용을 고칠 때마다 이 날짜와 출처 목록도 함께 고쳐 주세요.
+ */
+import Base from './Base.astro';
+import { guides, groups } from '../data/guides.js';
+
+const { title, description, checked, sources = [], slug } = Astro.props;
+const me = guides.find((g) => g.slug === slug);
+const group = groups.find((g) => g.key === me?.group);
+const same = guides.filter((g) => g.group === me?.group && g.slug !== slug);
+const others = same.length ? same : guides.filter((g) => g.slug !== slug).slice(0, 3);
+---
+<Base title={title} description={description}>
+  <article class="wrap narrow article">
+    <header class="page-head">
+      <p class="crumb"><a href="/guide/">정리 가이드</a>{group && <> · {group.title}</>}</p>
+      <h1>{title}</h1>
+      <p class="updated">내용 확인일 {checked} · 일반 정보이며 개별 상담이 아닙니다</p>
+      <div class="share-row no-print">
+        <button class="share-btn" type="button" data-share>가족에게 보내기</button>
+      </div>
+    </header>
+
+    <slot />
+
+    {sources.length > 0 && (
+      <section class="sources">
+        <p><strong>참고한 자료</strong></p>
+        <ul>
+          {sources.map((s) => <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.title}</a></li>)}
+        </ul>
+        <p>제도와 기관 안내는 바뀔 수 있습니다. 실제 절차 전에는 해당 기관에 최신 내용을 확인하세요.</p>
+      </section>
+    )}
+
+    <section class="no-print">
+      <h2>{same.length ? `${group?.title} 가이드 더 보기` : '다른 가이드'}</h2>
+      <div class="cards">
+        {others.map((g) => (
+          <a class="card" href={`/guide/${g.slug}/`}>
+            <h3>{g.title}</h3>
+            <p class="muted">{g.summary}</p>
+          </a>
+        ))}
+      </div>
+      <p style="margin-top:16px"><a href="/guide/">가이드 전체 보기 →</a></p>
+    </section>
+  </article>
+</Base>

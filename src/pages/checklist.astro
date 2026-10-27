@@ -1,0 +1,98 @@
+---
+import Base from '../layouts/Base.astro';
+import { checklist } from '../data/checklist.js';
+const total = checklist.reduce((n, g) => n + g.items.length, 0);
+---
+<Base title="생전정리 체크리스트" description="무엇부터 정리해야 할지 모를 때 보는 생전정리 체크리스트. 서류와 의사 표시, 재산, 디지털 계정, 물건, 관계까지 하나씩 표시해 보세요.">
+  <div class="wrap narrow">
+    <header class="page-head">
+      <p class="kicker">무료 체크리스트</p>
+      <h1>생전정리 체크리스트</h1>
+      <p class="lead">한 번에 다 하지 않아도 됩니다. 오늘은 한 칸만 채워도 충분합니다.</p>
+    </header>
+
+    <div class="progress no-print" aria-live="polite">
+      <div class="progress-bar"><span id="bar" style="width:0%"></span></div>
+      <p class="muted" id="count">0 / {total} 완료</p>
+    </div>
+
+    <form id="checklist" onsubmit="return false">
+      {checklist.map((group) => (
+        <fieldset class="group">
+          <legend>{group.title}</legend>
+          {group.items.map((item) => (
+            <label class="check">
+              <input type="checkbox" name={item.id} />
+              <span class="box" aria-hidden="true"></span>
+              <span class="text">
+                {item.text}
+                {item.note && <small>{item.note}</small>}
+                {item.guide && <a class="no-print" href={item.guide}>관련 가이드</a>}
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      ))}
+    </form>
+
+    <div class="btn-row no-print" style="margin-top:24px">
+      <a class="btn clay" href="/note/">엔딩노트에 자세히 적기</a>
+      <button class="btn ghost" type="button" id="print">인쇄하기</button>
+      <button class="btn ghost" type="button" id="reset">표시 모두 지우기</button>
+    </div>
+    <p class="muted no-print" style="margin-top:16px">체크 표시는 지금 쓰는 기기에만 기억됩니다. 다정리 서버로는 보내지 않습니다.</p>
+  </div>
+</Base>
+
+<style>
+  .progress { margin: 8px 0 24px; }
+  .progress-bar { height: 12px; background: var(--paper-2); border-radius: 999px; overflow: hidden; }
+  .progress-bar span { display: block; height: 100%; background: var(--clay); transition: width .25s; }
+  .group { border: 1px solid var(--line); background: var(--card); border-radius: var(--radius); padding: 12px 20px 8px; margin: 0 0 20px; }
+  legend { font-family: var(--serif); font-weight: 700; color: var(--green); font-size: 22px; padding: 0 8px; }
+  .check { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid var(--paper-2); cursor: pointer; }
+  .check:last-child { border-bottom: 0; }
+  .check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .box { flex: 0 0 28px; height: 28px; border: 2px solid var(--green-2); border-radius: 8px; margin-top: 2px; display: flex; align-items: center; justify-content: center; background: #fff; }
+  .check input:checked + .box { background: var(--green); border-color: var(--green); }
+  .check input:checked + .box::after { content: ''; width: 8px; height: 14px; border: solid #fff; border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-1px, -1px); }
+  .check input:focus-visible + .box { outline: 3px solid var(--clay); outline-offset: 2px; }
+  .check input:checked ~ .text { color: var(--ink-soft); }
+  .text small { display: block; color: var(--ink-soft); font-size: 15px; margin-top: 2px; }
+  .text a { display: inline-block; font-size: 15px; margin-top: 4px; }
+</style>
+
+<script>
+  import { track } from '../scripts/analytics.js';
+
+  const KEY = 'dajeongri-checklist-v1';
+  const form = document.getElementById('checklist') as HTMLFormElement;
+  const boxes = Array.from(form.querySelectorAll<HTMLInputElement>('input[type=checkbox]'));
+  const bar = document.getElementById('bar') as HTMLElement;
+  const count = document.getElementById('count') as HTMLElement;
+
+  function load(): Record<string, boolean> {
+    try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; }
+  }
+  function save() {
+    const state: Record<string, boolean> = {};
+    boxes.forEach((b) => { if (b.checked) state[b.name] = true; });
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* 저장이 막힌 브라우저에서도 화면은 그대로 동작합니다. */ }
+  }
+  function render() {
+    const done = boxes.filter((b) => b.checked).length;
+    bar.style.width = `${Math.round((done / boxes.length) * 100)}%`;
+    count.textContent = `${done} / ${boxes.length} 완료`;
+  }
+
+  const saved = load();
+  boxes.forEach((b) => { b.checked = !!saved[b.name]; });
+  render();
+  form.addEventListener('change', () => { save(); render(); });
+
+  document.getElementById('print')?.addEventListener('click', () => { track('checklist_print'); window.print(); });
+  document.getElementById('reset')?.addEventListener('click', () => {
+    boxes.forEach((b) => { b.checked = false; });
+    save(); render();
+  });
+</script>

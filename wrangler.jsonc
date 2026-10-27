@@ -1,0 +1,12 @@
+{
+  // 서치잡(searchjob.co.kr)과 같은 방식으로 클라우드플레어에 올립니다.
+  // 클라우드플레어가 저장소를 받아 npm run build 로 사이트를 짓고,
+  // 그 결과물(dist 폴더)을 그대로 내보냅니다.
+  "name": "dajeongri",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    // 없는 주소로 들어오면 src/pages/404.astro 로 만든 안내 페이지를 보여 줍니다.
+    "not_found_handling": "404-page"
+  }
+}

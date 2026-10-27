@@ -1,0 +1,45 @@
+---
+/*
+ * 원고 블록을 화면으로 그립니다.
+ *   {h} 소제목 · {p} 문단 · {ul} 목록 · {steps} 번호 단계 · {table} 표
+ *   {box} 강조 상자 · {cta} 버튼 줄 · {calc} 상속 기한 계산기
+ * 표 칸이나 상자에서 "|" 는 줄바꿈입니다. 표 칸이 "/" 로 시작하는 주소면 "바로가기" 링크가 됩니다.
+ */
+import DeadlineCalc from './DeadlineCalc.astro';
+const { blocks = [] } = Astro.props;
+const lines = (s) => String(s).split('|');
+const isPath = (s) => typeof s === 'string' && /^\/[a-z0-9\-/]*$/i.test(s);
+---
+{blocks.map((b) => (
+  b.h ? <h2>{b.h}</h2>
+  : b.p ? <p>{b.p}</p>
+  : b.ul ? <ul>{b.ul.map((x) => <li>{x}</li>)}</ul>
+  : b.steps ? (
+    <ol class="steps">
+      {b.steps.map(([t, d]) => <li><strong>{t}</strong>{d}</li>)}
+    </ol>
+  )
+  : b.table ? (
+    <div class="table-wrap">
+      <table>
+        <thead><tr>{b.table.head.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+        <tbody>
+          {b.table.rows.map((r) => (
+            <tr>{r.map((c, i) => (
+              isPath(c) ? <td><a href={c}>바로가기 →</a></td>
+              : i === 0 ? <th scope="row" class="row-head">{lines(c).map((l, k) => <>{k > 0 && <br />}{l}</>)}</th>
+              : <td>{lines(c).map((l, k) => <>{k > 0 && <br />}{l}</>)}</td>
+            ))}</tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+  : b.box ? <div class="calm">{lines(b.box).map((l, k) => <p style={k === lines(b.box).length - 1 ? 'margin:0' : 'margin:0 0 6px'}>{l}</p>)}</div>
+  : b.cta ? (
+    <div class="btn-row cta-row no-print">
+      {b.cta.map((c, i) => <a class={`btn ${i === 0 ? 'clay' : 'ghost'}`} href={c.url}>{c.label}</a>)}
+    </div>
+  )
+  : b.calc ? <DeadlineCalc compact /> : null
+))}

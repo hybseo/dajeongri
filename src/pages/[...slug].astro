@@ -1,0 +1,44 @@
+---
+/*
+ * 원고에서 옮긴 일반 페이지 13개 (src/data/content.json 의 pages).
+ * 시작하기, 정리 도구 모음, 떠나보낸 후 6개, 소개, 용어 풀이 등.
+ * 도구(계산기·부고 문자·해지 체크리스트·인쇄용 노트), 자주 묻는 질문, 기관 모음은
+ * 화면이 달라 각자의 파일이 있습니다.
+ */
+import Base from '../layouts/Base.astro';
+import Blocks from '../components/Blocks.astro';
+import content from '../data/content.json';
+
+const CRUMB = {
+  start: ['/start/', '시작하기'],
+  after: ['/after/', '떠나보낸 후'],
+  tools: ['/tools/', '정리 도구'],
+};
+
+export function getStaticPaths() {
+  return content.pages
+    .filter((p) => p.id !== 'start-after') // /start/after/ 는 /after/ 로 넘기는 별도 페이지
+    .map((p) => ({ params: { slug: p.url.replace(/^\/|\/$/g, '') }, props: { p } }));
+}
+const { p } = Astro.props;
+const top = p.url.split('/')[1];
+const crumb = CRUMB[top] && p.url !== CRUMB[top][0] ? CRUMB[top] : null;
+const sharable = top === 'after' || top === 'start';
+---
+<Base title={p.title} description={p.meta}>
+  <article class="wrap narrow article">
+    <header class="page-head">
+      {crumb && <p class="crumb"><a href={crumb[0]}>{crumb[1]}</a></p>}
+      <h1>{p.title}</h1>
+      {sharable && <div class="share-row no-print"><button class="share-btn" type="button" data-share>가족에게 보내기</button></div>}
+    </header>
+    <Blocks blocks={p.blocks} />
+    {p.sources.length > 0 && (
+      <section class="sources">
+        <p><strong>참고한 자료 (확인일 2026년 10월 27일)</strong></p>
+        <ul>{p.sources.map((s) => <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.title}</a></li>)}</ul>
+        <p>제도와 기관 안내는 바뀔 수 있습니다. 실제 절차 전에는 해당 기관에 최신 내용을 확인하세요.</p>
+      </section>
+    )}
+  </article>
+</Base>

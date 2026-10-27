@@ -1,0 +1,43 @@
+---
+import Base from '../../layouts/Base.astro';
+import { guides, groups } from '../../data/guides.js';
+---
+<Base title="정리 가이드" description="의료와 돌봄, 법과 재산, 디지털, 장례, 마음과 관계, 떠나보낸 뒤. 생전정리에 필요한 정보를 공식 출처로 확인해 쉬운 말로 정리했습니다.">
+  <div class="wrap narrow">
+    <header class="page-head">
+      <p class="kicker">정리 가이드</p>
+      <h1>알아 두면 덜 헤매는 것들</h1>
+      <p class="lead">미리 알아 두면 본인도, 가족도 덜 당황합니다. 공식 자료를 직접 확인해 쉬운 말로 정리했습니다.</p>
+    </header>
+
+    <nav class="group-jump no-print" aria-label="묶음 바로가기">
+      {groups.map((g) => <a href={`#${g.key}`}>{g.title}</a>)}
+    </nav>
+
+    {groups.map((grp) => (
+      <section id={grp.key} class="group-sec">
+        <h2>{grp.title}<span class="group-desc">{grp.desc}</span></h2>
+        <div class="cards" style="grid-template-columns:1fr">
+          {guides.filter((g) => g.group === grp.key).map((g) => (
+            <a class="card" href={`/guide/${g.slug}/`}>
+              <h3>{g.title}</h3>
+              <p class="muted" style="margin:0">{g.summary}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <p class="muted" style="margin-top:32px">이 가이드는 일반적인 정보입니다. 내 상황에 맞는 판단이 필요하면 대한법률구조공단(132) 같은 공공 무료 상담이나 전문가와 상의하세요. <a href="/glossary/">어려운 말 풀이</a> · <a href="/links/">공식 기관 바로가기</a></p>
+  </div>
+</Base>
+
+<style>
+  .group-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 8px; }
+  .group-jump a { text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 15px; color: var(--ink); }
+  .group-jump a:hover { border-color: var(--green-2); }
+  .group-sec h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  .group-desc { font-family: var(--sans); font-size: 15px; font-weight: 400; color: var(--ink-soft); }
+  .group-sec .card h3 { font-size: 19px; margin-bottom: 4px; }
+  .group-sec .card { padding: 18px 22px; }
+</style>

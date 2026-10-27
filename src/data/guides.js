@@ -1,0 +1,36 @@
+/*
+ * 정리 가이드 목록과 묶음.
+ *
+ * 가이드 첫 화면(/guide/)은 이 순서와 묶음대로 보여 줍니다.
+ * 각 가이드 아래 "같은 묶음의 다른 가이드"도 여기서 찾습니다.
+ *
+ * 본문이 있는 곳
+ *   - will, life-sustaining, digital, inheritance : src/pages/guide/<slug>.astro (먼저 만든 4개)
+ *   - 나머지 : src/data/content.json 의 guides (원고에서 옮긴 것, src/pages/guide/[slug].astro 가 그림)
+ */
+export const groups = [
+  { key: 'care', title: '의료와 돌봄', desc: '아플 때, 판단이 어려워질 때를 대비' },
+  { key: 'law', title: '법과 재산', desc: '유언, 상속, 보험과 연금' },
+  { key: 'digital', title: '디지털', desc: '계정, 휴대폰, 사진' },
+  { key: 'funeral', title: '장례', desc: '방식, 비용, 상조' },
+  { key: 'heart', title: '마음과 관계', desc: '가족과 이야기하기, 남기는 말' },
+  { key: 'after', title: '떠나보낸 뒤', desc: '유족이 할 일과 기한' },
+];
+
+export const guides = [
+  { slug: 'life-sustaining', group: 'care', title: '사전연명의료의향서, 언제 어디서 쓰나', summary: '작성 대상, 등록기관 방문, 효력이 생기는 때' },
+  { slug: 'hospice', group: 'care', title: '호스피스·완화의료, 어떻게 이용하나', summary: '대상 질환, 입원형·가정형·자문형, 필요한 서류' },
+  { slug: 'guardianship', group: 'care', title: '판단이 어려워질 때를 대비하는 후견 제도', summary: '성년·한정·특정·임의후견, 미리 정하는 법' },
+  { slug: 'donation', group: 'care', title: '장기·인체조직 기증, 뜻을 남기는 법', summary: '희망등록 방법, 가족 동의, 철회' },
+  { slug: 'will', group: 'law', title: '유언, 어떤 방식으로 남겨야 효력이 있을까', summary: '민법이 정한 다섯 가지 방식과 요건' },
+  { slug: 'heirs', group: 'law', title: '누가, 얼마나 상속받나: 상속 순위와 몫', summary: '상속 순서, 배우자의 몫, 계산 예시' },
+  { slug: 'renounce', group: 'law', title: '빚이 더 많을 때: 상속포기와 한정승인', summary: '3개월 기한, 신고 법원, 주의할 점' },
+  { slug: 'insurance-pension', group: 'law', title: '보험과 연금, 미리 확인할 것', summary: '수익자, 청구 기한, 유족연금' },
+  { slug: 'digital', group: 'digital', title: '디지털 유산, 미리 해 둘 수 있는 것', summary: '계정 목록과 서비스별 사후 기능' },
+  { slug: 'photos', group: 'digital', title: '휴대폰과 사진, 가족에게 남기는 법', summary: '사진 모으기, 백업, 잠금 해제 방법 전하기' },
+  { slug: 'funeral-types', group: 'funeral', title: '장례 방식 고르기: 매장, 화장, 자연장', summary: '방식별 뜻, 신고, 작은 장례' },
+  { slug: 'funeral-cost', group: 'funeral', title: '장례 비용과 상조, 계약 전에 확인할 것', summary: '가격 비교, 상조 확인, 폐업 시 대처' },
+  { slug: 'talk-parents', group: 'heart', title: '부모님께 정리 이야기, 어떻게 꺼낼까', summary: '좋은 때, 첫마디 예시, 피할 말' },
+  { slug: 'letters', group: 'heart', title: '남기는 편지, 어떻게 쓸까', summary: '쓰기 쉬운 순서와 첫 문장 예시' },
+  { slug: 'inheritance', group: 'after', title: '가족이 떠난 뒤 상속 절차와 기한', summary: '사망신고부터 상속세 신고까지' },
+];

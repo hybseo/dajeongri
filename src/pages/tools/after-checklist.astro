@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro';
+import { afterChecklist } from '../../data/after-checklist.js';
+const total = afterChecklist.reduce((n, g) => n + g.items.length, 0);
+---
+<Base title="유족 해지·신고 체크리스트" description="가족을 떠나보낸 뒤 해지하고 신고해야 할 것을 빠짐없이 표시하는 체크리스트. 사망신고, 재산 조회, 휴대폰·공과금·카드, 연금·보험, 상속까지.">
+  <div class="wrap narrow">
+    <header class="page-head">
+      <p class="crumb"><a href="/tools/">정리 도구</a></p>
+      <h1>유족 해지·신고 체크리스트</h1>
+      <p class="lead">해야 할 일이 많아 무엇을 했고 무엇이 남았는지 헷갈리기 쉽습니다. 끝난 항목에 표시하며 하나씩 정리하세요. 가족이 나눠 맡아도 좋습니다.</p>
+    </header>
+
+    <div class="progress no-print" aria-live="polite">
+      <div class="progress-bar"><span id="bar" style="width:0%"></span></div>
+      <p class="muted" id="count">0 / {total} 완료</p>
+    </div>
+
+    <form id="ac" onsubmit="return false">
+      {afterChecklist.map((g) => (
+        <fieldset class="group">
+          <legend>{g.title}</legend>
+          {g.items.map((it) => (
+            <div class="item">
+              <label class="check">
+                <input type="checkbox" name={it.id} />
+                <span class="box" aria-hidden="true"></span>
+                <span class="text">{it.text}</span>
+              </label>
+              {(it.docs || it.link) && (
+                <details class="more">
+                  <summary>필요한 서류·참고</summary>
+                  {it.docs && <p>{it.docs}</p>}
+                  {it.link && <a class="no-print" href={it.link}>관련 안내 보기 →</a>}
+                </details>
+              )}
+            </div>
+          ))}
+        </fieldset>
+      ))}
+    </form>
+
+    <div class="btn-row no-print" style="margin-top:24px">
+      <a class="btn clay" href="/tools/deadlines/">마감 날짜 계산하기</a>
+      <button class="btn ghost" type="button" id="print">인쇄하기</button>
+      <button class="btn ghost" type="button" id="reset">표시 모두 지우기</button>
+    </div>
+    <p class="muted no-print" style="margin-top:16px">표시는 지금 쓰는 기기에만 기억됩니다. 다정리 서버로는 보내지 않습니다.</p>
+  </div>
+</Base>
+
+<style>
+  .progress { margin: 8px 0 24px; }
+  .progress-bar { height: 12px; background: var(--paper-2); border-radius: 999px; overflow: hidden; }
+  .progress-bar span { display: block; height: 100%; background: var(--clay); transition: width .25s; }
+  .group { border: 1px solid var(--line); background: var(--card); border-radius: var(--radius); padding: 12px 20px 8px; margin: 0 0 20px; }
+  legend { font-family: var(--serif); font-weight: 700; color: var(--green); font-size: 22px; padding: 0 8px; }
+  .item { border-bottom: 1px solid var(--paper-2); padding: 12px 0; }
+  .item:last-child { border-bottom: 0; }
+  .check { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; }
+  .check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .box { flex: 0 0 28px; height: 28px; border: 2px solid var(--green-2); border-radius: 8px; margin-top: 2px; display: flex; align-items: center; justify-content: center; background: #fff; }
+  .check input:checked + .box { background: var(--green); border-color: var(--green); }
+  .check input:checked + .box::after { content: ''; width: 8px; height: 14px; border: solid #fff; border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-1px, -1px); }
+  .check input:focus-visible + .box { outline: 3px solid var(--clay); outline-offset: 2px; }
+  .check input:checked ~ .text { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--line); }
+  .more { margin: 6px 0 0 42px; }
+  .more summary { cursor: pointer; font-size: 15px; color: var(--green-2); }
+  .more p { font-size: 15px; color: var(--ink-soft); margin: 6px 0; }
+  .more a { font-size: 15px; }
+  @media print { .more { display: block; } .more summary { display: none; } }
+</style>
+
+<script>
+  import { track } from '../../scripts/analytics.js';
+  const KEY = 'dajeongri-after-checklist-v1';
+  const form = document.getElementById('ac') as HTMLFormElement;
+  const boxes = Array.from(form.querySelectorAll<HTMLInputElement>('input[type=checkbox]'));
+  const bar = document.getElementById('bar') as HTMLElement;
+  const count = document.getElementById('count') as HTMLElement;
+  const load = (): Record<string, boolean> => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
+  const save = () => {
+    const st: Record<string, boolean> = {};
+    boxes.forEach((b) => { if (b.checked) st[b.name] = true; });
+    try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { /* 저장이 막혀도 화면은 동작 */ }
+  };
+  const render = () => {
+    const done = boxes.filter((b) => b.checked).length;
+    bar.style.width = `${Math.round((done / boxes.length) * 100)}%`;
+    count.textContent = `${done} / ${boxes.length} 완료`;
+  };
+  const saved = load();
+  boxes.forEach((b) => { b.checked = !!saved[b.name]; });
+  render();
+  form.addEventListener('change', () => { save(); render(); });
+  document.getElementById('print')?.addEventListener('click', () => { track('after_checklist_print'); window.print(); });
+  document.getElementById('reset')?.addEventListener('click', () => { boxes.forEach((b) => { b.checked = false; }); save(); render(); });
+</script>

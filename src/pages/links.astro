@@ -1,0 +1,56 @@
+---
+/*
+ * 공식 기관 바로가기. 표의 세 번째 칸 "주소|전화"를 누를 수 있는 링크로 바꿉니다.
+ * 주소와 번호는 2026년 10월 27일 확인. 분기마다 다시 열어 점검하세요.
+ */
+import Base from '../layouts/Base.astro';
+import extra from '../data/extra.json';
+const { links } = extra;
+const parts = (s) => String(s).split('|').map((x) => x.trim());
+const isTel = (x) => /^[0-9-]+$/.test(x);
+const isDomain = (x) => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(x);
+---
+<Base title={links.title} description={links.meta}>
+  <div class="wrap narrow article">
+    <header class="page-head">
+      <p class="kicker">다정리 안내</p>
+      <h1>{links.title}</h1>
+    </header>
+    {links.blocks.map((b) => (
+      b.p ? <p>{b.p}</p>
+      : b.h ? <h2>{b.h}</h2>
+      : b.box ? <div class="calm"><p style="margin:0">{b.box}</p></div>
+      : b.table ? (
+        <div class="org-list">
+          {b.table.rows.map(([name, what, contact]) => (
+            <div class="org card">
+              <p class="org-name">{name}</p>
+              <p class="org-what">{what}</p>
+              <p class="org-contact">
+                {parts(contact).map((x) =>
+                  isTel(x) ? <a class="tel" href={`tel:${x.replace(/-/g, '')}`}>☎ {x}</a>
+                  : isDomain(x) ? <a class="web" href={`https://${x === 'gov.kr' ? 'www.gov.kr' : x}`} rel="noopener" target="_blank">{x} ↗</a>
+                  : <span>{x}</span>)}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null
+    ))}
+    <section class="sources">
+      <p><strong>확인한 자료 (2026년 10월 27일)</strong></p>
+      <ul>{links.sources.map((s) => <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.title}</a></li>)}</ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .org-list { display: grid; gap: 10px; margin: 8px 0 16px; }
+  .org { padding: 16px 20px; }
+  .org-name { font-weight: 700; color: var(--green); margin: 0 0 2px; font-size: 18px; }
+  .org-what { margin: 0 0 8px; color: var(--ink-soft); font-size: 16px; }
+  .org-contact { margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .org-contact a { text-decoration: none; font-weight: 700; font-size: 16px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper); }
+  .org-contact a.tel { color: var(--clay); border-color: var(--clay-soft); background: var(--clay-soft); }
+  .org-contact span { color: var(--ink-soft); font-size: 16px; padding: 6px 0; }
+</style>

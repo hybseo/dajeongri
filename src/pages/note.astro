@@ -1,0 +1,333 @@
+---
+import Base from '../layouts/Base.astro';
+import { noteSections } from '../data/note.js';
+
+const isWide = (c) => c.kind === 'textarea';
+---
+<Base title="엔딩노트 작성기" description="재산, 보험, 디지털 계정, 물건 나눔, 연락할 사람, 남기는 말을 항목별로 쓰고 Word 파일로 내려받는 무료 엔딩노트. 작성 내용은 서버에 저장되지 않습니다.">
+  <div class="wrap narrow">
+    <header class="page-head">
+      <p class="kicker">무료 엔딩노트</p>
+      <h1>엔딩노트 작성기</h1>
+      <p class="lead">아는 것부터, 쓰고 싶은 칸부터 채우세요. 비워 둔 칸은 파일에 나오지 않습니다.</p>
+    </header>
+
+    <div class="notice">
+      <p style="margin:0 0 8px"><strong>꼭 읽어 주세요</strong></p>
+      <ul style="margin:0;padding-left:1.2em">
+        <li>이 노트는 <strong>법적 효력이 있는 유언장이 아닙니다.</strong> 재산을 누구에게 줄지 법적으로 정하려면 <a href="/guide/will/">민법이 정한 방식의 유언</a>이 필요합니다.</li>
+        <li><strong>계좌번호, 카드번호, 비밀번호는 적지 마세요.</strong> 기관 이름만 있어도 가족이 조회할 수 있습니다.</li>
+        <li>쓰신 내용은 이 기기 안에서만 처리되고 다정리 서버로 보내지지 않습니다.</li>
+      </ul>
+    </div>
+
+    <div class="restore no-print" id="restore" hidden>
+      <p style="margin:0">이 기기에 임시저장해 둔 노트가 있습니다.</p>
+      <div class="btn-row">
+        <button class="btn small" type="button" id="btn-load">이어서 쓰기</button>
+        <button class="btn small ghost" type="button" id="btn-forget">임시저장 지우기</button>
+      </div>
+    </div>
+
+    <form id="note" onsubmit="return false" autocomplete="off">
+      {noteSections.map((s, i) => (
+        <section class="sec" data-section={s.id} data-type={s.type}>
+          <h2><span class="num">{i + 1}</span>{s.title}</h2>
+          {s.hint && <p class="muted">{s.hint}</p>}
+
+          {s.type === 'fields' && (
+            <div class="fields">
+              {s.fields.map((f) => (
+                <div class={`field ${isWide(f) ? 'wide' : ''}`}>
+                  {f.kind === 'choice' ? (
+                    <fieldset class="choice" data-field={f.id} data-label={f.label}>
+                      <legend>{f.label}</legend>
+                      {f.options.map((o) => (
+                        <label class="opt"><input type="radio" name={`${s.id}.${f.id}`} value={o} /> <span>{o}</span></label>
+                      ))}
+                      {f.hint && <small>{f.hint}{f.guide && <> <a href={f.guide}>안내 보기</a></>}</small>}
+                    </fieldset>
+                  ) : (
+                    <label>
+                      <span class="lab">{f.label}</span>
+                      {f.kind === 'textarea'
+                        ? <textarea rows="3" data-field={f.id} data-label={f.label}></textarea>
+                        : <input type={f.kind === 'date' ? 'date' : 'text'} data-field={f.id} data-label={f.label} />}
+                      {f.hint && <small>{f.hint}</small>}
+                    </label>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {s.type === 'list' && (
+            <>
+              <div class="rows" data-rows={s.id}></div>
+              <button class="btn small ghost no-print add" type="button" data-add={s.id}>+ 한 줄 더</button>
+              <template id={`tpl-${s.id}`}>
+                <div class="row" data-row>
+                  <div class="row-fields">
+                    {s.cols.map((c) => (
+                      <label class={isWide(c) ? 'wide' : ''}>
+                        <span class="lab">{c.label}</span>
+                        {c.kind === 'choice' ? (
+                          <select data-col={c.id}>
+                            <option value="">선택</option>
+                            {c.options.map((o) => <option value={o}>{o}</option>)}
+                          </select>
+                        ) : c.kind === 'textarea' ? (
+                          <textarea rows="3" data-col={c.id} placeholder={c.placeholder ?? ''}></textarea>
+                        ) : (
+                          <input type="text" data-col={c.id} placeholder={c.placeholder ?? ''} />
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                  <button class="remove no-print" type="button" data-remove>이 줄 지우기</button>
+                </div>
+              </template>
+            </>
+          )}
+        </section>
+      ))}
+    </form>
+
+    <div class="actions no-print">
+      <h2>다 쓰셨나요?</h2>
+      <p class="muted">한 번에 다 채우지 않아도 됩니다. 쓰다가 멈출 때는 임시저장을 누르거나 파일로 내려받아 두세요.</p>
+      <div class="btn-row">
+        <button class="btn clay" type="button" id="btn-docx">Word 파일로 내려받기</button>
+        <button class="btn ghost" type="button" id="btn-print">인쇄하기</button>
+      </div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn small ghost" type="button" id="btn-save">이 기기에 임시저장</button>
+        <button class="btn small ghost" type="button" id="btn-clear">처음부터 다시 쓰기</button>
+      </div>
+      <p class="status muted" id="status" role="status" aria-live="polite"></p>
+      <p class="muted">여러 사람이 함께 쓰는 컴퓨터라면 임시저장을 쓰지 마시고, 다 쓴 뒤 파일로만 내려받으세요.</p>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .sec { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 22px 22px; margin: 24px 0; }
+  .sec h2 { margin: 20px 0 8px; display: flex; align-items: center; gap: 12px; font-size: 24px; }
+  .num { flex: 0 0 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; font-family: var(--sans); font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px; }
+  .field.wide, .fields .field:has(textarea), .fields .field:has(fieldset) { grid-column: 1 / -1; }
+  label { display: block; }
+  .lab, .choice legend { display: block; font-weight: 700; font-size: 16px; margin-bottom: 6px; color: var(--ink); }
+  input[type=text], input[type=date], textarea, select {
+    width: 100%; font: inherit; font-size: 17px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink);
+  }
+  textarea { resize: vertical; min-height: 96px; }
+  input:focus, textarea:focus, select:focus { border-color: var(--green-2); outline: none; box-shadow: 0 0 0 3px rgba(63, 101, 96, .15); }
+  small { display: block; color: var(--ink-soft); font-size: 15px; margin-top: 6px; }
+  .choice { border: 0; padding: 0; margin: 0; }
+  .choice legend { padding: 0; }
+  .opt { display: inline-flex; align-items: center; gap: 8px; margin: 4px 16px 4px 0; font-size: 17px; cursor: pointer; }
+  .opt input { width: 22px; height: 22px; accent-color: var(--green); }
+  .rows { display: grid; gap: 14px; margin: 12px 0; }
+  .row { border: 1px dashed var(--line); border-radius: 12px; padding: 14px; background: var(--paper); }
+  .row-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .row-fields label.wide { grid-column: 1 / -1; }
+  .row-fields:has(> label:nth-child(2):last-child) { grid-template-columns: 1fr; }
+  .remove { margin-top: 10px; background: none; border: 0; color: var(--ink-soft); font: inherit; font-size: 15px; text-decoration: underline; cursor: pointer; padding: 4px 0; }
+  .remove:hover { color: var(--clay); }
+  .restore { background: var(--clay-soft); border-radius: var(--radius); padding: 16px 20px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .actions { margin-top: 32px; }
+  .actions h2 { margin-top: 32px; }
+  .status { min-height: 1.5em; margin-top: 12px; font-weight: 700; color: var(--green); }
+  @media (max-width: 640px) {
+    .fields, .row-fields { grid-template-columns: 1fr; }
+    .sec { padding: 6px 16px 18px; }
+  }
+  @media print {
+    .sec { border: 0; padding: 0; break-inside: auto; }
+    .row { background: #fff; }
+    input, textarea, select { border: 0; border-bottom: 1px solid #999; border-radius: 0; padding: 4px 0; }
+  }
+</style>
+
+<script>
+  import { noteSections } from '../data/note.js';
+  import { track } from '../scripts/analytics.js';
+
+  type Row = Record<string, string>;
+  type NoteData = Record<string, Record<string, string> | Row[]>;
+
+  const KEY = 'dajeongri-note-v1';
+  const form = document.getElementById('note') as HTMLFormElement;
+  const status = document.getElementById('status') as HTMLElement;
+  const say = (msg: string) => { status.textContent = msg; };
+
+  /* ── 줄 추가·삭제 ─────────────────────────── */
+  function addRow(sectionId: string, values?: Row) {
+    const tpl = document.getElementById(`tpl-${sectionId}`) as HTMLTemplateElement;
+    const rows = form.querySelector(`[data-rows="${sectionId}"]`) as HTMLElement;
+    const node = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    if (values) {
+      node.querySelectorAll<HTMLInputElement>('[data-col]').forEach((el) => { el.value = values[el.dataset.col!] ?? ''; });
+    }
+    rows.appendChild(node);
+    return node;
+  }
+  function resetRows() {
+    form.querySelectorAll<HTMLElement>('[data-rows]').forEach((rows) => {
+      rows.innerHTML = '';
+      addRow(rows.dataset.rows!);
+    });
+  }
+  form.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    const add = t.closest<HTMLElement>('[data-add]');
+    if (add) {
+      const row = addRow(add.dataset.add!);
+      row.querySelector<HTMLElement>('[data-col]')?.focus();
+      return;
+    }
+    if (t.closest('[data-remove]')) {
+      const row = t.closest('[data-row]') as HTMLElement;
+      const rows = row.parentElement as HTMLElement;
+      row.remove();
+      if (!rows.children.length) addRow(rows.dataset.rows!);
+    }
+  });
+  /* ── 모으기·채우기 ───────────────────────── */
+  function collect(): NoteData {
+    const data: NoteData = {};
+    form.querySelectorAll<HTMLElement>('[data-section]').forEach((sec) => {
+      const id = sec.dataset.section!;
+      if (sec.dataset.type === 'fields') {
+        const obj: Record<string, string> = {};
+        sec.querySelectorAll<HTMLElement>('[data-field]').forEach((el) => {
+          if (el.tagName === 'FIELDSET') {
+            const checked = el.querySelector<HTMLInputElement>('input:checked');
+            obj[el.dataset.field!] = checked ? checked.value : '';
+          } else {
+            obj[el.dataset.field!] = (el as HTMLInputElement).value.trim();
+          }
+        });
+        data[id] = obj;
+      } else {
+        const rows: Row[] = [];
+        sec.querySelectorAll<HTMLElement>('[data-row]').forEach((r) => {
+          const row: Row = {};
+          r.querySelectorAll<HTMLInputElement>('[data-col]').forEach((el) => { row[el.dataset.col!] = el.value.trim(); });
+          rows.push(row);
+        });
+        data[id] = rows;
+      }
+    });
+    return data;
+  }
+  function fill(data: NoteData) {
+    form.reset();
+    resetRows();
+    form.querySelectorAll<HTMLElement>('[data-section]').forEach((sec) => {
+      const id = sec.dataset.section!;
+      const v = data[id];
+      if (!v) return;
+      if (sec.dataset.type === 'fields') {
+        const obj = v as Record<string, string>;
+        sec.querySelectorAll<HTMLElement>('[data-field]').forEach((el) => {
+          const val = obj[el.dataset.field!] ?? '';
+          if (el.tagName === 'FIELDSET') {
+            el.querySelectorAll<HTMLInputElement>('input').forEach((r) => { r.checked = r.value === val; });
+          } else {
+            (el as HTMLInputElement).value = val;
+          }
+        });
+      } else {
+        const rows = (v as Row[]).filter((r) => Object.values(r).some(Boolean));
+        if (!rows.length) return;
+        const box = sec.querySelector<HTMLElement>('[data-rows]')!;
+        box.innerHTML = '';
+        rows.forEach((r) => addRow(id, r));
+      }
+    });
+  }
+  const isEmpty = (d: NoteData) => Object.values(d).every((v) =>
+    Array.isArray(v) ? v.every((r) => !Object.values(r).some(Boolean)) : !Object.values(v).some(Boolean));
+
+  /* ── 임시저장 (이 기기에만) ───────────────── */
+  function storageGet(): NoteData | null {
+    try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch { return null; }
+  }
+  const restoreBox = document.getElementById('restore') as HTMLElement;
+  if (storageGet()) restoreBox.hidden = false;
+
+  document.getElementById('btn-load')?.addEventListener('click', () => {
+    const d = storageGet();
+    if (d) { fill(d); say('임시저장한 내용을 불러왔습니다.'); }
+    restoreBox.hidden = true;
+  });
+  document.getElementById('btn-forget')?.addEventListener('click', () => {
+    try { localStorage.removeItem(KEY); } catch { /* 무시 */ }
+    restoreBox.hidden = true;
+    say('이 기기에 저장된 노트를 지웠습니다.');
+  });
+  document.getElementById('btn-save')?.addEventListener('click', () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(collect()));
+      say('이 기기에 임시저장했습니다. 다음에 이 페이지를 열면 이어서 쓸 수 있습니다.');
+    } catch {
+      say('이 브라우저에서는 임시저장을 할 수 없습니다. 파일로 내려받아 보관해 주세요.');
+    }
+  });
+  let armed = false;
+  document.getElementById('btn-clear')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    if (!armed) {
+      armed = true;
+      btn.textContent = '한 번 더 누르면 모두 지워집니다';
+      setTimeout(() => { armed = false; btn.textContent = '처음부터 다시 쓰기'; }, 4000);
+      return;
+    }
+    armed = false;
+    btn.textContent = '처음부터 다시 쓰기';
+    form.reset();
+    resetRows();
+    try { localStorage.removeItem(KEY); } catch { /* 무시 */ }
+    restoreBox.hidden = true;
+    say('모두 지웠습니다.');
+  });
+
+  /* ── 인쇄 ────────────────────────────────── */
+  document.getElementById('btn-print')?.addEventListener('click', () => { track('note_print'); window.print(); });
+
+  /* ── 작성 시작 횟수 (한 번만) ─────────────── */
+  let started = false;
+  form.addEventListener('input', () => { if (!started) { started = true; track('note_start'); } });
+
+  /* ── Word 파일 만들기 ────────────────────── */
+  document.getElementById('btn-docx')?.addEventListener('click', async () => {
+    const data = collect();
+    if (isEmpty(data)) { say('아직 쓴 내용이 없습니다. 한 칸이라도 채운 뒤 내려받아 주세요.'); return; }
+    say('파일을 만드는 중입니다…');
+    try {
+      const { buildDocx } = await import('../scripts/note-docx.js');
+      const blob = await buildDocx(noteSections, data);
+      const me = (data.me ?? {}) as Record<string, string>;
+      // 휴대폰에 설정된 시간대 기준 오늘 날짜. (toISOString 은 세계 표준시라 한국 아침에는 전날로 나옵니다.)
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const day = me.date || today;
+      const name = (me.name || '').replace(/[\\/:*?"<>|]/g, '').trim();
+      const filename = `엔딩노트${name ? '_' + name : ''}_${day}.docx`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      track('note_download');
+      say(`"${filename}" 파일을 내려받았습니다. 안전한 곳에 보관하고, 어디 두었는지 가족 한 명에게 알려 두세요.`);
+    } catch (err) {
+      console.error(err);
+      say('파일을 만들지 못했습니다. 인쇄하기로 저장하시거나 잠시 후 다시 시도해 주세요.');
+    }
+  });
+
+  resetRows();
+</script>
