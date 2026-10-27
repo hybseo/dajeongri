@@ -327,6 +327,11 @@ const gifts = [
       if (fromUser) (form.elements.namedItem('spouseAmount') as HTMLInputElement).focus();
       return;
     }
+    if (input.house && !input.houseValue) {
+      err.textContent = '함께 산 집 공제를 고르셨다면 그 집의 값을 넣어 주세요.'; err.hidden = false;
+      if (fromUser) (form.elements.namedItem('houseValue') as HTMLInputElement).focus();
+      return;
+    }
     err.hidden = true;
     const r = computeInheritanceTax(input);
 
