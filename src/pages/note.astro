@@ -537,6 +537,13 @@ const isWide = (c) => c.kind === 'textarea';
     cur = Math.max(0, Math.min(secs.length - 1, i));
     secs.forEach((s, k) => s.classList.toggle('is-current', k === cur));
     steps.forEach((b, k) => { if (k === cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    // 휴대폰에서는 단계 띠가 옆으로 길어지므로 지금 단계가 보이게 띠만 옮깁니다(페이지는 움직이지 않음).
+    const list = steps[cur]?.parentElement as HTMLElement | null;
+    if (list && list.scrollWidth > list.clientWidth) {
+      const chip = steps[cur];
+      const d = chip.getBoundingClientRect().left - list.getBoundingClientRect().left;
+      list.scrollTo({ left: list.scrollLeft + d - (list.clientWidth - chip.offsetWidth) / 2, behavior: 'smooth' });
+    }
     prevBtn.disabled = cur === 0;
     prevBtn.style.visibility = cur === 0 ? 'hidden' : 'visible';
     nextBtn.textContent = cur === secs.length - 1 ? '다 썼어요 →' : `다음: ${noteSections[cur + 1].title} →`;
