@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import pwa from './pwa.mjs';
+import searchIndex from './search-index.mjs';
 
 export default defineConfig({
   /*
@@ -20,6 +21,8 @@ export default defineConfig({
   /*
    * 웹앱(PWA): 빌드가 끝나면 오프라인용 파일 목록(dist/sw.js)을 만듭니다.
    * 자세한 설명은 pwa.mjs 맨 위 주석에 있습니다.
+   * 사이트 검색 색인(dist/search-index.json)을 먼저 만들어야 오프라인 목록에 함께 들어가므로
+   * searchIndex 를 pwa 보다 앞에 둡니다. 자세한 설명은 search-index.mjs 맨 위 주석에 있습니다.
    */
-  integrations: [pwa()],
+  integrations: [searchIndex(), pwa()],
 });

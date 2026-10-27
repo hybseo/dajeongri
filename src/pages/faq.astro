@@ -12,7 +12,7 @@ const { faq } = extra;
     </header>
     <div class="faq">
       {faq.qa.map((x, i) => (
-        <details class="faq-item" open={i === 0}>
+        <details class="faq-item" id={`q${i + 1}`} open={i === 0}>
           <summary>{x.q}</summary>
           <p>{x.a}</p>
         </details>
@@ -31,3 +31,13 @@ const { faq } = extra;
   .faq-item[open] summary::after { content: '−'; }
   .faq-item p { margin: 0 0 18px; }
 </style>
+
+<script>
+  /* 검색 결과 등에서 /faq/#q3 처럼 들어오면 그 질문을 펼쳐 보여 줍니다. */
+  const openHash = () => {
+    const el = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    if (el instanceof HTMLDetailsElement) { el.open = true; el.scrollIntoView({ block: 'start' }); }
+  };
+  openHash();
+  window.addEventListener('hashchange', openHash);
+</script>

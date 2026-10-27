@@ -169,6 +169,9 @@ th { background: var(--navy-t); color: var(--green); font-weight: 700; }
 .urgent-btn:hover { color: #6b3a0b; background: #f9e4c2; }
 .install-chip { font: inherit; font-size: 15px; font-weight: 700; border: 1.5px solid #c9d6e5; color: var(--green); background: #fff; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
 .install-chip:hover { background: var(--navy-t); }
+.search-btn { display: inline-flex; align-items: center; gap: 5px; text-decoration: none; color: var(--green); font-weight: 700; font-size: 15px; border: 1.5px solid #c9d6e5; background: #fff; border-radius: 999px; padding: 6px 13px 6px 10px; }
+.search-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.search-btn:hover, .search-btn[aria-current='page'] { background: var(--navy-t); color: var(--green); }
 .font-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: #fff; }
 .font-toggle button { font: inherit; font-weight: 800; font-size: 15px; border: 0; background: transparent; color: var(--ink-soft); padding: 7px 12px; cursor: pointer; }
 .font-toggle button[aria-pressed='true'] { background: var(--green); color: #fff; }
@@ -184,8 +187,44 @@ th { background: var(--navy-t); color: var(--green); font-weight: 700; }
   .urgent-btn { padding: 6px 11px; font-size: 13.5px; }
   .urgent-btn .long { display: none; }
   .font-toggle button { padding: 6px 10px; font-size: 14px; }
+  .search-btn { padding: 0; width: 38px; height: 38px; justify-content: center; }
+  .search-btn .long { display: none; }
 }
 @media (min-width: 861px) { .urgent-btn .short { display: none; } }
+/* PC 폭이 좁을 때(861~1100px): 위 메뉴가 두 줄로 꺾이지 않도록 검색은 돋보기만 보이고 메뉴 글자는 한 줄로 둡니다. */
+header.site .top-nav a { white-space: nowrap; }
+/* 머리말 "앱으로 설치" 단추는 넓은 화면에서만 둡니다(좁으면 메뉴가 꺾임). 설치는 첫 화면과 /app/ 에서도 할 수 있습니다. */
+.install-chip { white-space: nowrap; }
+@media (max-width: 1180px) { .install-chip { display: none !important; } }
+@media (max-width: 1100px) {
+  .search-btn { padding: 0; width: 40px; height: 40px; justify-content: center; }
+  .search-btn .long { display: none; }
+}
+@media (min-width: 861px) and (max-width: 1000px) {
+  header.site .bar { gap: 14px; }
+  header.site .top-nav a { padding: 8px 9px; font-size: 16px; }
+  .urgent-btn .long { display: none; }
+  .urgent-btn .short { display: inline; }
+}
+/* 아주 좁은 휴대폰(폭 380px 이하): 검색 버튼이 들어갈 자리를 만들려고 머리말을 조금 줄입니다. */
+@media (max-width: 380px) {
+  header.site .bar { gap: 6px; }
+  .mark { font-size: 20px; gap: 6px; }
+  .mark svg { width: 26px; height: 26px; }
+  .head-tools { gap: 5px; }
+  .urgent-btn { padding: 6px 9px; font-size: 13px; }
+  .search-btn { width: 36px; height: 36px; }
+  .font-toggle button { padding: 6px 8px; }
+}
+.font-toggle { flex: none; }
+.font-toggle button { white-space: nowrap; }
+@media (max-width: 350px) {
+  .mark { font-size: 18px; gap: 5px; }
+  .mark svg { width: 24px; height: 24px; }
+  .urgent-btn { padding: 6px 8px; font-size: 12.5px; }
+  .search-btn { width: 34px; height: 34px; }
+  .font-toggle button { padding: 6px 7px; font-size: 13.5px; }
+}
 @media (max-width: 700px) {
   body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   .tabbar {

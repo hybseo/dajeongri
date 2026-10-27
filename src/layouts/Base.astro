@@ -92,7 +92,11 @@ const footLinks = [
         function gtag(){dataLayer.push(arguments);}
         window.gtag = gtag;
         gtag('js', new Date());
-        gtag('config', GA_ID, { anonymize_ip: true });
+        // 검색 화면 주소(/search/?w=검색어)의 검색어는 페이지 주소 통계에서 뺍니다.
+        // 검색어는 숫자를 지운 형태로만 따로 보냅니다(src/pages/search.astro).
+        var pl = location.href;
+        try { var u = new URL(location.href); if (u.searchParams.has('w')) { u.searchParams.delete('w'); pl = u.href; } } catch (e) {}
+        gtag('config', GA_ID, { anonymize_ip: true, page_location: pl });
       </script>
     </>
   )}
@@ -121,6 +125,9 @@ const footLinks = [
         {/* 급한 분 입구: 어느 페이지에서나 첫 3일 안내로 바로 갑니다. */}
         <a class="urgent-btn" href="/after/first-days/"><span class="long">가족을 떠나보냈어요 →</span><span class="short">떠나보냈어요</span></a>
         <button class="install-chip" type="button" data-install hidden>앱으로 설치</button>
+        <a class="search-btn" href="/search/" aria-label="사이트 검색" aria-current={path.startsWith('/search/') ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg><span class="long">검색</span>
+        </a>
         <div class="font-toggle" role="group" aria-label="글자 크기">
           <button type="button" data-font-set="normal" aria-pressed="true">가<span class="sr"> 보통 글자</span></button>
           <button type="button" data-font-set="large" aria-pressed="false">가+<span class="sr"> 큰 글자</span></button>

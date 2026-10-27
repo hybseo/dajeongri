@@ -1,12 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
+import SearchBox from '../components/SearchBox.astro';
 ---
 <Base title="페이지를 찾을 수 없습니다" description="요청하신 페이지를 찾을 수 없습니다." noindex>
   <div class="wrap narrow">
     <header class="page-head">
       <h1>페이지를 찾을 수 없습니다</h1>
-      <p class="lead">주소가 바뀌었거나 없는 페이지입니다.</p>
+      <p class="lead">주소가 바뀌었거나 없는 페이지입니다. 찾으시는 내용을 검색해 보세요.</p>
     </header>
+    <div style="margin:0 0 24px"><SearchBox id="nf-q" label="다정리에서 찾기" /></div>
     <div class="btn-row">
       <a class="btn" href="/">처음으로</a>
       <a class="btn ghost" href="/note/">엔딩노트 작성기</a>

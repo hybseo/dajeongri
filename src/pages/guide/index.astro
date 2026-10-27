@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { guides, groups } from '../../data/guides.js';
+import SearchBox from '../../components/SearchBox.astro';
 ---
 <Base title="정리 가이드" description="의료와 돌봄, 법과 재산, 디지털, 장례, 마음과 관계, 떠나보낸 뒤. 생전정리에 필요한 정보를 공식 출처로 확인해 쉬운 말로 정리했습니다.">
   <div class="wrap narrow">
@@ -10,6 +11,8 @@ import { guides, groups } from '../../data/guides.js';
       <h1>알아 두면 덜 헤매는 것들</h1>
       <p class="lead">미리 알아 두면 본인도, 가족도 덜 당황합니다. 법령·판례와 공공기관 안내를 확인해 쉬운 말로 정리했습니다.</p>
     </header>
+
+    <div class="guide-search no-print"><SearchBox id="guide-q" label="가이드 안에서 찾기" compact /></div>
 
     <nav class="group-jump no-print" aria-label="묶음 바로가기">
       {groups.map((g) => <a href={`#${g.key}`}>{g.title}</a>)}
@@ -34,6 +37,7 @@ import { guides, groups } from '../../data/guides.js';
 </Base>
 
 <style>
+  .guide-search { background: var(--bg); border-radius: 18px; padding: 18px 20px; margin: 0 0 20px; }
   .group-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 8px; }
   .group-jump a { text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 15px; color: var(--ink); }
   .group-jump a:hover { border-color: var(--green-2); }

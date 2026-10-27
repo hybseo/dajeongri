@@ -54,7 +54,7 @@ const nextStep = si >= 0 && si < AFTER_SERIES.length - 1 ? AFTER_SERIES[si + 1] 
       <h1>{p.title}</h1>
       {sharable && <div class="share-row no-print"><button class="share-btn" type="button" data-share>가족에게 보내기</button></div>}
     </header>
-    <Blocks blocks={p.blocks} />
+    <Blocks blocks={p.blocks} autoId />
     {si >= 0 && (
       <nav class="step-nav no-print" aria-label="떠나보낸 뒤 안내 순서">
         {prevStep ? <a class="prev" href={prevStep[0]}><small>이전 단계</small>← {prevStep[1]}</a> : <span />}

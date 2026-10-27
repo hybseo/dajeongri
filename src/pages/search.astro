@@ -1,0 +1,195 @@
+---
+/*
+ * 사이트 검색 화면 (2026-10-28 추가).
+ * 색인(/search-index.json)을 받아 이 기기 안에서 찾습니다. 규칙은 src/scripts/search.js.
+ * 주소: /search/?w=검색어  (첫 화면·가이드 목록의 검색칸, 머리말 돋보기가 여기로 옵니다)
+ *
+ * 검색어 통계: 무엇을 찾는지 알아 가이드를 보완하려고, 숫자와 메일 주소를 지운 검색어를
+ * 구글 애널리틱스로 보냅니다(view_search_results 의 search_term, 결과가 없으면 search_no_result 의 no_result_term).
+ * 글자를 칠 때마다 보내지 않고, "찾기"를 누르거나 자주 찾는 말을 눌렀을 때, 또는 입력을 멈추고
+ * 2.5초가 지났을 때 같은 검색어는 한 번만 보냅니다. 개인정보 안내(/privacy/)에 적어 두었습니다.
+ */
+import Base from '../layouts/Base.astro';
+import { POPULAR } from '../scripts/search.js';
+---
+<Base title="사이트 검색" description="다정리의 가이드와 도구 안에서 필요한 내용을 찾습니다." noindex>
+  <div class="wrap narrow">
+    <header class="page-head">
+      <h1>다정리에서 찾기</h1>
+      <p class="lead">가이드와 도구 안의 글을 모두 찾아 드립니다. 띄어쓰기가 달라도 찾습니다.</p>
+    </header>
+
+    <form class="sp-form" id="sp-form" role="search" action="/search/" method="get">
+      <label class="sr" for="sp-q">검색어</label>
+      <div class="sp-row">
+        <input id="sp-q" type="search" name="w" placeholder="예: 사망신고, 상속포기" autocomplete="off" enterkeyhint="search" maxlength="60" />
+        <button class="btn" type="submit">찾기</button>
+      </div>
+    </form>
+
+    <p class="sp-status" id="sp-status" role="status" aria-live="polite"></p>
+
+    <div id="sp-empty" class="sp-help">
+      <p class="sp-chips"><span>자주 찾는 말</span>
+        {POPULAR.map((w) => <a href={`/search/?w=${encodeURIComponent(w)}`} data-chip={w}>{w}</a>)}
+      </p>
+    </div>
+
+    <ol class="sp-results" id="sp-results" aria-label="검색 결과"></ol>
+
+    <div id="sp-none" class="sp-none" hidden>
+      <p><strong>찾는 말이 들어간 글이 없습니다.</strong> 다른 말로 바꾸거나 짧게 넣어 보세요. 예: "아버지 통장 해지" → "통장"</p>
+      <p class="sp-chips"><span>자주 찾는 말</span>
+        {POPULAR.map((w) => <a href={`/search/?w=${encodeURIComponent(w)}`} data-chip={w}>{w}</a>)}
+      </p>
+      <div class="related-tools">
+        <a href="/check/">3분 진단: 무엇부터 할지 정해 드립니다<span aria-hidden="true">→</span></a>
+        <a href="/faq/">자주 묻는 질문<span aria-hidden="true">→</span></a>
+        <a href="/glossary/">어려운 말 쉽게 풀기<span aria-hidden="true">→</span></a>
+        <a href="/guide/">정리 가이드 전체 보기<span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .sp-row { display: flex; gap: 8px; }
+  .sp-row input { flex: 1; min-width: 0; font: inherit; font-size: 19px; padding: 13px 16px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); }
+  .sp-row input:focus { outline: 3px solid rgba(44, 82, 130, .25); border-color: var(--green-2); }
+  .sp-row .btn { flex: none; width: auto; min-height: 52px; padding: 10px 20px; }
+  .sp-status { margin: 14px 0 6px; font-weight: 700; color: var(--ink-soft); min-height: 1.5em; }
+  .sp-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 10px 0 0; font-size: 15px; }
+  .sp-chips span { color: var(--ink-soft); font-weight: 700; margin-right: 2px; }
+  .sp-chips a { text-decoration: none; background: var(--navy-t); color: var(--green); border-radius: 999px; padding: 6px 13px; font-weight: 600; }
+  .sp-chips a:hover { background: #dbe6f2; }
+  .sp-results { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
+  .sp-none { margin-top: 8px; }
+  .sp-none .related-tools { margin-top: 18px; }
+  :global(.sp-item) { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; }
+  :global(.sp-item .sp-g) { margin: 0; font-size: 14px; font-weight: 700; color: var(--clay); }
+  :global(.sp-item .sp-t) { display: block; font-size: 19px; font-weight: 800; margin: 2px 0 4px; text-decoration: none; color: var(--green); letter-spacing: -0.03em; }
+  :global(.sp-item .sp-t:hover) { text-decoration: underline; }
+  :global(.sp-item .sp-hits) { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+  :global(.sp-item .sp-hits li) { border-top: 1px dashed var(--line); padding-top: 8px; }
+  :global(.sp-item .sp-h) { font-weight: 700; font-size: 16px; }
+  :global(.sp-item .sp-snip) { margin: 2px 0 0; font-size: 15.5px; color: var(--ink-soft); line-height: 1.65; }
+  :global(.sp-item mark) { background: #fde9c6; color: var(--ink); border-radius: 3px; padding: 0 1px; }
+</style>
+
+<script>
+  import { prepare, search, maskTerm } from '../scripts/search.js';
+  import { track } from '../scripts/analytics.js';
+
+  const form = document.getElementById('sp-form') as HTMLFormElement;
+  const input = document.getElementById('sp-q') as HTMLInputElement;
+  const status = document.getElementById('sp-status') as HTMLElement;
+  const list = document.getElementById('sp-results') as HTMLOListElement;
+  const empty = document.getElementById('sp-empty') as HTMLElement;
+  const none = document.getElementById('sp-none') as HTMLElement;
+
+  let data: ReturnType<typeof prepare> | null = null;
+  let loading: Promise<void> | null = null;
+  const load = () => loading ??= fetch('/search-index.json')
+    .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+    .then((j) => { data = prepare(j); })
+    .catch(() => {
+      status.textContent = '검색 자료를 불러오지 못했습니다. 인터넷 연결을 확인하고 "찾기"를 다시 눌러 주세요.';
+      // 다음에 "찾기"를 누르면 다시 시도합니다(자동으로 되풀이하지는 않음).
+      setTimeout(() => { loading = null; }, 0);
+    });
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
+  const marked = (s: string) => esc(s).replace(/\[\[(.+?)\]\]/g, '<mark>$1</mark>');
+  // 오프라인 미리보기에서는 주소 변환 도우미(window.__href)를 거칩니다. 실제 사이트에서는 그대로.
+  const href = (u: string) => ((window as any).__href ? (window as any).__href(u) : u);
+
+  /* 검색어 통계: 같은 검색어(숫자 지운 형태)는 한 화면에서 한 번만 보냅니다. */
+  const sent = new Set<string>();
+  let lastCount = 0;
+  const report = (q: string) => {
+    const term = maskTerm(q);
+    if (term.length < 1 || sent.has(term)) return;
+    sent.add(term);
+    track('view_search_results', { search_term: term, results: lastCount });
+    // 결과 없는 검색어는 애널리틱스 맞춤 측정기준 "결과 없는 검색어"(no_result_term)로 봅니다.
+    if (lastCount === 0) track('search_no_result', { no_result_term: term });
+  };
+  let idle = 0;
+
+  const render = (q: string) => {
+    q = q.trim();
+    list.innerHTML = '';
+    none.hidden = true;
+    if (!q) { status.textContent = ''; empty.hidden = false; lastCount = 0; return; }
+    empty.hidden = true;
+    if (!data) {
+      status.textContent = '찾는 중…';
+      load().then(() => { if (data) render(input.value); });
+      return;
+    }
+    const res = search(data, q);
+    lastCount = res.length;
+    if (!res.length) {
+      status.textContent = `"${q}"(으)로 찾은 글이 없습니다.`;
+      none.hidden = false;
+      return;
+    }
+    status.textContent = (res as any).partial
+      ? `"${q}"의 낱말이 모두 들어간 글은 없어, 일부 낱말이 들어간 글 ${res.length}건을 보여 드립니다.`
+      : `"${q}" 검색 결과 ${res.length}건${res.length >= 30 ? ' (앞의 30건)' : ''}`;
+    const frag = document.createDocumentFragment();
+    for (const r of res) {
+      const li = document.createElement('li');
+      li.className = 'sp-item';
+      const p = r.page;
+      li.innerHTML = `<p class="sp-g">${esc(p.g)}</p><a class="sp-t" href="${esc(href(p.u))}">${esc(p.t)}</a>`
+        + (r.hits.length ? `<ul class="sp-hits">${r.hits.map((h) => `<li>${h.h ? `<a class="sp-h" href="${esc(href(p.u + (h.a ? '#' + h.a : '')))}">${esc(h.h)}</a>` : ''}<p class="sp-snip">${marked(h.snippet)}</p></li>`).join('')}</ul>` : '');
+      frag.appendChild(li);
+    }
+    list.appendChild(frag);
+  };
+
+  const setUrl = (q: string) => {
+    const u = new URL(location.href);
+    if (q.trim()) u.searchParams.set('w', q.trim()); else u.searchParams.delete('w');
+    history.replaceState(null, '', u.pathname + u.search);
+  };
+
+  let t = 0;
+  input.addEventListener('input', () => {
+    clearTimeout(t); clearTimeout(idle);
+    t = window.setTimeout(() => { render(input.value); setUrl(input.value); }, 180);
+    idle = window.setTimeout(() => { if (input.value.trim().length >= 2 && data) report(input.value); }, 2500);
+  });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearTimeout(idle);
+    await load();
+    render(input.value); setUrl(input.value);
+    if (input.value.trim()) report(input.value);
+    // 휴대폰에서는 자판을 내려 결과가 보이게 합니다.
+    if (window.matchMedia('(max-width: 700px)').matches) input.blur();
+  });
+  document.addEventListener('click', async (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('[data-chip]');
+    if (!a) return;
+    e.preventDefault();
+    input.value = a.dataset.chip || '';
+    await load();
+    render(input.value); setUrl(input.value); report(input.value);
+    window.scrollTo({ top: 0 });
+  });
+
+  const first = new URL(location.href).searchParams.get('w') || '';
+  input.value = first;
+  if (first) {
+    status.textContent = '찾는 중…';
+    empty.hidden = true;
+  } else {
+    input.focus();
+  }
+  load().then(() => {
+    render(input.value);
+    if (first) report(first);
+  });
+</script>

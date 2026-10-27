@@ -1,0 +1,35 @@
+---
+/*
+ * 사이트 검색칸 (2026-10-28 추가). 첫 화면, 정리 가이드 목록, 없는 페이지(404)에 둡니다.
+ * 누르면 /search/?w=검색어 로 갑니다. 실제 검색은 /search/ 화면이 이 기기 안에서 합니다.
+ * chips: 아래에 "자주 찾는 말" 버튼을 보여 줄지.
+ */
+import { POPULAR } from '../scripts/search.js';
+const { label = '찾고 싶은 말을 넣어 보세요', chips = true, compact = false, id = 'sbox' } = Astro.props;
+---
+<form class:list={['sbox', { compact }]} action="/search/" method="get" role="search">
+  <label class="sbox-label" for={id}>{label}</label>
+  <div class="sbox-row">
+    <input id={id} type="search" name="w" placeholder="예: 사망신고, 상속포기" autocomplete="off" enterkeyhint="search" maxlength="60" />
+    <button class="btn" type="submit">찾기</button>
+  </div>
+  {chips && (
+    <p class="sbox-chips"><span>자주 찾는 말</span>
+      {POPULAR.slice(0, compact ? 5 : 8).map((w) => <a href={`/search/?w=${encodeURIComponent(w)}`}>{w}</a>)}
+    </p>
+  )}
+</form>
+
+<style>
+  .sbox { margin: 0; }
+  .sbox-label { display: block; font-weight: 800; font-size: 18px; color: var(--ink); margin-bottom: 8px; }
+  .sbox-row { display: flex; gap: 8px; }
+  .sbox-row input { flex: 1; min-width: 0; font: inherit; font-size: 18px; padding: 12px 16px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); }
+  .sbox-row input:focus { outline: 3px solid rgba(44, 82, 130, .25); border-color: var(--green-2); }
+  .sbox-row .btn { flex: none; width: auto; min-height: 52px; padding: 10px 20px; }
+  .sbox-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 12px 0 0; font-size: 15px; }
+  .sbox-chips span { color: var(--ink-soft); font-weight: 700; margin-right: 2px; }
+  .sbox-chips a { text-decoration: none; background: var(--navy-t); color: var(--green); border-radius: 999px; padding: 5px 12px; font-weight: 600; }
+  .sbox-chips a:hover { background: #dbe6f2; }
+  .compact .sbox-label { font-size: 16px; }
+</style>

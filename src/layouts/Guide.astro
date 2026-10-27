@@ -53,7 +53,7 @@ const illOverride = me?.ill;
       <slot />
     </div>
 
-    <section class="no-print">
+    <section class="no-print" data-nosearch>
       <h2>함께 쓰면 좋은 도구</h2>
       <div class="related-tools">
         {ui.tools.map(([href, label]) => <a href={href}>{label}<span aria-hidden="true">→</span></a>)}
@@ -70,7 +70,7 @@ const illOverride = me?.ill;
       </section>
     )}
 
-    <section class="no-print">
+    <section class="no-print" data-nosearch>
       <h2>{same.length ? `${group?.title} 가이드 더 보기` : me?.group === 'after' ? '함께 보면 좋은 가이드' : '다른 가이드'}</h2>
       <div class="cards">
         {others.map((g) => (

@@ -33,7 +33,7 @@
 - 로고·앱 아이콘·파비콘·공유 썸네일: `node tools/make-icons.mjs` (작업 컴퓨터의 playwright 사용).
 - 머리말: 로고 · 처음 오셨나요 · 정리 도구 · 정리 가이드 · 떠나보낸 후 · [가족을 떠나보냈어요 →](첫 3일 안내) · [가 / 가+].
 
-## 페이지 (51개)
+## 페이지 (52개)
 
 | 묶음 | 주소 | 만드는 곳 |
 |---|---|---|
@@ -56,6 +56,7 @@
 | | 원고에서 옮긴 11개 + 새 2개 | 원고 데이터 → `src/pages/guide/[slug].astro` |
 | | `/guide/inheritance-tax/` (상속세, 2026-10-27 추가) | 원고 데이터 → `[slug].astro` |
 | | `/guide/find-estate/` (갑자기 떠나셨을 때 재산과 빚 찾기·사고사일 때 배상금, 2026-10-27 추가) | 원고 데이터 → `[slug].astro`. 한 달 안에·상속 절차·상속포기 가이드·유족 체크리스트에서 연결 |
+| 사이트 검색 | `/search/` (2026-10-28 추가) | `src/pages/search.astro` + `src/scripts/search.js`, 색인은 빌드 때 `search-index.mjs` 가 만듦. 머리말 돋보기, 첫 화면·가이드 목록·404 검색칸(`src/components/SearchBox.astro`) |
 | 떠나보낸 후 | `/after/` 외 5개 | 원고 데이터 → `[...slug].astro` (`/after/` 에는 기한 계산기가 들어감) |
 | 다정리 안내 | `/about/`, `/glossary/` | 원고 데이터 → `[...slug].astro` |
 | | `/faq/`, `/links/` | 각자의 파일 (내용: `src/data/extra.json`) |
@@ -84,6 +85,14 @@ max(5억, min(실제 받는 금액, (A+C)×법정상속분, 30억)). 단순화�
 `LAW`, 계산식, `/guide/inheritance-tax/`(content.json) 를 함께 고치고 확인일을 바꾸세요.
 
 ## 공통 기능
+
+- 사이트 검색(2026-10-28): 빌드가 끝나면 `search-index.mjs` 가 dist 의 모든 페이지 본문을 소제목 단위로 모아
+  `dist/search-index.json`(약 60KB)을 만들고, `/search/` 가 이 파일로 기기 안에서 찾습니다(서버 없음, 오프라인 가능).
+  - 띄어쓰기 무시, 조사 떼기, 비슷한 말 묶음(`src/scripts/search.js` 의 `SYNONYMS`), 흔한 말("정리")은 필수에서 제외,
+    모든 낱말이 든 글이 없으면 일부 낱말 결과를 안내와 함께 보여 줌. 결과는 소제목으로 바로 이동(#주소 규칙은 `search-index.mjs` 주석).
+  - 색인에서 빼고 싶은 묶음은 `data-nosearch` 를 붙입니다(가이드의 "함께 쓰면 좋은 도구" 등). "자주 찾는 말"은 `POPULAR`.
+  - 원고 페이지(떠나보낸 뒤 등)의 소제목에는 `s1, s2 …` id 를 붙입니다(`Blocks.astro` 의 `autoId`).
+  - 자주 묻는 질문은 `/faq/#q3` 처럼 들어오면 그 질문이 펼쳐집니다.
 
 - 글자 크게 보기: 머리말의 "가+" 버튼. 설정은 그 기기에만 기억.
 - 가족에게 보내기: 가이드·시작하기·떠나보낸 후 페이지. 휴대폰 공유 기능 또는 주소 복사.
@@ -131,6 +140,7 @@ npm run preview:offline
 |---|---|---|
 | 방문 통계 | 켬. 구글 애널리틱스 4, 측정 ID `G-64GMVXVKCR` | `src/site.js` 의 `GA_ID`. 계정 "다정리" → 속성 "다정리 웹사이트". 끄려면 값을 비웁니다. 개인정보 안내(/privacy)는 이 값에 따라 자동으로 바뀝니다. |
 | 기능 사용 횟수 | 켬 (사건 이름만) | `src/scripts/analytics.js` 의 `track`. 엔딩노트 작성 시작·Word 내려받기·인쇄, 체크리스트·빈 노트 인쇄, 기한 계산·캘린더 저장, 부고 문안 복사·공유·문자, 가족에게 보내기, 글자 크게, 앱 설치 |
+| 사이트 검색어 | 켬 (2026-10-28 대표 결정) | `view_search_results` 의 `search_term`, 결과 없으면 `search_no_result` 의 `no_result_term`. 숫자는 #, 메일 주소는 (메일)로 바꿔 보냄(`maskTerm`). 검색 화면 주소의 `?w=` 는 페이지 주소 통계에서 뺌(`Base.astro` 의 `page_location`). 개인정보 안내에 적음 |
 | 구글 서치콘솔 | 등록 완료, 사이트맵 다시 제출(개편 후 페이지 45개 확인). 2026-10-27 색인 요청: `/`, `/check/`, `/note/`, `/tools/`, `/guide/`, `/guide/burial/`, `/guide/living-alone/` | 도메인 속성. 소유확인은 클라우드플레어 DNS 의 TXT 기록(`google-site-verification=...`)으로 했으므로 사이트 코드에는 없습니다. **그 TXT 기록을 지우면 확인이 풀립니다.** |
 | 네이버 서치어드바이저 | 등록·소유확인 완료, 사이트맵 제출 (2026-10-27) | `src/layouts/Base.astro` 머리말의 `naver-site-verification` 메타(값 babd2aa2…). **지우면 확인이 풀립니다.** 사이트맵 https://dajeongri.com/sitemap.xml 제출. |
 
