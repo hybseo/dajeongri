@@ -37,7 +37,7 @@ export const afterChecklist = [
   {
     title: '재산과 돈',
     items: [
-      { id: 'd1', text: '재산·빚 조회 결과 확인', docs: '안심상속 결과 문자·우편, 금융감독원 누리집(금융 조회 결과).', link: '/after/first-month/' },
+      { id: 'd1', text: '재산·빚 조회 결과 확인', docs: '안심상속 결과 문자·우편, 금융감독원 누리집(금융 조회 결과). 개인에게 빌린 돈 등 조회에 안 나오는 빚은 따로 찾아야 합니다.', link: '/guide/find-estate/' },
       { id: 'd2', text: '상속을 받을지 결정 (3개월 안)', docs: '단순승인·한정승인·상속포기. 고인의 마지막 주소지 가정법원.', link: '/after/three-months/' },
       { id: 'd3', need: 'insurance', text: '사망보험금 청구 (3년 안)', docs: '각 보험사. 사망진단서, 가족관계증명서 등.', link: '/guide/insurance-pension/' },
       { id: 'd4', need: 'pension', text: '국민연금 유족연금·사망일시금 청구 확인', docs: '국민연금공단 1355', link: '/guide/insurance-pension/' },

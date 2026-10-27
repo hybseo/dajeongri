@@ -33,7 +33,7 @@
 - 로고·앱 아이콘·파비콘·공유 썸네일: `node tools/make-icons.mjs` (작업 컴퓨터의 playwright 사용).
 - 머리말: 로고 · 처음 오셨나요 · 정리 도구 · 정리 가이드 · 떠나보낸 후 · [가족을 떠나보냈어요 →](첫 3일 안내) · [가 / 가+].
 
-## 페이지 (50개)
+## 페이지 (51개)
 
 | 묶음 | 주소 | 만드는 곳 |
 |---|---|---|
@@ -55,6 +55,7 @@
 | | 새 가이드 2개 (2026-10-27): `/guide/burial/`(묘지와 안치), `/guide/living-alone/`(혼자 사는 분) | 원고 데이터 → `[slug].astro`. `/guide/funeral-cost/` 에 비용 한눈표 추가 |
 | | 원고에서 옮긴 11개 + 새 2개 | 원고 데이터 → `src/pages/guide/[slug].astro` |
 | | `/guide/inheritance-tax/` (상속세, 2026-10-27 추가) | 원고 데이터 → `[slug].astro` |
+| | `/guide/find-estate/` (갑자기 떠나셨을 때 재산과 빚 찾기·사고사일 때 배상금, 2026-10-27 추가) | 원고 데이터 → `[slug].astro`. 한 달 안에·상속 절차·상속포기 가이드·유족 체크리스트에서 연결 |
 | 떠나보낸 후 | `/after/` 외 5개 | 원고 데이터 → `[...slug].astro` (`/after/` 에는 기한 계산기가 들어감) |
 | 다정리 안내 | `/about/`, `/glossary/` | 원고 데이터 → `[...slug].astro` |
 | | `/faq/`, `/links/` | 각자의 파일 (내용: `src/data/extra.json`) |

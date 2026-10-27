@@ -36,4 +36,5 @@ export const guides = [
   { slug: 'talk-parents', short: '이야기 꺼내기', group: 'heart', title: '부모님께 정리 이야기, 어떻게 꺼낼까', summary: '좋은 때, 첫마디 예시, 피할 말' },
   { slug: 'letters', short: '편지 쓰기', group: 'heart', title: '남기는 편지, 어떻게 쓸까', summary: '쓰기 쉬운 순서와 첫 문장 예시' },
   { slug: 'inheritance', short: '상속 절차', group: 'after', title: '가족이 떠난 뒤 상속 절차와 기한', summary: '사망신고부터 상속세 신고까지' },
+  { slug: 'find-estate', short: '재산·빚 찾기', group: 'after', title: '갑자기 떠나셨을 때: 재산과 빚 빠짐없이 찾기', summary: '공식 조회, 조회에 안 나오는 빚, 사고일 때 배상금과 보험' },
 ];
