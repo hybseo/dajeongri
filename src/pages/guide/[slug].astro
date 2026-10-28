@@ -12,6 +12,6 @@ export function getStaticPaths() {
 }
 const { g } = Astro.props;
 ---
-<Guide slug={g.url.split('/')[2]} title={g.title} description={g.meta} checked="2026년 10월 27일" sources={g.sources}>
+<Guide slug={g.url.split('/')[2]} title={g.title} description={g.meta} checked={g.checked || '2026년 10월 27일'} sources={g.sources}>
   <Blocks blocks={g.blocks} />
 </Guide>
