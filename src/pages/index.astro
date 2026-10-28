@@ -190,6 +190,9 @@ const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).conca
 
   @media (max-width: 960px) {
     .hh-grid { grid-template-columns: 1fr; gap: 24px; padding-top: 28px; padding-bottom: 36px; }
+    /* 휴대폰·태블릿: 그림이 아래로 내려가 글만 남으므로 가운데로 맞춰 좌우 균형을 잡습니다(2026-10-29) */
+    .hh-copy { text-align: center; }
+    .hh-copy .lead { margin-left: auto; margin-right: auto; }
     .hh-stage { padding-bottom: 0; }
     .note-card { position: relative; left: auto; bottom: auto; width: auto; margin: -40px 14px 0; transform: none; grid-template-columns: auto 1fr; }
     .note-card:hover { transform: none; }
