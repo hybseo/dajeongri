@@ -13,7 +13,7 @@ import Base from '../layouts/Base.astro';
 import { POPULAR } from '../scripts/search.js';
 ---
 <Base title="사이트 검색" description="다정리의 가이드와 도구 안에서 필요한 내용을 찾습니다." noindex>
-  <div class="wrap narrow">
+  <div class="wrap narrow sp-page">
     <header class="page-head">
       <h1>다정리에서 찾기</h1>
       <p class="lead">가이드와 도구 안의 글을 모두 찾아 드립니다. 띄어쓰기가 달라도 찾습니다.</p>
@@ -53,6 +53,8 @@ import { POPULAR } from '../scripts/search.js';
 </Base>
 
 <style>
+  /* 결과가 색인을 받은 뒤에 그려지므로, 처음부터 화면 높이만큼 자리를 잡아 꼬리말이 밀려 보이지 않게 합니다(화면 밀림 CLS 방지). */
+  .sp-page { min-height: 100vh; min-height: 100svh; }
   .sp-row { display: flex; gap: 8px; }
   .sp-row input { flex: 1; min-width: 0; font: inherit; font-size: 19px; padding: 13px 16px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); }
   .sp-row input:focus { outline: 3px solid rgba(44, 82, 130, .25); border-color: var(--green-2); }

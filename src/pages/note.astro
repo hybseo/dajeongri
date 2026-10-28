@@ -51,7 +51,7 @@ const isWide = (c) => c.kind === 'textarea';
       <div class="note-main">
     <form id="note" onsubmit="return false" autocomplete="off">
       {noteSections.map((s, i) => (
-        <section class="sec" data-section={s.id} data-type={s.type}>
+        <section class:list={['sec', { 'is-current': i === 0 }]} data-section={s.id} data-type={s.type}>
           <p class="sec-no no-print">{i + 1} / {noteSections.length}</p>
           <h2><span class="num">{i + 1}</span>{s.title}</h2>
           {s.hint && <p class="why"><span aria-hidden="true">💡</span><span><strong>도움말</strong> {s.hint}</span></p>}
@@ -114,8 +114,8 @@ const isWide = (c) => c.kind === 'textarea';
       ))}
     </form>
         <div class="pager no-print">
-          <button class="btn ghost" type="button" id="btn-prev">← 이전</button>
-          <button class="btn" type="button" id="btn-next">다음 →</button>
+          <button class="btn ghost" type="button" id="btn-prev" disabled style="visibility:hidden">← 이전</button>
+          <button class="btn" type="button" id="btn-next">{`다음: ${noteSections[1].title} →`}</button>
         </div>
       </div>
       <aside class="preview no-print" aria-label="미리보기">

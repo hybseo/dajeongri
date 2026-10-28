@@ -9,6 +9,7 @@
  * 규칙은 아래 <script> 의 build() 에 있습니다. 링크 대상은 모두 사이트 안의 실제 페이지입니다.
  */
 import Base from '../layouts/Base.astro';
+import { Q1 } from '../data/check.js';
 ---
 <Base title="3분 진단: 무엇부터 정리할까요" description="질문 3개에 답하면 지금 상황에 맞는 생전정리·사후 정리 할 일을 순서대로 알려 드립니다. 답은 이 기기에서만 처리됩니다.">
   <div class="wrap narrow">
@@ -20,8 +21,10 @@ import Base from '../layouts/Base.astro';
     </header>
 
     <div class="quiz" id="quiz">
-      <div class="q-top"><span id="q-step">질문 1 / 3</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
-      <div id="q-body"></div>
+      <div class="q-top"><span id="q-step">질문 1 / 3</span><span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></span></div>
+      <div id="q-body">{/* 첫 질문은 빌드 때 그려 둡니다(스크립트가 같은 모양으로 다시 그림). 화면 밀림 방지 */}<h2>{Q1.title}</h2><div class="opts">{Q1.opts.map((o) => (
+        <button type="button" class={`opt  ${o.cls ?? ''}`} data-v={o.v} aria-pressed="false">{o.ill && <img class="ill" src={`/illust/${o.ill}.svg`} alt="" width="64" height="48" />}<span>{o.label}{o.sub && <small>{o.sub}</small>}</span><span class="mk"></span></button>
+      ))}</div></div>
       <div class="q-nav">
         <button class="btn ghost" type="button" id="q-back" hidden>← 이전</button>
         <button class="btn" type="button" id="q-next" disabled>다음</button>
@@ -83,6 +86,7 @@ import Base from '../layouts/Base.astro';
 
 <script>
   import { track } from '../scripts/analytics.js';
+  import { Q1 as Q1DATA } from '../data/check.js';
 
   type Opt = { v: string; label: string; sub?: string; ill?: string; cls?: string };
   type Q = { id: string; title: string; hint?: string; multi?: boolean; opts: Opt[] };
@@ -91,14 +95,7 @@ import Base from '../layouts/Base.astro';
   const KEY = 'dajeongri-check-v1';
   // 오프라인 미리보기 꾸러미에서는 주소를 파일 주소로 바꿔 줍니다(tools/make-preview.mjs 의 __href).
   const H = (p: string) => ((window as any).__href ? (window as any).__href(p) : p);
-  const Q1: Q = {
-    id: 'situ', title: '지금 어떤 상황이신가요?', opts: [
-      { v: 'me', label: '나를 위해 미리 정리하고 싶어요', sub: '건강할 때 천천히', ill: 'situ-me' },
-      { v: 'parents', label: '부모님과 함께 정리하고 싶어요', sub: '말 꺼내는 법부터', ill: 'situ-parents' },
-      { v: 'urgent', label: '시간이 많지 않아요', sub: '꼭 필요한 것만 먼저', ill: 'situ-time' },
-      { v: 'after', label: '가족을 떠나보냈어요', sub: '기한이 있는 일부터', ill: 'situ-after', cls: 'loss' },
-    ],
-  };
+  const Q1: Q = Q1DATA as Q;
   const PLAN: Q[] = [
     {
       id: 'done', multi: true, title: '이미 해 두신 것을 모두 골라 주세요', hint: '해당하는 것이 없으면 "아직 아무것도 없음"을 고르세요.', opts: [
