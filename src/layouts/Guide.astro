@@ -6,6 +6,7 @@
  * 바뀔 수 있으니, 내용을 고칠 때마다 이 날짜와 출처 목록도 함께 고쳐 주세요.
  */
 import Base from './Base.astro';
+import ReportLink from '../components/ReportLink.astro';
 import { guides, groups } from '../data/guides.js';
 
 const { title, description, checked, sources = [], slug } = Astro.props;
@@ -67,6 +68,7 @@ const illOverride = me?.ill;
           {sources.map((s) => <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.title}</a></li>)}
         </ul>
         <p>제도와 기관 안내는 바뀔 수 있습니다. 실제 절차 전에는 해당 기관에 최신 내용을 확인하세요.</p>
+        <ReportLink title={title} />
       </section>
     )}
 

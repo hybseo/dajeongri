@@ -1,0 +1,17 @@
+---
+/*
+ * 오류 제보 링크 (2026-10-28 추가). 가이드·떠나보낸 뒤·도구 페이지의 "참고한 자료" 끝에 둡니다.
+ * 누르면 이용자의 메일 앱이 열리고, 제목과 본문에 이 페이지 이름·주소가 미리 적힙니다.
+ * 사이트가 무엇을 보내지는 않습니다(이용자가 직접 메일을 보낼 때만 전달됨).
+ */
+const { title = '' } = Astro.props;
+const EMAIL = 'hyunbai.suh@gmail.com'; // 개인정보 안내(/privacy/)에 적힌 문의 메일과 같아야 합니다
+const url = new URL(Astro.url.pathname, 'https://dajeongri.com').href;
+const subject = `[다정리 제보] ${title}`.trim();
+const body = `페이지: ${title}\n주소: ${url}\n\n바뀌었거나 틀린 내용:\n\n\n(알고 계신 출처가 있으면 함께 적어 주세요.)`;
+const href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+---
+<p class="report-err no-print" data-nosearch>
+  내용이 바뀌었거나 틀린 곳을 보셨나요? <a href={href}>알려 주세요</a>
+  <span class="report-note">(메일 앱이 열리고 이 페이지 주소가 함께 적힙니다)</span>
+</p>

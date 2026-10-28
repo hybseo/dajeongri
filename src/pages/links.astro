@@ -4,6 +4,7 @@
  * 주소와 번호는 2026년 10월 27일 확인. 분기마다 다시 열어 점검하세요.
  */
 import Base from '../layouts/Base.astro';
+import ReportLink from '../components/ReportLink.astro';
 import extra from '../data/extra.json';
 const { links } = extra;
 const parts = (s) => String(s).split('|').map((x) => x.trim());
@@ -40,6 +41,7 @@ const isDomain = (x) => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(x);
     <section class="sources">
       <p><strong>참고한 자료 (확인일 2026년 10월 27일)</strong></p>
       <ul>{links.sources.map((s) => <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.title}</a></li>)}</ul>
+      <ReportLink title={links.title} />
     </section>
   </div>
 </Base>

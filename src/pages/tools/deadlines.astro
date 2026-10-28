@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import ReportLink from '../../components/ReportLink.astro';
 import DeadlineCalc from '../../components/DeadlineCalc.astro';
 const rules = [
   ['사망신고', '사망 사실을 안 날부터 1개월', '가족관계의 등록 등에 관한 법률 제84조'],
@@ -49,6 +50,7 @@ const rules = [
         <li><a href="https://www.korea.kr/news/policyNewsView.do?newsId=148931775" rel="nofollow noopener" target="_blank">대한민국 정책브리핑 – 안심상속 원스톱서비스(2024.7)</a></li>
         <li><a href="https://www.law.go.kr/법령/상법/제662조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 상법 제662조(소멸시효)</a></li>
       </ul>
+      <ReportLink title="상속 기한 계산기" />
     </section>
   </div>
 </Base>

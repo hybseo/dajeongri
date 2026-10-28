@@ -5,6 +5,7 @@
  * 법 근거와 확인일은 그 파일 머리말과 /guide/inheritance-tax/ 를 함께 고쳐 주세요.
  */
 import Base from '../../layouts/Base.astro';
+import ReportLink from '../../components/ReportLink.astro';
 const L = 'https://www.law.go.kr/법령/';
 const sources = [
   ['상속세 및 증여세법 제13조(상속세 과세가액)', '상속세및증여세법/제13조'],
@@ -196,6 +197,7 @@ const gifts = [
       <p><strong>참고한 법령 (확인일 2026년 10월 27일)</strong></p>
       <ul>{sources.map(([t, u]) => <li><a href={L + u} rel="nofollow noopener" target="_blank">국가법령정보센터 – {t}</a></li>)}</ul>
       <p>법이 바뀌면 계산 결과가 달라집니다. 실제 신고 전에는 세무서·세무사에 확인하세요.</p>
+      <ReportLink title="상속세 가늠 계산기" />
     </section>
   </div>
 </Base>
