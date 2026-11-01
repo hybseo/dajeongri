@@ -79,8 +79,17 @@ import { POPULAR } from '../scripts/search.js';
 </style>
 
 <script>
-  import { prepare, search, maskTerm } from '../scripts/search.js';
+  import { prepareAsync, search, maskTerm } from '../scripts/search.js';
   import { track } from '../scripts/analytics.js';
+
+  /*
+   * 반응 속도 (2026-11-01 고침).
+   * 실제 이용자 측정(Cloudflare)에서 이 검색칸을 누르거나 칠 때 화면이 0.6초 넘게 늦게 반응한 기록이 있었습니다.
+   * 그래서 (1) 버튼·자주 찾는 말을 누르면 "찾는 중…"을 먼저 화면에 그린 뒤 찾고,
+   * (2) 찾기와 결과 그리기를 작은 덩어리로 나눠 그사이 누른 글자가 바로 찍히게 하고,
+   * (3) 검색 자료 가공도 몇 페이지씩 나눠 합니다.
+   */
+  const nextPaint = () => new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 
   const form = document.getElementById('sp-form') as HTMLFormElement;
   const input = document.getElementById('sp-q') as HTMLInputElement;
@@ -89,13 +98,15 @@ import { POPULAR } from '../scripts/search.js';
   const empty = document.getElementById('sp-empty') as HTMLElement;
   const none = document.getElementById('sp-none') as HTMLElement;
 
-  let data: ReturnType<typeof prepare> | null = null;
+  const FAIL = '검색 자료를 불러오지 못했습니다. 인터넷 연결을 확인하고 "찾기"를 다시 눌러 주세요.';
+  let data: Awaited<ReturnType<typeof prepareAsync>> | null = null;
   let loading: Promise<void> | null = null;
   const load = () => loading ??= fetch('/search-index.json')
     .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
-    .then((j) => { data = prepare(j); })
+    .then((j) => prepareAsync(j))
+    .then((d) => { data = d; })
     .catch(() => {
-      status.textContent = '검색 자료를 불러오지 못했습니다. 인터넷 연결을 확인하고 "찾기"를 다시 눌러 주세요.';
+      status.textContent = FAIL;
       // 다음에 "찾기"를 누르면 다시 시도합니다(자동으로 되풀이하지는 않음).
       setTimeout(() => { loading = null; }, 0);
     });
@@ -118,19 +129,44 @@ import { POPULAR } from '../scripts/search.js';
   };
   let idle = 0;
 
-  const render = (q: string) => {
-    q = q.trim();
-    list.innerHTML = '';
-    none.hidden = true;
-    if (!q) { status.textContent = ''; empty.hidden = false; lastCount = 0; return; }
+  const item = (r: any) => {
+    const li = document.createElement('li');
+    li.className = 'sp-item';
+    const p = r.page;
+    li.innerHTML = `<p class="sp-g">${esc(p.g)}</p><a class="sp-t" href="${esc(href(p.u))}">${esc(p.t)}</a>`
+      // 본문에서 찾은 칸이 없으면(제목·설명에만 있음) 페이지 설명을 보여 줍니다.
+      + (!r.hits.length && p.d ? `<p class="sp-snip">${esc(p.d)}</p>` : '')
+      + (r.hits.length ? `<ul class="sp-hits">${r.hits.map((h: any) => `<li>${h.h ? `<a class="sp-h" href="${esc(href(p.u + (h.a ? '#' + h.a : '')))}">${esc(h.h)}</a>` : ''}<p class="sp-snip">${marked(h.snippet)}</p></li>`).join('')}</ul>` : '');
+    return li;
+  };
+
+  // 가장 최근에 시작한 찾기만 화면에 그립니다(앞의 찾기가 늦게 끝나도 덮어쓰지 않게).
+  let ticket = 0;
+  let shownQ: string | null = null;
+  const FIRST = 8; // 처음에 바로 그리는 결과 수. 나머지는 한숨 돌린 뒤 이어 그립니다.
+
+  const render = async (raw: string, force = false) => {
+    const q = raw.trim();
+    if (!force && q === shownQ) return;   // 같은 검색어면 다시 그리지 않습니다.
+    const my = ++ticket;
+    if (!q) {
+      list.innerHTML = ''; none.hidden = true;
+      status.textContent = ''; empty.hidden = false; lastCount = 0; shownQ = q;
+      return;
+    }
     empty.hidden = true;
     if (!data) {
       status.textContent = '찾는 중…';
-      load().then(() => { if (data) render(input.value); });
-      return;
+      await load();
+      if (my !== ticket) return;
+      if (!data) { status.textContent = FAIL; return; }
     }
     const res = search(data, q);
+    if (my !== ticket) return;
+    list.innerHTML = '';
+    none.hidden = true;
     lastCount = res.length;
+    shownQ = q;
     if (!res.length) {
       status.textContent = `"${q}"(으)로 찾은 글이 없습니다.`;
       none.hidden = false;
@@ -142,17 +178,23 @@ import { POPULAR } from '../scripts/search.js';
       ? `${(res as any).corrected ? `"${(res as any).corrected}"(으)로 고쳐 찾았습니다. ` : ''}"${(res as any).corrected || q}"의 낱말이 모두 들어간 글은 없어, 일부 낱말이 들어간 글 ${res.length}건을 보여 드립니다.`
       : `${shown} 검색 결과 ${res.length}건${res.length >= 30 ? ' (앞의 30건)' : ''}`;
     const frag = document.createDocumentFragment();
-    for (const r of res) {
-      const li = document.createElement('li');
-      li.className = 'sp-item';
-      const p = r.page;
-      li.innerHTML = `<p class="sp-g">${esc(p.g)}</p><a class="sp-t" href="${esc(href(p.u))}">${esc(p.t)}</a>`
-        // 본문에서 찾은 칸이 없으면(제목·설명에만 있음) 페이지 설명을 보여 줍니다.
-        + (!r.hits.length && p.d ? `<p class="sp-snip">${esc(p.d)}</p>` : '')
-        + (r.hits.length ? `<ul class="sp-hits">${r.hits.map((h) => `<li>${h.h ? `<a class="sp-h" href="${esc(href(p.u + (h.a ? '#' + h.a : '')))}">${esc(h.h)}</a>` : ''}<p class="sp-snip">${marked(h.snippet)}</p></li>`).join('')}</ul>` : '');
-      frag.appendChild(li);
-    }
+    res.slice(0, FIRST).forEach((r) => frag.appendChild(item(r)));
     list.appendChild(frag);
+    if (res.length > FIRST) {
+      await nextPaint();
+      if (my !== ticket) return;
+      const rest = document.createDocumentFragment();
+      res.slice(FIRST).forEach((r) => rest.appendChild(item(r)));
+      list.appendChild(rest);
+    }
+  };
+
+  // 버튼·자주 찾는 말을 눌렀을 때: "찾는 중…"을 먼저 보여 주고, 화면이 바뀐 뒤에 찾습니다.
+  const searchNow = async (q: string) => {
+    if (q.trim()) { status.textContent = '찾는 중…'; empty.hidden = true; }
+    await nextPaint();
+    await load();
+    await render(q, true);
   };
 
   const setUrl = (q: string) => {
@@ -162,28 +204,32 @@ import { POPULAR } from '../scripts/search.js';
   };
 
   let t = 0;
+  // 글자를 칠 때: 잠깐 멈추면(0.3초) 찾습니다. 한글은 자음·모음마다 입력이 생겨, 너무 자주 찾으면 다음 글자가 늦게 찍힙니다.
   input.addEventListener('input', () => {
     clearTimeout(t); clearTimeout(idle);
-    t = window.setTimeout(() => { render(input.value); setUrl(input.value); }, 180);
+    t = window.setTimeout(() => { render(input.value).then(() => setUrl(input.value)); }, 300);
     idle = window.setTimeout(() => { if (input.value.trim().length >= 2 && data) report(input.value); }, 2500);
   });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    clearTimeout(idle);
-    await load();
-    render(input.value); setUrl(input.value);
-    if (input.value.trim()) report(input.value);
+    clearTimeout(t); clearTimeout(idle);
     // 휴대폰에서는 자판을 내려 결과가 보이게 합니다.
     if (window.matchMedia('(max-width: 700px)').matches) input.blur();
+    const q = input.value;
+    await searchNow(q);
+    setUrl(q);
+    if (q.trim()) report(q);
   });
   document.addEventListener('click', async (e) => {
     const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('[data-chip]');
     if (!a) return;
     e.preventDefault();
-    input.value = a.dataset.chip || '';
-    await load();
-    render(input.value); setUrl(input.value); report(input.value);
+    clearTimeout(t); clearTimeout(idle);
+    const q = a.dataset.chip || '';
+    input.value = q;
     window.scrollTo({ top: 0 });
+    await searchNow(q);
+    setUrl(q); report(q);
   });
 
   const first = new URL(location.href).searchParams.get('w') || '';
@@ -194,8 +240,8 @@ import { POPULAR } from '../scripts/search.js';
   } else {
     input.focus();
   }
-  load().then(() => {
-    render(input.value);
+  load().then(async () => {
+    await render(input.value, true);
     if (first) report(first);
   });
 </script>

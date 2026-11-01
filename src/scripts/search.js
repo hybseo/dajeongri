@@ -161,24 +161,48 @@ export function parseQuery(q, corpus = '') {
   return { terms, whole, raw, phrases };
 }
 
-/** 색인을 검색하기 좋게 한 번만 가공합니다. 오타 고치기에 쓸 낱말 목록도 만듭니다. */
-export function prepare(index) {
-  const pages = index.pages.map((p) => ({
+/* 색인 가공을 페이지 하나 단위로 나눠 둡니다(prepare·prepareAsync 가 함께 씀). */
+function preparePage(p) {
+  const q = {
     ...p,
     tN: ns(p.t), dN: ns(p.d),
     sN: p.s.map(([a, h, t]) => ({ a, h, t, hN: ns(h), tN: ns(t) })),
-  }));
-  pages.forEach((p) => { p._all = p.tN + ' ' + p.dN + ' ' + p.sN.map((s) => s.hN + s.tN).join(' '); });
-  const vocab = new Map();
-  for (const p of index.pages) {
-    for (const w of (p.t + ' ' + p.s.map((s) => s[1] + ' ' + s[2]).join(' ')).split(/[^가-힣a-z0-9]+/i)) {
-      const b = stripJosa(w).toLowerCase();
-      if (b.length >= 2 && /[가-힣]/.test(b)) vocab.set(b, (vocab.get(b) || 0) + 1);
-    }
+  };
+  q._all = q.tN + ' ' + q.dN + ' ' + q.sN.map((s) => s.hN + s.tN).join(' ');
+  return q;
+}
+function addVocab(vocab, p) {
+  for (const w of (p.t + ' ' + p.s.map((s) => s[1] + ' ' + s[2]).join(' ')).split(/[^가-힣a-z0-9]+/i)) {
+    const b = stripJosa(w).toLowerCase();
+    if (b.length >= 2 && /[가-힣]/.test(b)) vocab.set(b, (vocab.get(b) || 0) + 1);
   }
+}
+function finish(pages, vocab) {
   pages.vocab = vocab;
   pages.corpus = { text: pages.map((p) => p._all).join(' '), headings: pages.map((p) => p.tN + ' ' + p.sN.map((s) => s.hN).join(' ')).join(' ') };
   return pages;
+}
+
+/** 색인을 검색하기 좋게 한 번만 가공합니다. 오타 고치기에 쓸 낱말 목록도 만듭니다. */
+export function prepare(index) {
+  const vocab = new Map();
+  const pages = index.pages.map((p) => { addVocab(vocab, p); return preparePage(p); });
+  return finish(pages, vocab);
+}
+
+/**
+ * prepare 와 결과는 같지만, 몇 페이지씩 나눠 가공하고 사이사이 쉬어 갑니다(2026-11-01).
+ * 느린 휴대폰에서 한 번에 가공하면 0.2초 넘게 화면이 멈춰, 그사이 누른 글자가 늦게 찍혔습니다.
+ */
+export async function prepareAsync(index, per = 6) {
+  const vocab = new Map();
+  const pages = [];
+  const src = index.pages;
+  for (let i = 0; i < src.length; i += per) {
+    for (const p of src.slice(i, i + per)) { addVocab(vocab, p); pages.push(preparePage(p)); }
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  return finish(pages, vocab);
 }
 
 /** 한 글자만 틀린 낱말 찾기(오타). 세 글자 이상에서, 한 글자의 자음·모음 하나만 다른 경우("상속포끼" → "상속포기"). */

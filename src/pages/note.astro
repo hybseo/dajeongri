@@ -297,38 +297,40 @@ const isWide = (c) => c.kind === 'textarea';
     if (t.closest('[data-remove]')) {
       const row = t.closest('[data-row]') as HTMLElement;
       const rows = row.parentElement as HTMLElement;
+      const sec = rows.closest<HTMLElement>('[data-section]');
       row.remove();
       if (!rows.children.length) addRow(rows.dataset.rows!);
       dirty = true;
       tabSave();
+      refreshSoon(sec ? secs.indexOf(sec) : -1);
     }
   });
   /* ── 모으기·채우기 ───────────────────────── */
+  /* 한 칸(항목)만 모읍니다. 글자를 칠 때는 그 칸만 다시 읽습니다(반응 속도, 2026-11-01). */
+  function sectionData(sec: HTMLElement): Record<string, string> | Row[] {
+    if (sec.dataset.type === 'fields') {
+      const obj: Record<string, string> = {};
+      sec.querySelectorAll<HTMLElement>('[data-field]').forEach((el) => {
+        if (el.tagName === 'FIELDSET') {
+          const checked = el.querySelector<HTMLInputElement>('input:checked');
+          obj[el.dataset.field!] = checked ? checked.value : '';
+        } else {
+          obj[el.dataset.field!] = (el as HTMLInputElement).value.trim();
+        }
+      });
+      return obj;
+    }
+    const rows: Row[] = [];
+    sec.querySelectorAll<HTMLElement>('[data-row]').forEach((r) => {
+      const row: Row = {};
+      r.querySelectorAll<HTMLInputElement>('[data-col]').forEach((el) => { row[el.dataset.col!] = el.value.trim(); });
+      rows.push(row);
+    });
+    return rows;
+  }
   function collect(): NoteData {
     const data: NoteData = {};
-    form.querySelectorAll<HTMLElement>('[data-section]').forEach((sec) => {
-      const id = sec.dataset.section!;
-      if (sec.dataset.type === 'fields') {
-        const obj: Record<string, string> = {};
-        sec.querySelectorAll<HTMLElement>('[data-field]').forEach((el) => {
-          if (el.tagName === 'FIELDSET') {
-            const checked = el.querySelector<HTMLInputElement>('input:checked');
-            obj[el.dataset.field!] = checked ? checked.value : '';
-          } else {
-            obj[el.dataset.field!] = (el as HTMLInputElement).value.trim();
-          }
-        });
-        data[id] = obj;
-      } else {
-        const rows: Row[] = [];
-        sec.querySelectorAll<HTMLElement>('[data-row]').forEach((r) => {
-          const row: Row = {};
-          r.querySelectorAll<HTMLInputElement>('[data-col]').forEach((el) => { row[el.dataset.col!] = el.value.trim(); });
-          rows.push(row);
-        });
-        data[id] = rows;
-      }
-    });
+    form.querySelectorAll<HTMLElement>('[data-section]').forEach((sec) => { data[sec.dataset.section!] = sectionData(sec); });
     return data;
   }
   function fill(data: NoteData) {
@@ -393,7 +395,7 @@ const isWide = (c) => c.kind === 'textarea';
 
   document.getElementById('btn-load')?.addEventListener('click', () => {
     const d = storageGet();
-    if (d) { fill(d); tabSave(); say('임시저장한 내용을 불러왔습니다.'); topSay('임시저장한 내용을 불러왔습니다. 이어서 쓰세요.'); refresh(); }
+    if (d) { fill(d); tabSave(); say('임시저장한 내용을 불러왔습니다.'); topSay('임시저장한 내용을 불러왔습니다. 이어서 쓰세요.'); refreshSoon(); }
     restoreBox.hidden = true;
   });
   document.getElementById('btn-forget')?.addEventListener('click', () => {
@@ -431,7 +433,7 @@ const isWide = (c) => c.kind === 'textarea';
     topSay('');
     document.querySelector('.import-row .import-msg')?.remove();
     dirty = false;
-    refresh();
+    refreshSoon();
     say('모두 지웠습니다.');
   });
 
@@ -440,7 +442,8 @@ const isWide = (c) => c.kind === 'textarea';
 
   /* ── 작성 시작 횟수 (한 번만) ─────────────── */
   let started = false;
-  form.addEventListener('input', () => { if (!started) { started = true; track('note_start'); } });
+  // 통계는 글자가 화면에 찍힌 뒤에 보냅니다.
+  form.addEventListener('input', () => { if (!started) { started = true; setTimeout(() => track('note_start'), 0); } });
 
   /* ── Word 파일 만들기 ────────────────────── */
   document.getElementById('btn-docx')?.addEventListener('click', async () => {
@@ -510,6 +513,7 @@ const isWide = (c) => c.kind === 'textarea';
       tabSave();
       restoreBox.hidden = true;
       show(0);
+      refreshSoon();
       dirty = false;
       const when = r.savedAt ? new Date(r.savedAt) : null;
       const whenText = when && !isNaN(+when) ? ` (${when.getFullYear()}년 ${when.getMonth() + 1}월 ${when.getDate()}일에 받은 파일)` : '';
@@ -558,31 +562,72 @@ const isWide = (c) => c.kind === 'textarea';
   let cur = 0;
   const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
   const filled = (v: unknown) => Array.isArray(v) ? v.some((r) => Object.values(r).some(Boolean)) : Object.values((v ?? {}) as object).some(Boolean);
+  /*
+   * 반응 속도 (2026-11-01 고침). 실제 이용자 측정에서 이 화면의 단추·글자 입력이 늦게 반응한 기록이 있었습니다.
+   * 누른 결과(칸 바뀜, 글자)를 먼저 화면에 그리고, 미리보기·진행률·화면 이동은 그다음에 합니다.
+   * 글자를 칠 때는 13칸을 모두 다시 읽지 않고 고친 칸만 다시 읽습니다.
+   */
+  const afterPaint = (fn: () => void) => requestAnimationFrame(() => setTimeout(fn, 0));
+  const doneFlags: boolean[] = noteSections.map(() => false);
   function show(i: number, focus = false) {
     cur = Math.max(0, Math.min(secs.length - 1, i));
     secs.forEach((s, k) => s.classList.toggle('is-current', k === cur));
     steps.forEach((b, k) => { if (k === cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
-    // 휴대폰에서는 단계 띠가 옆으로 길어지므로 지금 단계가 보이게 띠만 옮깁니다(페이지는 움직이지 않음).
-    const list = steps[cur]?.parentElement as HTMLElement | null;
-    if (list && list.scrollWidth > list.clientWidth) {
-      const chip = steps[cur];
-      const d = chip.getBoundingClientRect().left - list.getBoundingClientRect().left;
-      list.scrollTo({ left: list.scrollLeft + d - (list.clientWidth - chip.offsetWidth) / 2, behavior: 'smooth' });
-    }
     prevBtn.disabled = cur === 0;
     prevBtn.style.visibility = cur === 0 ? 'hidden' : 'visible';
     nextBtn.textContent = cur === secs.length - 1 ? '다 썼어요 →' : `다음: ${noteSections[cur + 1].title} →`;
-    refresh();
-    if (focus) secs[cur].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const at = cur;
+    afterPaint(() => {
+      if (at !== cur) return; // 그사이 다른 칸으로 옮겼으면 그 칸 기준으로 다시 합니다.
+      // 휴대폰에서는 단계 띠가 옆으로 길어지므로 지금 단계가 보이게 띠만 옮깁니다(페이지는 움직이지 않음).
+      const list = steps[cur]?.parentElement as HTMLElement | null;
+      if (list && list.scrollWidth > list.clientWidth) {
+        const chip = steps[cur];
+        const d = chip.getBoundingClientRect().left - list.getBoundingClientRect().left;
+        list.scrollTo({ left: list.scrollLeft + d - (list.clientWidth - chip.offsetWidth) / 2, behavior: 'smooth' });
+      }
+      renderPreview();
+      if (focus) secs[cur].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
-  function refresh() {
-    const data = collect();
-    let n = 0;
-    noteSections.forEach((s, k) => { const ok = filled(data[s.id]); if (ok) n++; steps[k]?.classList.toggle('done', ok); });
+  // 한 칸의 작성 여부를 다시 셉니다.
+  function markSection(k: number) {
+    if (k < 0 || !secs[k]) return;
+    const ok = filled(sectionData(secs[k]));
+    doneFlags[k] = ok;
+    steps[k]?.classList.toggle('done', ok);
+  }
+  function updateProgress() {
+    const n = doneFlags.filter(Boolean).length;
     (document.getElementById('pb-fill') as HTMLElement).style.width = `${Math.round((n / noteSections.length) * 100)}%`;
     (document.getElementById('pb-text') as HTMLElement).textContent = `${noteSections.length}개 중 ${n}개 작성`;
+  }
+  // 전체 다시 세기: 불러오기·지우기처럼 여러 칸이 한꺼번에 바뀔 때.
+  function refresh() {
+    secs.forEach((_, k) => markSection(k));
+    updateProgress();
+    renderPreview();
+  }
+  // 글자를 칠 때: 화면에 글자가 찍힌 뒤, 고친 칸만 한 번에 모아 다시 셉니다.
+  const pendingSecs = new Set<number>();
+  let refreshAll = false;
+  let refreshQueued = false;
+  function refreshSoon(k?: number) {
+    if (k === undefined || k < 0) refreshAll = true; else pendingSecs.add(k);
+    if (refreshQueued) return;
+    refreshQueued = true;
+    afterPaint(() => {
+      refreshQueued = false;
+      if (refreshAll) { refreshAll = false; pendingSecs.clear(); refresh(); return; }
+      pendingSecs.forEach((n) => markSection(n));
+      pendingSecs.clear();
+      updateProgress();
+      renderPreview();
+    });
+  }
+  function renderPreview() {
     const s = noteSections[cur];
-    const v = data[s.id];
+    const v = sectionData(secs[cur]);
     let html = `<p class="pv-h">${cur + 1}. ${esc(s.title)}</p>`;
     if (!filled(v)) html += '<p class="empty">아직 쓰지 않았습니다. 비워 둔 항목은 파일에 나오지 않습니다.</p>';
     else if (s.type === 'fields') {
@@ -599,8 +644,11 @@ const isWide = (c) => c.kind === 'textarea';
     if (cur === secs.length - 1) { document.querySelector('.actions')?.scrollIntoView({ behavior: 'smooth' }); return; }
     show(cur + 1, true);
   });
-  form.addEventListener('input', () => { refresh(); markUnsaved(); dirty = true; tabSave(); });
-  form.addEventListener('click', () => setTimeout(refresh, 0));
+  form.addEventListener('input', (e) => {
+    const sec = (e.target as HTMLElement).closest<HTMLElement>('[data-section]');
+    refreshSoon(sec ? secs.indexOf(sec) : -1);
+    markUnsaved(); dirty = true; tabSave();
+  });
   document.querySelectorAll<HTMLElement>('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy!)?.click()));
 
   /* 저장 표시: 임시저장을 누른 때를 보여 줍니다(기기에 자동 저장은 하지 않습니다. 함께 쓰는 컴퓨터를 위해. 창이 열려 있는 동안만 잠시 보관). */
@@ -609,7 +657,7 @@ const isWide = (c) => c.kind === 'textarea';
     const t = new Date();
     chip.textContent = `✓ 이 기기에 저장됨 · ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
     chip.classList.add('ok');
-    try { localStorage.setItem(KEY + '-meta', JSON.stringify({ at: t.toISOString(), n: noteSections.filter((s) => filled(collect()[s.id])).length })); } catch { /* 무시 */ }
+    try { localStorage.setItem(KEY + '-meta', JSON.stringify({ at: t.toISOString(), n: ((d) => noteSections.filter((s) => filled(d[s.id])).length)(collect()) })); } catch { /* 무시 */ }
   }
   function markUnsaved() { if (chip.classList.contains('ok')) { chip.textContent = '고친 내용은 아직 저장 안 함'; chip.classList.remove('ok'); } }
 
@@ -626,6 +674,7 @@ const isWide = (c) => c.kind === 'textarea';
   // 다른 페이지에서 특정 칸으로 바로 오는 경우 (예: /note/#bank)
   const fromHash = () => { const id = decodeURIComponent(location.hash.slice(1)); const i = secs.findIndex((s) => s.dataset.section === id); return i; };
   const startAt = fromHash();
+  refresh();
   show(startAt >= 0 ? startAt : 0, startAt >= 0);
   window.addEventListener('hashchange', () => { const i = fromHash(); if (i >= 0) show(i, true); });
 </script>
