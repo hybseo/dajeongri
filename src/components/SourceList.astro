@@ -1,0 +1,26 @@
+---
+/*
+ * 출처 목록 (2026-11-01). 가이드·원고 페이지·계산기·기관 모음 맨 아래 "참고한 자료"에 씁니다.
+ * "기관 – 제목" 형식의 제목은 기관 이름을 작게, 제목을 크게 나눠 보여 줍니다.
+ *   예) "국가법령정보센터 – 민법 제1019조(승인, 포기의 기간)" → [국가법령정보센터] 민법 제1019조(…)
+ * items: [{ title, url }]
+ */
+const { items = [] } = Astro.props;
+const split = (t) => {
+  const m = String(t).match(/^(.+?)\s+[–—-]\s+(.+)$/);
+  return m ? [m[1], m[2]] : ['', String(t)];
+};
+---
+<ul class="src-list">
+  {items.map((s) => {
+    const [org, name] = split(s.title);
+    return (
+      <li>
+        <a href={s.url} rel="nofollow noopener" target="_blank">
+          {org && <small>{org}</small>}
+          <span>{name}</span>
+        </a>
+      </li>
+    );
+  })}
+</ul>

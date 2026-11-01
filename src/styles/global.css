@@ -85,7 +85,8 @@ p { margin: 0 0 16px; }
 .lead { font-size: 20px; color: var(--ink-soft); }
 .muted { color: var(--ink-soft); font-size: 16px; }
 .page-head { padding: 44px 0 8px; }
-.kicker { font-size: 15px; font-weight: 700; color: var(--clay); letter-spacing: 0.02em; margin-bottom: 8px; }
+/* 2026-11-01: 작은 머리글은 남색으로. 호박색은 급한 분 입구(떠나보냈어요)·진행률·로고 점·주의 상자에만 씁니다. */
+.kicker { font-size: 15px; font-weight: 700; color: var(--green-2); letter-spacing: 0.02em; margin-bottom: 8px; }
 
 /* ── 버튼 ───────────────────────────────── */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 12px 26px; border-radius: 16px; font: inherit; font-weight: 800; font-size: 18px; text-decoration: none; cursor: pointer; border: 2px solid var(--green-2); background: var(--green-2); color: #fff; letter-spacing: -0.02em; }
@@ -122,8 +123,19 @@ th { background: var(--navy-t); color: var(--green); font-weight: 700; }
 .steps > li { counter-increment: s; position: relative; padding: 18px 18px 18px 66px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 12px; }
 .steps > li::before { content: counter(s); position: absolute; left: 18px; top: 18px; width: 34px; height: 34px; border-radius: 50%; background: var(--green-2); color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 .steps > li strong { display: block; color: var(--green); font-size: 19px; margin-bottom: 4px; }
-.sources { font-size: 15px; color: var(--ink-soft); border-top: 1px solid var(--line); margin-top: 48px; padding-top: 16px; }
+.sources { font-size: 15px; color: var(--ink-soft); background: var(--bg); border-radius: 20px; margin-top: 48px; padding: 20px 22px; }
+.sources > p:first-child { margin: 0 0 12px; }
+.sources > p:first-child strong { color: var(--ink); font-size: 16.5px; }
 .sources ul { padding-left: 1.2em; }
+.sources > p { margin-bottom: 8px; }
+.sources .report-err { background: #fff; }
+/* 출처 목록 (2026-11-01, src/components/SourceList.astro): 기관 이름은 작게, 제목은 크게 */
+.sources .src-list { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.sources .src-list li { margin: 0; }
+.src-list a { display: flex; flex-direction: column; gap: 1px; height: 100%; box-sizing: border-box; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 15px; line-height: 1.45; }
+.src-list a small { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.01em; }
+.src-list a span::after { content: ' ↗'; color: var(--ink-soft); font-weight: 400; }
+.src-list a:hover { border-color: #c9d6e5; color: var(--green); }
 .report-err { margin: 14px 0 0; padding: 12px 16px; background: var(--bg); border-radius: 12px; font-size: 15.5px; color: var(--ink); }
 .report-err a { font-weight: 700; }
 .report-err .report-note { display: block; font-size: 13.5px; color: var(--ink-soft); margin-top: 2px; }
@@ -142,6 +154,7 @@ th { background: var(--navy-t); color: var(--green); font-weight: 700; }
 .related-tools a { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg); border-radius: 14px; padding: 14px 18px; text-decoration: none; color: var(--ink); font-weight: 700; }
 .related-tools a:hover { background: var(--navy-t); color: var(--green); }
 .page-illust { width: 100%; max-width: 260px; border-radius: 22px; display: block; margin: 0 0 18px; }
+.page-illust.wide { max-width: 400px; }
 
 /* ── 첫 화면 ─────────────────────────────── */
 .hero { padding: 64px 0 32px; }
@@ -162,6 +175,9 @@ th { background: var(--navy-t); color: var(--green); font-weight: 700; }
   header.site, footer.site, .no-print, .urgent-btn { display: none !important; }
   body { background: #fff; font-size: 13pt; }
   .card, .notice { break-inside: avoid; }
+  .sources { background: none; padding: 0; }
+  .src-list a { border: 0; padding: 2px 0; }
+  .src-list a span::after { content: ''; }
 }
 
 [hidden] { display: none !important; }
@@ -260,7 +276,7 @@ th.row-head { background: var(--card); color: var(--ink); font-weight: 700; }
 .share-btn { font: inherit; font-size: 15px; font-weight: 700; color: var(--green-2); background: var(--card); border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
 .share-btn:hover { border-color: var(--green-2); }
 .crumb { font-size: 15px; color: var(--ink-soft); margin-bottom: 6px; }
-.crumb a { color: var(--clay); font-weight: 700; text-decoration: none; }
+.crumb a { color: var(--green-2); font-weight: 700; text-decoration: none; }
 
 /* ── 상황 버튼 (여러 페이지 공통) ────────────── */
 .situations { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 8px 0 8px; }

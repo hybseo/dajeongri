@@ -5,6 +5,7 @@
  */
 import Base from '../layouts/Base.astro';
 import ReportLink from '../components/ReportLink.astro';
+import SourceList from '../components/SourceList.astro';
 import extra from '../data/extra.json';
 const { links } = extra;
 const parts = (s) => String(s).split('|').map((x) => x.trim());
@@ -40,7 +41,7 @@ const isDomain = (x) => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(x);
     ))}
     <section class="sources">
       <p><strong>참고한 자료 (확인일 2026년 10월 27일)</strong></p>
-      <ul>{links.sources.map((s) => <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.title}</a></li>)}</ul>
+      <SourceList items={links.sources} />
       <ReportLink title={links.title} />
     </section>
   </div>
@@ -53,6 +54,6 @@ const isDomain = (x) => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(x);
   .org-what { margin: 0 0 8px; color: var(--ink-soft); font-size: 16px; }
   .org-contact { margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
   .org-contact a { text-decoration: none; font-weight: 700; font-size: 16px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper); }
-  .org-contact a.tel { color: var(--clay); border-color: var(--clay-soft); background: var(--clay-soft); }
+  .org-contact a.tel { color: var(--green); border-color: var(--navy-t); background: var(--navy-t); }
   .org-contact span { color: var(--ink-soft); font-size: 16px; padding: 6px 0; }
 </style>

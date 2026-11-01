@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ReportLink from '../../components/ReportLink.astro';
+import SourceList from '../../components/SourceList.astro';
 import DeadlineCalc from '../../components/DeadlineCalc.astro';
 const rules = [
   ['사망신고', '사망 사실을 안 날부터 1개월', '가족관계의 등록 등에 관한 법률 제84조'],
@@ -39,17 +40,17 @@ const rules = [
 
     <section class="sources">
       <p><strong>참고한 자료 (확인일 2026년 10월 27일)</strong></p>
-      <ul>
-        <li><a href="https://www.law.go.kr/법령/가족관계의등록등에관한법률/제84조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 가족관계의 등록 등에 관한 법률 제84조(사망신고와 그 기재사항)</a></li>
-        <li><a href="https://www.law.go.kr/법령/장사등에관한법률/제8조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 장사 등에 관한 법률 제8조(매장·화장 및 개장의 신고)</a></li>
-        <li><a href="https://www.law.go.kr/법령/국민건강보험법/제10조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 국민건강보험법 제10조(자격의 상실 시기 등)</a></li>
-        <li><a href="https://www.law.go.kr/법령/민법/제1019조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 민법 제1019조(승인, 포기의 기간)</a></li>
-        <li><a href="https://www.law.go.kr/법령/상속세및증여세법/제67조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 상속세 및 증여세법 제67조(상속세 과세표준신고)</a></li>
-        <li><a href="https://www.law.go.kr/법령/지방세법/제20조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 지방세법 제20조(신고 및 납부)</a></li>
-        <li><a href="https://www.law.go.kr/법령/자동차등록령/제26조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 자동차등록령 제26조(이전등록 신청)</a></li>
-        <li><a href="https://www.korea.kr/news/policyNewsView.do?newsId=148931775" rel="nofollow noopener" target="_blank">대한민국 정책브리핑 – 안심상속 원스톱서비스(2024.7)</a></li>
-        <li><a href="https://www.law.go.kr/법령/상법/제662조" rel="nofollow noopener" target="_blank">국가법령정보센터 – 상법 제662조(소멸시효)</a></li>
-      </ul>
+      <SourceList items={[
+        { title: '국가법령정보센터 – 가족관계의 등록 등에 관한 법률 제84조(사망신고와 그 기재사항)', url: 'https://www.law.go.kr/법령/가족관계의등록등에관한법률/제84조' },
+        { title: '국가법령정보센터 – 장사 등에 관한 법률 제8조(매장·화장 및 개장의 신고)', url: 'https://www.law.go.kr/법령/장사등에관한법률/제8조' },
+        { title: '국가법령정보센터 – 국민건강보험법 제10조(자격의 상실 시기 등)', url: 'https://www.law.go.kr/법령/국민건강보험법/제10조' },
+        { title: '국가법령정보센터 – 민법 제1019조(승인, 포기의 기간)', url: 'https://www.law.go.kr/법령/민법/제1019조' },
+        { title: '국가법령정보센터 – 상속세 및 증여세법 제67조(상속세 과세표준신고)', url: 'https://www.law.go.kr/법령/상속세및증여세법/제67조' },
+        { title: '국가법령정보센터 – 지방세법 제20조(신고 및 납부)', url: 'https://www.law.go.kr/법령/지방세법/제20조' },
+        { title: '국가법령정보센터 – 자동차등록령 제26조(이전등록 신청)', url: 'https://www.law.go.kr/법령/자동차등록령/제26조' },
+        { title: '대한민국 정책브리핑 – 안심상속 원스톱서비스(2024.7)', url: 'https://www.korea.kr/news/policyNewsView.do?newsId=148931775' },
+        { title: '국가법령정보센터 – 상법 제662조(소멸시효)', url: 'https://www.law.go.kr/법령/상법/제662조' },
+      ]} />
       <ReportLink title="상속 기한 계산기" />
     </section>
   </div>
