@@ -146,8 +146,13 @@ export const noteSections = [
     type: 'list',
     hint: '고마운 마음, 미안한 마음, 부탁하고 싶은 것. 짧아도 괜찮습니다.',
     cols: [
-      { id: 'to', label: '받는 사람' },
-      { id: 'msg', label: '하고 싶은 말', kind: 'textarea' },
+      { id: 'to', label: '받는 사람', placeholder: '예: 아내 영숙에게' },
+      {
+        id: 'msg',
+        label: '하고 싶은 말',
+        kind: 'textarea',
+        placeholder: '예: 그동안 고마웠어요. 힘든 일 있어도 너무 혼자 끌어안지 말고, 애들이랑 서로 의지하면서 지내요. 집 정리는 재현이가 도와줄 거예요.',
+      },
     ],
   },
 ];
