@@ -65,6 +65,10 @@ header.site .bar { display: flex; align-items: center; gap: 26px; min-height: 72
 .mark { font-weight: 800; font-size: 24px; letter-spacing: -0.04em; color: var(--green); text-decoration: none; display: inline-flex; align-items: center; gap: 9px; }
 .mark svg { width: 30px; height: 30px; flex: none; }
 .mark:hover { color: var(--green); }
+.mark-text { display: inline-flex; align-items: baseline; }
+.mark-da { color: var(--amber); }
+.mark-dot { color: var(--green); margin: 0 0.06em; }
+.mark-kr { color: var(--green); }
 header.site .top-nav { display: flex; gap: 2px; flex: 1; }
 header.site .top-nav a { text-decoration: none; color: var(--ink-soft); padding: 8px 13px; border-radius: 10px; font-size: 17px; font-weight: 600; }
 header.site .top-nav a:hover { background: var(--navy-t); color: var(--green); }
