@@ -31,7 +31,7 @@
 - 출처 목록: `src/components/SourceList.astro` ("기관 – 제목"을 나눠 카드로). 가이드·원고 페이지·기관 모음·기한/상속세 계산기가 함께 씀.
 - 글꼴: 프리텐다드(SIL OFL 1.1) 한 가지. `public/fonts/pretendard/` 에 넣어 두었고(글자 조각 92개),
   화면에 필요한 조각만 받습니다. 오프라인 저장 목록에서는 빼고, 쓴 조각만 그때그때 저장합니다(`pwa.mjs`).
-- 그림: `public/illust/*.svg` 12장. 부모님(흰머리·안경·가디건)과 자녀(검은 머리·하늘색 스웨터) 두 사람이
+- 그림: `public/illust/*.svg` 13장(2026-11-16 휴대폰 첫 화면용 가로 그림 `hero-wide` 추가). 부모님(흰머리·안경·가디건)과 자녀(검은 머리·하늘색 스웨터) 두 사람이
   모든 장면에 같은 모습으로 나옵니다. 고칠 때는 `python3 tools/illust.py` 를 고쳐 다시 실행합니다(svg 직접 수정 금지).
 - 로고·앱 아이콘·파비콘·공유 썸네일: `node tools/make-icons.mjs` (작업 컴퓨터의 playwright 사용).
 - 머리말: 로고 · 처음 오셨나요 · 정리 도구 · 정리 가이드 · 떠나보낸 후 · [가족을 떠나보냈어요 →](첫 3일 안내) · [가 / 가+].
@@ -40,7 +40,7 @@
 
 | 묶음 | 주소 | 만드는 곳 |
 |---|---|---|
-| 첫 화면 | `/` | `src/pages/index.astro` |
+| 첫 화면 | `/` | `src/pages/index.astro` (2026-11-16 개편: 큰 문구·다정한 설명·검색칸과 그림(PC 식탁 그림, 휴대폰 가로 그림 `hero-wide.svg`) → 많이 찾는 것 바로가기 4개(장기요양·장례식장 찾기·사망신고와 재산 조회·상속세 가늠 계산기, 고른 근거는 파일 안 `quick` 주석) → 단계별로 찾기 5개 지점(처음엔 접힘, 누르면 그때 할 일을 순서대로) → 3분 진단·도구/가이드 전체 → 확인한 정보만 → 설치. 엔딩노트 칸과 도구 목록은 위와 겹쳐서 뺌) |
 | 시작하기 | `/start/`, `/start/me/`, `/start/parents/`, `/start/urgent/` | 원고 데이터 → `src/pages/[...slug].astro` |
 | | `/start/after/` | `src/pages/start/after.astro` (떠나보낸 후로 안내) |
 | 3분 진단 | `/check/` | `src/pages/check.astro` (질문 3개 → 할 일 순서. 규칙은 파일 안 `build()`) |
@@ -159,7 +159,7 @@ npm run preview:offline
 | 항목 | 상태 | 위치·방법 |
 |---|---|---|
 | 방문 통계 | 켬. 구글 애널리틱스 4, 측정 ID `G-64GMVXVKCR` | `src/site.js` 의 `GA_ID`. 계정 "다정리" → 속성 "다정리 웹사이트". 끄려면 값을 비웁니다. 개인정보 안내(/privacy)는 이 값에 따라 자동으로 바뀝니다. |
-| 기능 사용 횟수 | 켬 (사건 이름만) | `src/scripts/analytics.js` 의 `track`. 엔딩노트 작성 시작·Word 내려받기·인쇄, 체크리스트·빈 노트 인쇄, 기한 계산·캘린더 저장, 부고 문안 복사·공유·문자, 가족에게 보내기, 글자 크게, 앱 설치 |
+| 기능 사용 횟수 | 켬 (사건 이름만) | `src/scripts/analytics.js` 의 `track`. 엔딩노트 작성 시작·Word 내려받기·인쇄, 체크리스트·빈 노트 인쇄, 기한 계산·캘린더 저장, 부고 문안 복사·공유·문자, 가족에게 보내기, 글자 크게, 앱 설치, 첫 화면 바로가기(`home_quick_carehome`·`_funeral`·`_death`·`_tax`)와 단계 펼치기(`home_stage_healthy`·`_care`·`_urgent`·`_days`·`_months`) — 2026-11-16 추가, 2~4주 뒤 바로가기를 고르는 근거로 씀 |
 | 사이트 검색어 | 켬 (2026-10-28 대표 결정) | `view_search_results` 의 `search_term`, 결과 없으면 `search_no_result` 의 `no_result_term`. 숫자는 #, 메일 주소는 (메일)로 바꿔 보냄(`maskTerm`). 검색 화면 주소의 `?w=` 는 페이지 주소 통계에서 뺌(`Base.astro` 의 `page_location`). 개인정보 안내에 적음 |
 | 애널리틱스 설정 (2026-10-28) | 내부 트래픽 제외 · 주요 이벤트 · 검색 | 대표 컴퓨터 IP(116.121.208.187/32)를 내부 트래픽으로 지정하고 Internal Traffic 데이터 필터 "사용 중"(IP가 바뀌면 규칙도 고칠 것). 주요 이벤트: check_done, deadline_ics, note_download, tax_calc. 향상된 측정의 "사이트 검색" 자동 감지는 끔(3분 진단 `?s=` 가 검색으로 잘못 잡히던 문제). 향상된 측정의 "양식 상호작용"(form_start·form_submit)도 끔(2026-11-01: 검색칸·엔딩노트 입력 반응 속도 때문. 검색어·엔딩노트 시작·다운로드는 사이트가 직접 보내므로 잃는 수치 없음). 맞춤 측정기준 "결과 없는 검색어"(no_result_term), "사이트 검색어"(search_term, 2026-10-28 추가: 이날부터 검색어별로 보고서에서 볼 수 있음) |
 | 구글 서치콘솔 | 등록 완료, 사이트맵 다시 제출(개편 후 페이지 45개 확인). 2026-10-27 색인 요청: `/`, `/check/`, `/note/`, `/tools/`, `/guide/`, `/guide/burial/`, `/guide/living-alone/` | 도메인 속성. 소유확인은 클라우드플레어 DNS 의 TXT 기록(`google-site-verification=...`)으로 했으므로 사이트 코드에는 없습니다. **그 TXT 기록을 지우면 확인이 풀립니다.** |
