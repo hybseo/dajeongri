@@ -8,6 +8,7 @@
  *
  * 새 자료가 나오면: 포털에서 CSV를 받아
  *   python3 tools/funeral-homes-import.py 받은파일.csv 2027-04-01
+ *   python3 tools/funeral-homes-match.py   (e하늘 시설번호 다시 붙이기)
  * 을 돌리면 funeral-homes.json 이 바뀝니다(기준일을 두 번째 값으로 적습니다).
  * 시도 이름이 바뀌면(통합·개편) 아래 SIDO 에 이름을 더하세요. 목록에 없는 시도는 빌드가 멈춥니다.
  */
@@ -82,6 +83,11 @@ export function groupBySgg(list) {
 export const EHANEUL_LIST = 'https://www.15774129.go.kr/portal/esky/fnlfac/fac_list.do?menuId=M0001000100000000';
 export const EHANEUL_ITEMS = 'https://www.15774129.go.kr/portal/esky/fnlfac/funeral_item_list.do?menuId=M0001000200000000';
 
+// 장례식장별 e하늘 가격 화면. eh(시설번호)는 tools/funeral-homes-match.py 가 붙입니다.
+// sanbundiv=N 이 빠지면 화면은 열려도 가격이 안 불러와집니다(2026-11-16 확인).
+export const ehUrl = (it) => (it.eh
+  ? `https://www.15774129.go.kr/portal/esky/fnlfac/fac_view.do?menuId=M0001000100000000&facilitycd=${it.eh}&facilitygroupcd=TBC0700001&loc=price&sanbundiv=N`
+  : null);
 export const mapUrl = (it) => `https://map.naver.com/p/search/${encodeURIComponent(`${it.sgg} ${it.name}`)}`;
 export const telUrl = (t) => (t && /\d/.test(t) ? `tel:${t.replace(/[^\d+]/g, '')}` : null);
 export const asOfText = (d = meta.asOf) => { const [y, m, dd] = d.split('-').map(Number); return `${y}년 ${m}월 ${dd}일`; };

@@ -6,7 +6,7 @@
  * 카드 묶음은 사이트 검색 색인에서 뺍니다(data-nosearch). 시군구 제목은 색인에 남습니다.
  */
 import Base from '../../../layouts/Base.astro';
-import { SIDO, itemsOf, groupBySgg, meta, asOfText, EHANEUL_LIST, mapUrl, telUrl } from '../../../data/funeral-homes.js';
+import { SIDO, itemsOf, groupBySgg, meta, asOfText, EHANEUL_LIST, mapUrl, telUrl, ehUrl } from '../../../data/funeral-homes.js';
 
 export function getStaticPaths() {
   return SIDO.map((s) => ({ params: { sido: s.slug }, props: { region: s } }));
@@ -25,7 +25,7 @@ const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
       <p class="crumb"><a href="/tools/">정리 도구</a> › <a href="/tools/funeral-homes/">장례식장 찾기</a></p>
       <h1>{region.name} 장례식장</h1>
       <p class="lead">{list.length}곳{pubCount > 0 && ` (공설 ${pubCount}곳)`} · 보건복지부 {asOfText()} 기준</p>
-      <p class="price-top no-print"><a class="btn clay" href={EHANEUL_LIST} target="_blank" rel="noopener">장례식장 가격은 e하늘에서 보기 ↗</a><span>e하늘에서 지역을 고르거나 장례식장 이름을 검색하면 빈소 사용료와 장례용품 가격이 나옵니다.</span></p>
+      <p class="price-top no-print"><a class="btn clay" href={EHANEUL_LIST} target="_blank" rel="noopener">장례식장 가격은 e하늘에서 보기 ↗</a><span>장례식장마다 <b>가격 보기(e하늘)</b>를 누르면 그 장례식장의 빈소 사용료·장례용품 가격 화면이 바로 열립니다.</span></p>
     </header>
 
     <form class={`filter card no-print${single ? ' single' : ''}`} id="fh-filter" onsubmit="return false" autocomplete="off" data-nosearch>
@@ -71,7 +71,10 @@ const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
                 {it.facilities.length > 0 && <p class="fac">{it.facilities.join(' · ')}</p>}
                 <p class="addr">{it.addr}</p>
                 <p class="links">
-                  {telUrl(it.tel) && <a class="btn small" href={telUrl(it.tel)}>☎ {it.tel}</a>}
+                  {ehUrl(it)
+                    ? <a class="btn small" href={ehUrl(it)} target="_blank" rel="noopener">가격 보기(e하늘) ↗</a>
+                    : <a class="btn small ghost" href={EHANEUL_LIST} target="_blank" rel="noopener" title="e하늘 목록에서 이 장례식장을 찾지 못했습니다">e하늘에서 찾기 ↗</a>}
+                  {telUrl(it.tel) && <a class="btn small ghost" href={telUrl(it.tel)}>☎ {it.tel}</a>}
                   <a class="btn small ghost" href={mapUrl(it)} target="_blank" rel="noopener">지도 ↗</a>
                   {it.web && <a class="btn small ghost" href={it.web} target="_blank" rel="noopener nofollow">홈페이지 ↗</a>}
                 </p>
@@ -85,7 +88,7 @@ const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
 
     <section class="price card">
       <h2>가격 확인하는 법</h2>
-      <p>빈소 사용료와 장례용품 가격은 장례식장이 정부 장사정보시스템(e하늘)에 올리게 되어 있습니다. e하늘에서 지역을 고르거나 위 장례식장 이름을 검색하면 시설사용료와 품목별 가격, 지역 평균이 나옵니다. 계약 전에 확인하고, 끝나면 항목별 명세서를 받아 두세요.</p>
+      <p>빈소 사용료와 장례용품 가격은 장례식장이 정부 장사정보시스템(e하늘)에 올리게 되어 있습니다. 카드의 <b>가격 보기(e하늘)</b>를 누르면 그 장례식장의 시설사용료와 품목별 가격, 지역 평균이 바로 나옵니다. 장례식장이 아직 가격을 올리지 않았으면 "미등록"으로 보입니다. 계약 전에 확인하고, 끝나면 항목별 명세서를 받아 두세요.</p>
       <div class="btn-row">
         <a class="btn clay" href={EHANEUL_LIST} target="_blank" rel="noopener">e하늘에서 가격 보기 ↗</a>
         <a class="btn ghost" href="/guide/funeral-cost/">장례 비용과 상조 가이드</a>

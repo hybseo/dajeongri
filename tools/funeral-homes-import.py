@@ -7,7 +7,9 @@ src/data/funeral-homes.json 으로 바꿉니다.
 
     python3 tools/funeral-homes-import.py 받은파일.csv 2027-04-01
 
-두 번째 값은 자료 기준일(파일 이름 끝의 날짜)입니다. 포털 CSV는 보통 EUC-KR(CP949)이라 그대로 읽고,
+두 번째 값은 자료 기준일(파일 이름 끝의 날짜)입니다. 다 바꾼 뒤에는 꼭
+`python3 tools/funeral-homes-match.py` 로 e하늘 시설번호(카드의 가격 바로가기)를 다시 붙이세요.
+포털 CSV는 보통 EUC-KR(CP949)이라 그대로 읽고,
 UTF-8 파일도 읽습니다. 칸 이름이 바뀌면 멈추니, 그때는 COLS 를 새 이름에 맞춰 고치세요.
 """
 import csv, io, json, re, sys
