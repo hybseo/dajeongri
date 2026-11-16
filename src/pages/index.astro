@@ -1,46 +1,126 @@
 ---
 /*
- * 첫 화면 (2026-10-27 개편, 최종 시안).
- *   위: 카피 + 주 버튼 + 약속 3가지 | 식탁 그림 + 엔딩노트 카드
- *   3분 진단 입구 → 사이트 검색 → 바로 쓸 수 있는 도구 (2026-11-01: 처음 온 분께 3분 진단을 먼저, 검색은 그 아래로)
- *   → 확인한 정보만 씁니다 → 마음도 미리 전할 수 있습니다
+ * 첫 화면 (2026-11-16 개편 시안: "누구신가요"로 시작)
+ *   위: 사이트 전체를 말하는 문구 + 약속 한 줄
+ *   → 상황별 문 3개(가족을 떠나보냈어요 / 가족을 떠나보낼 준비를 해요 / 나의 마지막을 준비해요),
+ *     문마다 가장 많이 찾을 메뉴를 첫 화면에서 바로 누르게
+ *   → 검색칸 + 잘 모르겠으면 3분 진단
+ *   → 대표 도구(엔딩노트 + 다른 도구) → 확인한 정보만 씁니다 → 마음도 미리 → 설치
  * 엔딩노트 카드는 이 기기에 임시저장한 노트가 있으면 실제 진행(몇 칸 썼는지)을,
  * 없으면 "예시" 표시와 함께 보기 그림을 보여 줍니다. 노트 내용은 화면에만 쓰고 어디로도 보내지 않습니다.
  */
 import Base from '../layouts/Base.astro';
 import { noteSections } from '../data/note.js';
 import { checklist } from '../data/checklist.js';
-import { guides } from '../data/guides.js';
+import { items as funeralHomes } from '../data/funeral-homes.js';
 import SearchBox from '../components/SearchBox.astro';
 
 const checkCount = checklist.reduce((n, g) => n + g.items.length, 0);
 const exampleDone = ['me', 'bank', 'insurance', 'contacts'];
 const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).concat(noteSections.filter((s) => s.id === 'letters'));
+
+const doors = [
+  {
+    key: 'after', ill: 'situ-after', href: '/after/',
+    title: '가족을 떠나보냈어요', sub: '장례부터 상속까지, 기한이 있는 일부터',
+    links: [
+      { href: '/after/first-days/', t: '첫 3일: 장례와 서류' },
+      { href: '/tools/funeral-homes/', t: '장례식장 찾기', fresh: true },
+      { href: '/tools/deadlines/', t: '상속 기한 계산기' },
+      { href: '/guide/renounce/', t: '빚이 있다면: 상속포기·한정승인' },
+    ],
+    overview: '날짜순 전체 안내', more: null,
+  },
+  {
+    key: 'family', ill: 'situ-parents', href: '/start/parents/',
+    title: '가족을 떠나보낼 준비를 해요', sub: '부모님·배우자 곁에서, 돌봄과 장례 준비',
+    links: [
+      { href: '/guide/talk-parents/', t: '부모님께 이야기 꺼내기' },
+      { href: '/guide/care-home/', t: '요양원·장기요양 등급' },
+      { href: '/guide/life-sustaining/', t: '연명의료의향서·호스피스' },
+      { href: '/guide/funeral-cost/', t: '장례 방식과 비용 미리 알기' },
+    ],
+    overview: '부모님과 함께 정리하기', more: { href: '/start/urgent/', t: '시간이 많지 않다면' },
+  },
+  {
+    key: 'me', ill: 'situ-me', href: '/start/me/',
+    title: '나의 마지막을 준비해요', sub: '재산·연락처·남길 말을 내 손으로',
+    links: [
+      { href: '/note/', t: '엔딩노트 쓰기', strong: true },
+      { href: '/checklist/', t: `생전정리 체크리스트 ${checkCount}가지` },
+      { href: '/guide/will/', t: '유언 남기는 법' },
+      { href: '/guide/letters/', t: '남기는 말·편지 쓰기' },
+    ],
+    overview: '한 주에 하나씩 정리하는 순서', more: { href: '/start/urgent/', t: '시간이 많지 않다면' },
+  },
+];
+
+const tools = [
+  { href: '/tools/deadlines/', t: '상속 기한 계산기', d: '돌아가신 날만 넣으면 마감 8가지' },
+  { href: '/tools/funeral-homes/', t: '장례식장 찾기', d: `전국 ${funeralHomes.length.toLocaleString('ko-KR')}곳 · e하늘 가격 바로가기`, fresh: true },
+  { href: '/tools/inheritance-tax/', t: '상속세 가늠 계산기', d: '세금이 나올지, 대략 얼마인지' },
+  { href: '/tools/my-procedures/', t: '나에게 필요한 절차만', d: '질문에 답하면 할 일 목록' },
+  { href: '/tools/obituary/', t: '부고 문자 만들기', d: '문안 고르고 바로 보내기' },
+  { href: '/checklist/', t: '생전정리 체크리스트', d: `${checkCount}가지 할 일 · 진행률 표시` },
+];
 ---
-<Base description="재산·계정·물건·남길 말을 미리 정리하는 무료 엔딩노트와 체크리스트. 3분 진단, 상속 기한 계산기, 유족을 위한 날짜순 안내까지. 작성 내용은 서버에 저장되지 않습니다.">
+<Base description="마지막을 준비하는 일부터 떠나보낸 뒤의 일까지. 엔딩노트·생전정리 체크리스트, 요양·연명의료·장례 준비, 장례식장 찾기, 상속 기한 계산기와 날짜순 유족 안내를 무료로. 가입 없이, 쓴 내용은 내 기기에만.">
   <section class="home-hero">
-    <div class="wrap hh-grid">
-      <div class="hh-copy">
-        <span class="tag">무료 · 가입 없이 바로 · 내 기기에만 저장</span>
-        <h1>남은 사람이<br />헤매지 않도록,<br /><span>지금 다정하게</span><br />정리해 두세요</h1>
-        <p class="lead">차 한잔하면서, 한 주에 하나씩. 통장과 보험, 연락할 사람, 남기고 싶은 말까지 한 권에 모아 둡니다.</p>
-        <div class="btn-row hh-cta">
+    <div class="wrap">
+      <div class="hero-copy">
+      <h1>마지막을 준비하는 일부터<br class="pc" /> 떠나보낸 뒤의 일까지,<br /><span>한곳에서 차근차근</span></h1>
+      <p class="lead">생전정리, 돌봄과 장례 준비, 상속 절차까지 확인한 정보로 안내합니다.</p>
+      <p class="promise"><b>모두 무료</b><i aria-hidden="true">·</i><b>회원가입 없음</b><i aria-hidden="true">·</i><b>쓴 내용은 내 기기에만</b></p>
+      </div>
+
+      <h2 class="sr-only">지금 어떤 상황이신가요?</h2>
+      <div class="doors">
+        {doors.map((d) => (
+          <details class={`door ${d.key}`} data-door>
+            <summary class="door-head">
+              <img src={`/illust/${d.ill}.svg`} alt="" width="320" height="240" />
+              <span><b>{d.title}</b><small>{d.sub}</small></span>
+              <i class="chev" aria-hidden="true"></i>
+            </summary>
+            <ul>
+              {d.links.map((l) => (
+                <li><a href={l.href} class:list={{ strong: l.strong }}>{l.t}{l.fresh && <em>새 기능</em>}<span aria-hidden="true">›</span></a></li>
+              ))}
+            </ul>
+            <p class="door-more"><a href={d.href}>{d.overview} →</a>{d.more && <a href={d.more.href}>{d.more.t} →</a>}</p>
+          </details>
+        ))}
+      </div>
+      <script is:inline>
+        /* 넓은 화면은 화면을 그리기 전에 세 문을 펼쳐 둡니다(휴대폰은 접힌 채로). 그린 뒤에 바꾸면 화면이 밀립니다. */
+        if (!window.matchMedia('(max-width: 700px)').matches) document.querySelectorAll('[data-door]').forEach(function (d) { d.open = true; });
+      </script>
+
+      <div class="find">
+        <SearchBox id="home-q" label="찾는 내용이 있으신가요?" />
+        <a class="quiz-link" href="/check/">
+          <img src="/illust/quiz.svg" alt="" width="320" height="240" />
+          <span><b>어디서부터 할지 모르겠다면</b>질문 3개로 시작점을 찾아 드려요 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <section class="feature">
+      <div class="f-copy">
+        <p class="kicker">다정리의 대표 도구</p>
+        <h2>남은 사람이 헤매지 않도록,<br />엔딩노트 한 권</h2>
+        <p class="muted">차 한잔하면서, 한 주에 하나씩. 통장과 보험, 연락할 사람, 남기고 싶은 말까지 {noteSections.length}개 항목을 한 권에 모아 Word 파일과 종이로 보관합니다.</p>
+        <div class="btn-row">
           <a class="btn clay" href="/note/" data-note-cta>엔딩노트 쓰기 시작 →</a>
-          <a class="btn ghost" href="/check/">무엇부터 할지 3분 진단</a>
-        </div>
-        <ul class="promise">
-          <li><b>회원가입 없음</b><span>바로 시작</span></li>
-          <li><b>서버로 안 보냄</b><span>쓴 내용은 내 기기에만</span></li>
-          <li><b>Word·인쇄</b><span>종이로 보관</span></li>
-        </ul>
-        <div class="share-row no-print hh-share">
-          <button class="share-btn" type="button" data-share="site">가족·친구에게 다정리 알리기</button>
+          <a class="btn ghost" href="/tools/print/">손으로 쓸 빈 노트 인쇄</a>
         </div>
       </div>
-      <div class="hh-stage">
+      <div class="f-stage">
         <div class="window">
           <p class="bubble">이번 주는 '은행·증권' 칸을 써 볼까요?</p>
-          <img src="/illust/hero-table.svg" alt="부모님과 자녀가 식탁에 마주 앉아 엔딩노트를 함께 쓰는 그림" width="640" height="420" />
+          <img src="/illust/hero-table.svg" alt="부모님과 자녀가 식탁에 마주 앉아 엔딩노트를 함께 쓰는 그림" width="640" height="420" loading="lazy" />
         </div>
         <a class="note-card" href="/note/" data-note-card>
           <div class="nc-left">
@@ -53,42 +133,15 @@ const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).conca
           </ul>
         </a>
       </div>
-    </div>
-  </section>
-
-  <div class="wrap">
-    <section class="quiz-entry">
-      <div class="qe-left">
-        <p class="qe-step">3분 진단 · 질문 1 / 3</p>
-        <h2>어디서부터 시작할지<br />같이 정해 드릴게요</h2>
-        <p class="muted">고르시면 그 상황에 맞는 할 일만 순서대로 보여 드립니다. 답은 이 기기에만 남습니다.</p>
-      </div>
-      <div class="qe-opts">
-        <a href="/check/?s=me"><img src="/illust/situ-me.svg" alt="" width="320" height="240" /><span><b>나를 위해 미리</b>건강할 때 천천히</span></a>
-        <a href="/check/?s=parents"><img src="/illust/situ-parents.svg" alt="" width="320" height="240" /><span><b>부모님과 함께</b>말 꺼내는 법부터</span></a>
-        <a href="/check/?s=urgent"><img src="/illust/situ-time.svg" alt="" width="320" height="240" /><span><b>시간이 많지 않아요</b>꼭 필요한 것만 먼저</span></a>
-        <a href="/check/?s=after" class="loss"><img src="/illust/situ-after.svg" alt="" width="320" height="240" /><span><b>가족을 떠나보냈어요</b>기한이 있는 일부터</span></a>
-      </div>
     </section>
 
-    <section class="home-search">
-      <SearchBox id="home-q" label="찾는 내용이 있으신가요?" />
-    </section>
-
-    <section>
+    <section class="more-tools">
       <h2>바로 쓸 수 있는 도구</h2>
       <p class="muted" style="margin-top:-6px">모두 무료이고, 입력한 내용은 다정리로 보내지지 않습니다.</p>
-      <div class="tools3">
-        <a class="tool" href="/note/"><span class="num">{noteSections.length}<small>개 항목</small></span><b>엔딩노트 작성기</b><span>아는 것부터 쓰고 Word 파일로 보관</span><span class="go">쓰기 시작 →</span></a>
-        <a class="tool" href="/checklist/"><span class="num">{checkCount}<small>가지 할 일</small></span><b>생전정리 체크리스트</b><span>서류 · 재산 · 디지털 · 물건 · 관계 순서로 하나씩</span><span class="go">시작하기 →</span></a>
-        <a class="tool" href="/tools/deadlines/"><span class="num">8<small>가지 기한</small></span><b>상속 기한 계산기</b><span>돌아가신 날만 넣으면 마감일을 한 번에</span><span class="go">계산하기 →</span></a>
-      </div>
       <div class="mini">
-        <a href="/tools/my-procedures/"><span>나에게 필요한 절차만<small>질문에 답하면 할 일 목록</small></span>›</a>
-        <a href="/tools/obituary/"><span>부고 문자 만들기<small>문안 고르고 바로 보내기</small></span>›</a>
-        <a href="/tools/cards/"><span>휴대폰 잠금 카드 · 지갑 긴급 카드<small>인쇄해서 보관</small></span>›</a>
-        <a href="/guide/"><span>정리 가이드<small>{guides.length}가지 주제</small></span>›</a>
+        {tools.map((t) => <a href={t.href}><span>{t.t}{t.fresh && <em>새 기능</em>}<small>{t.d}</small></span>›</a>)}
       </div>
+      <p class="all"><a href="/tools/">정리 도구 전체 보기 →</a> · <a href="/guide/">정리 가이드 전체 보기 →</a></p>
     </section>
 
     <section class="trust">
@@ -105,7 +158,7 @@ const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).conca
     </section>
 
     <section class="letter">
-      <img src="/illust/letter.svg" alt="부모님이 책상에서 편지를 쓰는 그림" width="420" height="320" />
+      <img src="/illust/letter.svg" alt="부모님이 책상에서 편지를 쓰는 그림" width="420" height="320" loading="lazy" />
       <div>
         <h2>마음도 미리 전할 수 있습니다</h2>
         <p class="muted">고맙다는 말, 미안하다는 말, 남기고 싶은 부탁. 엔딩노트 마지막 칸 "남기는 말"에 적어 두세요.</p>
@@ -123,20 +176,60 @@ const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).conca
         <a class="btn ghost" href="/app/">설치 방법 보기</a>
       </div>
     </section>
+
   </div>
 </Base>
 
 <style>
-  .home-hero { background: linear-gradient(180deg, #fff 0%, var(--bg) 100%); }
-  .hh-grid { display: grid; grid-template-columns: 1fr 1.02fr; gap: 40px; align-items: center; padding-top: 52px; padding-bottom: 64px; }
-  .tag { display: inline-block; background: var(--mint-t); color: #1f6e55; font-weight: 700; font-size: 15px; padding: 6px 12px; border-radius: 8px; }
-  .hh-copy h1 { font-size: clamp(36px, 5.2vw, 56px); letter-spacing: -0.05em; line-height: 1.24; margin: 16px 0 18px; }
-  .hh-copy h1 span { color: var(--green-2); }
-  .hh-cta { margin: 26px 0 22px; }
-  .promise { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; padding: 0; list-style: none; }
-  .promise li { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
-  .promise b { display: block; font-size: 16px; color: var(--ink); }
-  .hh-stage { position: relative; padding-bottom: 150px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .home-hero { background: linear-gradient(180deg, #fff 0%, var(--bg) 100%); padding: 40px 0 44px; }
+  .hero-copy { text-align: center; }
+  .hero-copy .promise { justify-content: center; }
+  .home-hero h1 { font-size: clamp(30px, 4.1vw, 46px); letter-spacing: -0.05em; line-height: 1.25; margin: 0 0 12px; }
+  .home-hero h1 span { color: var(--green-2); }
+  .home-hero .lead { margin: 0 0 10px; }
+  .promise { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin: 0 0 26px; font-size: 15.5px; color: #1f6e55; }
+  .promise b { background: var(--mint-t); border-radius: 8px; padding: 4px 10px; font-weight: 700; }
+  .promise i { display: none; }
+
+  .doors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
+  .door { background: #fff; border: 1.5px solid var(--line); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; }
+  .door-head { display: flex; align-items: center; gap: 14px; padding: 16px 18px; color: var(--ink); list-style: none; cursor: default; }
+  .door-head::-webkit-details-marker { display: none; }
+  .chev { display: none; }
+  .door-head img { width: 84px; height: 63px; border-radius: 12px; flex: none; }
+  .door-head b { display: block; font-size: 20px; letter-spacing: -0.03em; line-height: 1.3; }
+  .door-head small { display: block; font-size: 14.5px; color: var(--ink-soft); line-height: 1.4; margin-top: 3px; }
+  .door.after { border-color: #f2d3ae; }
+  .door.after .door-head { background: var(--clay-soft); }
+  .door.after .door-head b { color: #8a4b0f; }
+  .door.family .door-head { background: var(--navy-t); }
+  .door.family .door-head b { color: var(--green); }
+  .door.me .door-head { background: var(--mint-t); }
+  .door.me .door-head b { color: #1f6e55; }
+  .door ul { list-style: none; margin: 0; padding: 4px 0; flex: 1; }
+  .door li a { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); text-decoration: none; color: var(--ink); font-size: 17px; font-weight: 600; }
+  .door li:first-child a { border-top: 0; }
+  .door li a span { margin-left: auto; color: var(--ink-soft); font-size: 19px; }
+  .door li a:hover { background: var(--bg); color: var(--green); }
+  .door li a.strong { font-weight: 800; color: var(--green-2); }
+  .door li em { font-style: normal; font-size: 12.5px; font-weight: 700; background: var(--mint-t); color: #1f6e55; border-radius: 6px; padding: 1px 6px; }
+  .door-more { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 12px 18px; border-top: 1px dashed var(--line); font-size: 15.5px; font-weight: 700; }
+  .door-more a { color: var(--green-2); text-decoration: none; }
+  .door.after .door-more a { color: #8a4b0f; }
+  .door-more a:hover { text-decoration: underline; }
+
+  .find { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+  .find .sbox { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 20px 24px; }
+  .quiz-link { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 16px 20px; text-decoration: none; color: var(--ink-soft); font-size: 15px; line-height: 1.45; }
+  .quiz-link:hover { border-color: #c9d6e5; color: var(--ink-soft); }
+  .quiz-link img { width: 80px; height: 60px; border-radius: 12px; flex: none; }
+  .quiz-link b { display: block; font-size: 18px; color: var(--ink); letter-spacing: -0.03em; margin-bottom: 2px; }
+
+  .feature { margin-top: 56px; display: grid; grid-template-columns: 1fr 1.02fr; gap: 40px; align-items: center; }
+  .feature h2 { font-size: clamp(26px, 3.2vw, 36px); line-height: 1.3; margin: 0 0 12px; }
+  .feature .btn-row { margin-top: 20px; }
+  .f-stage { position: relative; padding-bottom: 120px; }
   .window { position: relative; border-radius: 32px; background: var(--warm); overflow: hidden; }
   .window img { display: block; width: 100%; height: auto; }
   .bubble { position: absolute; left: 22px; top: 18px; margin: 0; background: #fff; border-radius: 16px; padding: 9px 14px; font-size: 14.5px; font-weight: 700; color: var(--green); box-shadow: 0 8px 20px rgba(22, 33, 44, .08); }
@@ -153,28 +246,14 @@ const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).conca
   .nc-list li.d .c { background: var(--mint); border-color: var(--mint); }
   .nc-list li.d .c::after { content: '✓'; }
 
-  .home-search { margin-top: 36px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 22px 26px; }
-  .quiz-entry { margin-top: 40px; background: var(--bg); border-radius: 28px; padding: 34px 36px; display: grid; grid-template-columns: .8fr 1.5fr; gap: 30px; align-items: center; }
-  .qe-step { font-size: 14px; font-weight: 800; color: var(--ink-soft); margin: 0; }
-  .quiz-entry h2 { margin: 8px 0 10px; }
-  .qe-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .qe-opts a { display: flex; align-items: center; gap: 14px; background: #fff; border: 1.5px solid var(--line); border-radius: 18px; padding: 12px 14px; text-decoration: none; color: var(--ink-soft); font-size: 14.5px; line-height: 1.45; transition: border-color .15s, transform .15s; }
-  .qe-opts a:hover { border-color: #c9d6e5; transform: translateY(-2px); }
-  .qe-opts img { width: 76px; height: 57px; border-radius: 12px; flex: none; }
-  .qe-opts b { display: block; font-size: 17.5px; color: var(--ink); letter-spacing: -0.03em; }
-  .qe-opts a.loss { background: var(--clay-soft); border-color: #f2d3ae; }
-
-  .tools3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 18px; }
-  .tool { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 24px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--ink-soft); font-size: 15.5px; transition: border-color .15s, transform .15s, box-shadow .15s; }
-  .tool:hover { border-color: #c9d6e5; transform: translateY(-2px); box-shadow: 0 12px 28px rgba(22, 33, 44, .08); color: var(--ink-soft); }
-  .tool .num { font-size: 46px; font-weight: 800; color: var(--green); letter-spacing: -0.04em; line-height: 1; }
-  .tool .num small { font-size: 18px; margin-left: 6px; letter-spacing: -0.01em; }
-  .tool b { font-size: 20px; color: var(--ink); margin-top: 4px; }
-  .tool .go { margin-top: auto; padding-top: 12px; color: var(--green-2); font-weight: 700; }
-  .mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
-  .mini a { background: var(--bg); border-radius: 16px; padding: 15px 18px; font-weight: 700; font-size: 16.5px; display: flex; justify-content: space-between; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); }
+  .more-tools { margin-top: 56px; }
+  .mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+  .mini a { background: var(--bg); border-radius: 16px; padding: 15px 18px; font-weight: 700; font-size: 17px; display: flex; justify-content: space-between; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); }
   .mini a:hover { background: var(--navy-t); color: var(--green); }
   .mini small { display: block; color: var(--ink-soft); font-weight: 500; font-size: 14px; }
+  .mini em { font-style: normal; font-size: 12.5px; background: var(--mint-t); color: #1f6e55; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .all { margin: 14px 0 0; font-weight: 700; }
+  .all a { color: var(--green-2); text-decoration: none; }
 
   .trust { margin-top: 64px; background: var(--green); border-radius: 28px; padding: 40px 44px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 36px; align-items: center; color: #c6d3e2; }
   .trust h2 { color: #fff; margin: 0 0 10px; }
@@ -191,36 +270,47 @@ const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).conca
   .install-row h2 { margin: 0 0 4px; font-size: 24px; }
   .install-row p { margin: 0; }
 
+  @media (max-width: 1060px) {
+    .doors { grid-template-columns: 1fr 1fr; }
+    .door.after { grid-column: 1 / -1; }
+    .door.after ul { display: grid; grid-template-columns: 1fr 1fr; }
+    .door.after li:nth-child(2) a { border-top: 0; }
+  }
   @media (max-width: 960px) {
-    .hh-grid { grid-template-columns: 1fr; gap: 24px; padding-top: 28px; padding-bottom: 36px; }
-    /* 휴대폰·태블릿: 그림이 아래로 내려가 글만 남으므로 가운데로 맞춰 좌우 균형을 잡습니다(2026-10-29) */
-    .hh-copy { text-align: center; }
-    .hh-copy .lead { margin-left: auto; margin-right: auto; }
-    .hh-stage { padding-bottom: 0; }
+    br.pc { display: none; }
+    .find { grid-template-columns: minmax(0, 1fr); }
+    .feature { grid-template-columns: 1fr; gap: 24px; }
+    .f-stage { padding-bottom: 0; }
     .note-card { position: relative; left: auto; bottom: auto; width: auto; margin: -40px 14px 0; transform: none; grid-template-columns: auto 1fr; }
     .note-card:hover { transform: none; }
     .nc-list { display: none; }
-    /* 휴대폰: 진행 고리 왼쪽, 이름 오른쪽에 붙여 빈 칸 없이 (2026-11-01) */
     .nc-left { display: contents; }
     .note-card { grid-template-areas: 'ring k' 'ring t'; grid-template-columns: auto 1fr; column-gap: 16px; row-gap: 0; align-items: center; }
     .nc-k { grid-area: k; align-self: end; }
     .nc-left strong { grid-area: t; align-self: start; margin: 0; }
     .ring { grid-area: ring; }
-    .quiz-entry { grid-template-columns: 1fr; padding: 24px 18px; gap: 12px; }
-    .quiz-entry .muted { margin-bottom: 0; }
-    .tools3 { grid-template-columns: 1fr; }
     .mini { grid-template-columns: 1fr 1fr; }
     .trust { grid-template-columns: 1fr; padding: 28px 22px; }
     .letter { grid-template-columns: 1fr; padding: 22px; }
     .letter img { max-width: 320px; }
   }
-  @media (max-width: 600px) {
-    .home-search { margin-top: 24px; padding: 18px 16px; }
-    .hh-cta .btn { width: 100%; }
-    .promise { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-    .promise li { padding: 10px; font-size: 13.5px; }
-    .promise b { font-size: 14px; }
-    .qe-opts { grid-template-columns: 1fr; }
+  @media (max-width: 700px) {
+    .home-hero { padding: 24px 0 32px; }
+    .doors { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    .home-hero h1 { font-size: 27px; }
+    .home-hero .lead { font-size: 17px; }
+    .promise { font-size: 14px; margin-bottom: 18px; }
+    .door-head { cursor: pointer; }
+    .chev { display: block; margin-left: auto; width: 12px; height: 12px; border-right: 2.5px solid var(--ink-soft); border-bottom: 2.5px solid var(--ink-soft); transform: rotate(45deg); margin-top: -6px; flex: none; }
+    .door[open] .chev { transform: rotate(-135deg); margin-top: 6px; }
+    .door.after ul { display: block; }
+    .door.after li:nth-child(2) a { border-top: 1px solid var(--line); }
+    .door-head { padding: 12px 14px; }
+    .door-head img { width: 64px; height: 48px; }
+    .door-head b { font-size: 18.5px; }
+    .door li a { padding: 11px 16px; font-size: 16.5px; }
+    .find .sbox { padding: 16px; }
+    .feature .btn-row .btn { width: 100%; }
     .mini { grid-template-columns: 1fr; }
     .tg { grid-template-columns: 1fr; }
   }
@@ -228,6 +318,17 @@ const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).conca
 
 <script>
   import { noteSections } from '../data/note.js';
+
+  /*
+   * 상황별 문: 휴대폰(700px 이하)에서는 세 문의 제목만 먼저 보이게 접어 두고, 누르면 펼칩니다.
+   * 넓은 화면에서는 늘 펼쳐 둡니다(제목을 눌러도 접히지 않음). 처음 펼치는 일은 문 바로 아래 is:inline 스크립트가 합니다.
+   * 화면 폭이 바뀌면(휴대폰 가로·세로) 다시 맞춥니다.
+   */
+  const narrow = window.matchMedia('(max-width: 700px)');
+  const doors = [...document.querySelectorAll<HTMLDetailsElement>('[data-door]')];
+  const sync = () => doors.forEach((d) => { d.open = !narrow.matches; });
+  narrow.addEventListener('change', sync);
+  doors.forEach((d) => d.querySelector('summary')!.addEventListener('click', (e) => { if (!narrow.matches) e.preventDefault(); }));
   /*
    * 이 기기에 임시저장한 엔딩노트가 있으면, 카드에 실제로 몇 칸 썼는지 보여 줍니다.
    * 내용은 읽어서 칸 수만 세고, 화면에도 항목 이름만 보여 줍니다(쓴 글자는 보여 주지 않음).
@@ -250,6 +351,7 @@ const exampleRows = noteSections.filter((s) => exampleDone.includes(s.id)).conca
       }
       const cta = document.querySelector<HTMLElement>('[data-note-cta]');
       if (cta) cta.textContent = '엔딩노트 이어 쓰기 →';
+      document.querySelectorAll<HTMLAnchorElement>('.door a[href="/note/"]').forEach((a) => { a.firstChild!.textContent = '엔딩노트 이어 쓰기'; });
     }
   } catch { /* 저장소를 못 쓰는 브라우저: 예시 카드 그대로 */ }
 </script>
