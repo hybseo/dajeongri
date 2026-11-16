@@ -310,6 +310,21 @@ b.append(f'<g transform="translate(120 128) rotate(-6)"><path d="M-50-80h100v150
 b.append(f'<g transform="translate(224 140) rotate(6)"><rect x="-44" y="-64" width="88" height="124" rx="12" fill="{SWEAT}"/><rect x="-32" y="-52" width="64" height="26" rx="5" fill="{PAPER}"/><path d="M-4-39h26" stroke-width="2"/>' + ''.join(f'<rect x="{-32+(i%3)*24}" y="{-16+(i//3)*22}" width="16" height="14" rx="4" fill="{AMBER if i==8 else PAPER}"/>' for i in range(9)) + '</g>')
 scenes['costs'] = (320, 240, ''.join(b), '영수증과 계산기')
 
+# 13. 첫 화면 휴대폰용 가로 그림 (2026-11-16): 소파에 나란히 앉아 함께 공책을 보는 부모님과 자녀.
+#     휴대폰 첫 화면에서 잘리지 않도록 처음부터 가로로 긴 비율(720×220)로 그립니다.
+b = [f'<rect width="720" height="220" fill="{CREAM}" stroke="none"/>', f'<path d="M0 184h720v36H0z" fill="#FBE9D2" stroke="none"/>', rug(360, 206, 460)]
+b.append(window(60, 26, 120, 86, sun=True, curtain=True))
+b.append(f'<rect x="566" y="34" width="62" height="74" rx="6" fill="#FFFFFF"/><rect x="573" y="41" width="48" height="46" rx="3" fill="{LEAF}" stroke="none"/><path d="M578 82l12-15 9 9 7-7 9 13z" fill="{MINT}" stroke="none" opacity=".6"/><circle cx="607" cy="53" r="5" fill="{AMBER}" stroke="none"/><path d="M584 98h26" stroke-width="2"/>')
+b.append(f'<path d="M236 196v-62q0-18 18-18h212q18 0 18 18v62z" fill="{SWEAT_D}"/><path d="M226 196v-40q0-10 10-10h10v50zM494 196v-40q0-10-10-10h-10v50z" fill="{SWEAT}"/><path d="M236 196h248v14H236z" fill="{SWEAT}"/>')
+b.append(g(312, 200, 0.8, parent('hold')))
+b.append(g(424, 200, 0.8, child('point'), flip=True))
+b.append(notebook(316, 194, 0.58, rot=-3))
+b.append(heart(368, 44, 1.0))
+b.append(f'<path d="M150 190h60" stroke-width="3"/><path d="M158 190v16M202 190v16" stroke-width="2.6"/>')
+b.append(f'<g transform="translate(180 188) scale(.8) translate(-180 -188)">{mug(180, 188)}</g>')
+b.append(plant(548, 172, 0.72))
+scenes['hero-wide'] = (720, 220, ''.join(b), '부모님과 자녀가 소파에 나란히 앉아 함께 공책을 보는 그림')
+
 for name, (w, h, body, title) in scenes.items():
     (OUT / f'{name}.svg').write_text(svg(w, h, body, title), encoding='utf-8')
 print('그림', len(scenes), '장 →', OUT)

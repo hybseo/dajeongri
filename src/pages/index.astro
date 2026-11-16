@@ -2,6 +2,7 @@
 /*
  * 첫 화면 (2026-11-16 개편 시안 3: 많이 찾는 것 + 한 줄의 길)
  *   큰 문구·다정한 설명·검색칸 | 식탁 그림 (검색을 맨 위로, 다정한 요소 되살림)
+ *   휴대폰은 잘리지 않게 가로로 긴 그림(hero-wide.svg, tools/illust.py 13번)을 씁니다.
  *   맨 위: 많이 찾는 것 바로가기 4개 (근거는 아래 quick 주석)
  *   마지막을 준비하는 때부터 떠나보낸 뒤 6개월까지를 한 줄의 길(5개 지점)로 보여 주고,
  *   지금 계신 지점을 누르면 그때 할 일을 순서대로 보여 줍니다.
@@ -101,7 +102,10 @@ const quick = [
           <p class="promise">모두 무료 · 회원가입 없음 · 쓴 내용은 내 기기에만</p>
         </div>
         <div class="hero-art" aria-hidden="true">
-          <img src="/illust/hero-table.svg" alt="" width="640" height="420" />
+          <picture>
+            <source media="(max-width: 760px)" srcset="/illust/hero-wide.svg" width="720" height="220" />
+            <img src="/illust/hero-table.svg" alt="" width="640" height="420" />
+          </picture>
         </div>
       </div>
 
@@ -271,8 +275,7 @@ const quick = [
     .road-title { font-size: 19px; margin-bottom: 8px; }
     .road-title small { font-size: 14px; }
     .hero-top { grid-template-columns: minmax(0, 1fr); gap: 0; margin-bottom: 22px; }
-    .hero-art { order: -1; height: 92px; margin-bottom: 14px; border-radius: 20px; }
-    .hero-art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; }
+    .hero-art { order: -1; margin-bottom: 14px; border-radius: 20px; }
     .promise { font-size: 13.5px; }
     .more-row { flex-direction: column; gap: 10px; font-size: 15.5px; margin-top: 18px; }
     .road { display: block; }
