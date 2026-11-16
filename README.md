@@ -36,7 +36,7 @@
 - 로고·앱 아이콘·파비콘·공유 썸네일: `node tools/make-icons.mjs` (작업 컴퓨터의 playwright 사용).
 - 머리말: 로고 · 처음 오셨나요 · 정리 도구 · 정리 가이드 · 떠나보낸 후 · [가족을 떠나보냈어요 →](첫 3일 안내) · [가 / 가+].
 
-## 페이지 (53개)
+## 페이지 (71개)
 
 | 묶음 | 주소 | 만드는 곳 |
 |---|---|---|
@@ -53,6 +53,7 @@
 | | `/tools/cards/` | `src/pages/tools/cards.astro` (휴대폰 잠금 카드·지갑 긴급 카드 인쇄. 입력 저장·전송 없음, 잠금 번호는 입력받지 않음) |
 | | `/tools/print/` | `src/pages/tools/print.astro` (항목은 작성기와 같은 `src/data/note.js`) |
 | | `/tools/inheritance-tax/` | `src/pages/tools/inheritance-tax.astro` + `src/scripts/inheritance-tax.js` (상속세 가늠 계산기, 2026-10-27 추가. 입력 저장·전송 없음) |
+| | `/tools/funeral-homes/` + 시도별 17개 (`/tools/funeral-homes/seoul/` 등) | `src/pages/tools/funeral-homes/index.astro`, `[sido].astro` + `src/data/funeral-homes.js`·`.json` (장례식장 찾기, 2026-11-16 추가. 아래 "장례식장 찾기 자료") |
 | 정리 가이드 | `/guide/` | `src/pages/guide/index.astro` (묶음: `src/data/guides.js`) |
 | | `/guide/will/` 등 먼저 만든 4개 | `src/pages/guide/*.astro` |
 | | 새 가이드 2개 (2026-10-27): `/guide/burial/`(묘지와 안치), `/guide/living-alone/`(혼자 사는 분) | 원고 데이터 → `[slug].astro`. `/guide/funeral-cost/` 에 비용 한눈표 추가 |
@@ -68,6 +69,15 @@
 
 **원고 데이터**: `src/data/content.json`. 페이지 원고(제목, 검색 설명, 본문 블록, 출처)가 들어 있습니다.
 글을 고칠 때는 이 파일의 해당 페이지를 고치면 됩니다. 블록 종류는 `src/components/Blocks.astro` 맨 위 주석 참고.
+
+## 장례식장 찾기 자료 (2026-11-16)
+
+- 원자료: 공공데이터포털 「보건복지부_장례식장 현황」 파일데이터(https://www.data.go.kr/data/15143467/fileData.do). 기준일 2026-04-01, 1,080곳, 1년에 한 번 갱신, 이용허락범위 제한 없음. 2026-11-16에 받았습니다.
+- 가격은 원자료에 없습니다. e하늘 장사정보시스템에는 일반에 열린 오픈API가 없고(2026-11-16 확인), 진흥원의 전국 가격 파일은 2023년 6월에서 멈춰 있어 싣지 않았습니다. 화면에서 e하늘 가격 목록으로 안내합니다.
+- 새 자료로 바꾸기: 포털에서 CSV를 받아 `python3 tools/funeral-homes-import.py 받은파일.csv 기준일(YYYY-MM-DD)`. 시도 이름이 바뀌면 `src/data/funeral-homes.js` 의 `SIDO` 에 더해야 빌드됩니다(시도 주소 slug 는 바꾸지 않음).
+- 원자료 홈페이지 칸에는 점이 빠진 주소·전화번호가 섞여 있어, 주소 꼴인 것만 링크로 씁니다(`webUrl`). 빈소·안치·주차 0은 화면에 보이지 않습니다.
+- 시도별 페이지는 오프라인 미리 받기 목록에서 뺐습니다(`pwa.mjs`). 한 번 연 지역은 그때 저장됩니다. 카드 묶음은 사이트 검색 색인에서 빼고(data-nosearch) 시군구 제목만 남깁니다.
+- 연결: 정리 도구(떠나보낸 뒤 묶음), `/guide/funeral-cost/`(가격 공개 꼭지 아래·맨 끝 버튼), `/after/first-days/`(장례식장과 비용), 사이트맵.
 
 ## 상속 기한 계산 규칙
 

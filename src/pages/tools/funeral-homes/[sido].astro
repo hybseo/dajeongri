@@ -1,0 +1,176 @@
+---
+/*
+ * 장례식장 찾기 — 시도별 목록 (2026-11-16 추가)
+ * 시도마다 한 페이지씩 미리 만들어 둡니다(검색엔진에 "○○ 장례식장"으로 잡히도록).
+ * 화면 위 거르기(시군구·이름·공설·편의시설)는 이 기기 안에서 카드를 숨기기만 하고, 아무것도 보내지 않습니다.
+ * 카드 묶음은 사이트 검색 색인에서 뺍니다(data-nosearch). 시군구 제목은 색인에 남습니다.
+ */
+import Base from '../../../layouts/Base.astro';
+import { SIDO, itemsOf, groupBySgg, meta, asOfText, EHANEUL_LIST, mapUrl, telUrl } from '../../../data/funeral-homes.js';
+
+export function getStaticPaths() {
+  return SIDO.map((s) => ({ params: { sido: s.slug }, props: { region: s } }));
+}
+
+const { region } = Astro.props;
+const list = itemsOf(region.name);
+const groups = groupBySgg(list);
+const single = groups.length === 1 && groups[0].sgg === region.name; // 세종처럼 시군구가 시도와 같은 곳
+const pubCount = list.filter((x) => x.public).length;
+const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
+---
+<Base title={`${region.short} 장례식장 ${list.length}곳: 빈소 수·편의시설·전화번호`} description={`${region.name} 장례식장 ${list.length}곳${pubCount ? `(공설 ${pubCount}곳)` : ''}을 시군구별로 정리했습니다. ${sggNames} 등. 빈소 수, 안치 가능 구수, 주차·유족대기실·장애인 편의시설, 전화번호. 보건복지부 ${asOfText()} 기준.`}>
+  <div class="wrap">
+    <header class="page-head">
+      <p class="crumb"><a href="/tools/">정리 도구</a> › <a href="/tools/funeral-homes/">장례식장 찾기</a></p>
+      <h1>{region.name} 장례식장</h1>
+      <p class="lead">{list.length}곳{pubCount > 0 && ` (공설 ${pubCount}곳)`} · 보건복지부 {asOfText()} 기준. 가격은 e하늘에서 확인하세요.</p>
+    </header>
+
+    <form class={`filter card no-print${single ? ' single' : ''}`} id="fh-filter" onsubmit="return false" autocomplete="off" data-nosearch>
+      {!single && (
+        <label><span class="lab">시군구</span>
+          <select name="sgg">
+            <option value="">전체</option>
+            {groups.map((g) => <option value={g.sgg}>{g.sgg} ({g.list.length})</option>)}
+          </select>
+        </label>
+      )}
+      <label><span class="lab">이름으로 찾기</span><input name="q" type="search" placeholder="예: 성모, 의료원" /></label>
+      <fieldset>
+        <legend class="lab">꼭 있어야 하는 것</legend>
+        <label class="chk"><input type="checkbox" name="pub" /> 공설</label>
+        <label class="chk"><input type="checkbox" name="f3" /> 유족대기실</label>
+        <label class="chk"><input type="checkbox" name="f4" /> 장애인 편의시설</label>
+        <label class="chk"><input type="checkbox" name="f2" /> 주차장</label>
+      </fieldset>
+      <p class="count" id="fh-count" role="status" aria-live="polite">{list.length}곳</p>
+    </form>
+
+    <div id="fh-list">
+      {groups.map((g) => (
+        <section class="sgg" data-sgg={g.sgg}>
+          {single
+            ? <h2>{region.short} 장례식장 <small>{g.list.length}곳</small></h2>
+            : <h2 id={`g-${g.sgg}`}>{g.sgg} 장례식장 <small>{g.list.length}곳</small></h2>}
+          <div class="fh-grid" data-nosearch>
+            {g.list.map((it) => (
+              <article class="fh" data-name={it.name} data-pub={it.public ? '1' : '0'} data-f={it.f}>
+                <h3>{it.name}</h3>
+                <p class="tags">
+                  {it.public && <span class="tag pub">공설</span>}
+                  {it.op === 'H' && <span class="tag">병원 장례식장</span>}
+                  {it.op === 'P' && <span class="tag">전문 장례식장</span>}
+                </p>
+                <p class="nums">
+                  {it.rooms > 0 && <span>빈소 <b>{it.rooms}</b>개</span>}
+                  {it.morgue > 0 && <span>안치 <b>{it.morgue}</b>구</span>}
+                  {it.parking > 0 && <span>주차 <b>{it.parking.toLocaleString('ko-KR')}</b>대</span>}
+                </p>
+                {it.facilities.length > 0 && <p class="fac">{it.facilities.join(' · ')}</p>}
+                <p class="addr">{it.addr}</p>
+                <p class="links">
+                  {telUrl(it.tel) && <a class="btn small" href={telUrl(it.tel)}>☎ {it.tel}</a>}
+                  <a class="btn small ghost" href={mapUrl(it)} target="_blank" rel="noopener">지도 ↗</a>
+                  {it.web && <a class="btn small ghost" href={it.web} target="_blank" rel="noopener nofollow">홈페이지 ↗</a>}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+      <p class="empty muted" id="fh-empty" hidden>조건에 맞는 장례식장이 없습니다. 거르기를 줄여 보세요.</p>
+    </div>
+
+    <section class="price card">
+      <h2>가격 확인하는 법</h2>
+      <p>빈소 사용료와 장례용품 가격은 장례식장이 정부 장사정보시스템(e하늘)에 올리게 되어 있습니다. e하늘에서 지역을 고르거나 위 장례식장 이름을 검색하면 시설사용료와 품목별 가격, 지역 평균이 나옵니다. 계약 전에 확인하고, 끝나면 항목별 명세서를 받아 두세요.</p>
+      <div class="btn-row">
+        <a class="btn clay" href={EHANEUL_LIST} target="_blank" rel="noopener">e하늘에서 가격 보기 ↗</a>
+        <a class="btn ghost" href="/guide/funeral-cost/">장례 비용과 상조 가이드</a>
+      </div>
+    </section>
+
+    <nav class="other no-print" aria-label="다른 시도" data-nosearch>
+      <h2>다른 지역</h2>
+      <p>{SIDO.filter((s) => s.slug !== region.slug).map((s, i) => <>{i > 0 && ' · '}<a href={`/tools/funeral-homes/${s.slug}/`}>{s.short}</a></>)}</p>
+    </nav>
+
+    <p class="muted src" data-nosearch>출처: 공공데이터포털 <a href={meta.source} target="_blank" rel="noopener">「보건복지부_장례식장 현황」</a> ({asOfText()} 기준, 1년에 한 번 갱신). 빈소 수 등은 자료에 적힌 값이고, 0으로 적힌 값은 보여 주지 않았습니다. 장례식장이 문을 닫거나 바뀌었을 수 있으니 가시기 전에 전화로 확인하세요.</p>
+  </div>
+</Base>
+
+<style>
+  .filter { display: grid; grid-template-columns: 1fr 1.3fr 2fr auto; gap: 14px 18px; align-items: end; margin-bottom: 24px; padding: 20px 22px; }
+  .filter.single { grid-template-columns: 1.3fr 2fr auto; }
+  .lab { display: block; font-weight: 700; font-size: 16px; margin-bottom: 6px; padding: 0; }
+  .filter select, .filter input[type=search] { width: 100%; font: inherit; font-size: 17px; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+  .filter fieldset { border: 0; margin: 0; padding: 0; }
+  .chk { display: inline-flex; align-items: center; gap: 6px; margin: 4px 14px 4px 0; font-size: 16.5px; cursor: pointer; }
+  .chk input { width: 20px; height: 20px; accent-color: var(--green-2); }
+  .count { margin: 0 0 10px; font-weight: 800; color: var(--green); white-space: nowrap; }
+  .sgg h2 { font-size: 22px; margin: 28px 0 12px; }
+  .sgg h2 small { font-size: 16px; color: var(--ink-soft); font-weight: 600; }
+  .fh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .fh { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .fh h3 { margin: 0 0 6px; font-size: 19px; line-height: 1.35; }
+  .fh p { margin: 6px 0; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { font-size: 13.5px; background: var(--navy-t); color: var(--green); border-radius: 6px; padding: 2px 8px; font-weight: 700; }
+  .tag.pub { background: var(--mint-t); color: #1f6e55; }
+  .nums { display: flex; gap: 14px; flex-wrap: wrap; font-size: 16px; color: var(--ink-soft); }
+  .nums b { color: var(--ink); }
+  .fac { font-size: 15px; color: var(--ink-soft); }
+  .addr { font-size: 15.5px; line-height: 1.5; }
+  .links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px !important; }
+  .price { margin-top: 36px; }
+  .price h2 { margin-top: 0; }
+  .price .btn-row { margin-top: 14px; }
+  .other h2 { font-size: 20px; margin: 32px 0 6px; }
+  .other p { line-height: 1.9; }
+  .src { margin-top: 20px; line-height: 1.6; }
+  [hidden] { display: none !important; }
+  @media (max-width: 900px) { .filter, .filter.single { grid-template-columns: 1fr 1fr; } .filter fieldset { grid-column: 1 / -1; } }
+  @media (max-width: 600px) { .filter, .filter.single { grid-template-columns: 1fr; } .fh-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  const form = document.getElementById('fh-filter') as HTMLFormElement | null;
+  const count = document.getElementById('fh-count');
+  const empty = document.getElementById('fh-empty');
+  const sections = [...document.querySelectorAll<HTMLElement>('#fh-list .sgg')];
+
+  function apply() {
+    if (!form) return;
+    const sgg = (form.elements.namedItem('sgg') as HTMLSelectElement | null)?.value || '';
+    const q = ((form.elements.namedItem('q') as HTMLInputElement).value || '').replace(/\s+/g, '');
+    const need = (n: string) => (form.elements.namedItem(n) as HTMLInputElement).checked;
+    const pub = need('pub');
+    const fs = ['f2', 'f3', 'f4'].filter(need).map((n) => Number(n.slice(1)));
+    let shown = 0;
+    for (const sec of sections) {
+      const okSgg = !sgg || sec.dataset.sgg === sgg;
+      let inSec = 0;
+      for (const card of sec.querySelectorAll<HTMLElement>('.fh')) {
+        const f = card.dataset.f || '';
+        const ok = okSgg
+          && (!q || (card.dataset.name || '').replace(/\s+/g, '').includes(q))
+          && (!pub || card.dataset.pub === '1')
+          && fs.every((i) => f[i] === '1');
+        card.hidden = !ok;
+        if (ok) inSec += 1;
+      }
+      sec.hidden = inSec === 0;
+      shown += inSec;
+    }
+    if (count) count.textContent = `${shown}곳`;
+    if (empty) empty.hidden = shown > 0;
+  }
+
+  form?.addEventListener('input', apply);
+  form?.addEventListener('change', apply);
+  // 주소 끝에 #g-강남구 처럼 들어오면 그 시군구를 골라 둡니다.
+  const h = decodeURIComponent(location.hash || '').replace(/^#g-/, '');
+  const sel = form?.elements.namedItem('sgg') as HTMLSelectElement | null;
+  if (h && sel && [...sel.options].some((o) => o.value === h)) { sel.value = h; apply(); }
+</script>

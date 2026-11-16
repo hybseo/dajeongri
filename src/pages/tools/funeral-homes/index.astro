@@ -1,0 +1,67 @@
+---
+/*
+ * 장례식장 찾기 — 시도 고르기 (2026-11-16 추가)
+ * 데이터·갱신 방법은 src/data/funeral-homes.js 맨 위 주석.
+ * 가격은 원자료에 없어서 e하늘 장사정보시스템으로 안내합니다.
+ */
+import Base from '../../../layouts/Base.astro';
+import { SIDO, itemsOf, meta, asOfText, EHANEUL_LIST, EHANEUL_ITEMS } from '../../../data/funeral-homes.js';
+
+const regions = SIDO.map((s) => {
+  const list = itemsOf(s.name);
+  return { ...s, count: list.length, pub: list.filter((x) => x.public).length };
+});
+const total = regions.reduce((n, r) => n + r.count, 0);
+---
+<Base title="장례식장 찾기: 전국 장례식장 위치·빈소 수·편의시설" description={`전국 장례식장 ${total.toLocaleString('ko-KR')}곳을 시도·시군구별로 찾아보세요. 빈소 수, 안치 가능 구수, 주차·유족대기실·장애인 편의시설, 전화번호, 공설 여부. 가격은 e하늘에서 확인하는 법까지. 보건복지부 ${asOfText()} 자료.`}>
+  <div class="wrap">
+    <header class="page-head">
+      <p class="crumb"><a href="/tools/">정리 도구</a></p>
+      <h1>장례식장 찾기</h1>
+      <p class="lead">사는 곳을 고르면 가까운 장례식장의 빈소 수, 편의시설, 전화번호를 볼 수 있습니다. 전국 {total.toLocaleString('ko-KR')}곳, 보건복지부 {asOfText()} 기준 자료입니다.</p>
+    </header>
+
+    <nav class="regions" aria-label="시도 고르기">
+      {regions.map((r) => (
+        <a href={`/tools/funeral-homes/${r.slug}/`}>
+          <b>{r.short}</b>
+          <span>{r.count}곳{r.pub > 0 && ` · 공설 ${r.pub}`}</span>
+        </a>
+      ))}
+    </nav>
+
+    <section class="price card">
+      <h2>가격은 e하늘에서 확인하세요</h2>
+      <p>장례식장은 빈소 사용료, 안치료, 수의·관 같은 장례용품 가격을 정부 장사정보시스템(e하늘)에 올려야 합니다(장사 등에 관한 법률 제29조). 다정리에 가격을 싣지 않은 것은 장례식장마다 수시로 바뀌는 값이라, 정부 화면에서 그날 가격을 보는 것이 가장 정확하기 때문입니다.</p>
+      <ol class="steps">
+        <li><strong>e하늘 장사시설 화면 열기</strong>아래 버튼을 누르면 장례식장 목록이 열립니다.</li>
+        <li><strong>지역과 시설 이름으로 찾기</strong>시도·시군구를 고르거나, 이 페이지에서 본 장례식장 이름을 검색칸에 넣습니다.</li>
+        <li><strong>시설사용료와 장례용품 비교</strong>시설을 누르면 빈소·안치실 사용료와 품목별 장례용품 가격, 지역 평균과 전국 평균이 나옵니다.</li>
+        <li><strong>계약하고 명세서 받기</strong>게시한 가격보다 더 받거나 장례용품을 강요하면 안 됩니다. 끝난 뒤 항목별 명세서를 꼭 받아 두세요.</li>
+      </ol>
+      <div class="btn-row">
+        <a class="btn clay" href={EHANEUL_LIST} target="_blank" rel="noopener">e하늘에서 장례식장 가격 보기 ↗</a>
+        <a class="btn ghost" href={EHANEUL_ITEMS} target="_blank" rel="noopener">장례용품 가격 검색 ↗</a>
+      </div>
+    </section>
+
+    <div class="calm">
+      <p style="margin:0 0 6px"><b>미리 정해 두고 싶다면</b> 원하는 장례식장이나 장례 규모를 엔딩노트에 적어 두면, 가족이 급할 때 고민을 덜 수 있습니다.</p>
+      <p style="margin:0"><a href="/note/">엔딩노트에 적기</a> · <a href="/guide/funeral-cost/">장례 비용과 상조</a> · <a href="/after/first-days/">첫 3일 안내</a></p>
+    </div>
+
+    <p class="muted src">출처: 공공데이터포털 <a href={meta.source} target="_blank" rel="noopener">「보건복지부_장례식장 현황」</a> ({asOfText()} 기준, 1년에 한 번 갱신, 다정리가 {asOfText(meta.fetched)}에 받음). 시도 이름은 자료에 적힌 대로입니다. 장례식장이 문을 닫거나 바뀌었을 수 있으니 가시기 전에 전화로 확인하세요.</p>
+  </div>
+</Base>
+
+<style>
+  .regions { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 8px 0 32px; }
+  .regions a { display: block; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; text-decoration: none; color: var(--ink); }
+  .regions a:hover { background: var(--navy-t); border-color: #c9d6e5; color: var(--ink); }
+  .regions b { display: block; font-size: 21px; color: var(--green); }
+  .regions span { display: block; font-size: 15px; color: var(--ink-soft); margin-top: 2px; }
+  .price h2 { margin-top: 0; }
+  .price .btn-row { margin-top: 16px; }
+  .src { margin-top: 24px; line-height: 1.6; }
+  @media (max-width: 600px) { .regions { grid-template-columns: repeat(2, 1fr); } }
+</style>

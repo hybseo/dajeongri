@@ -7,10 +7,12 @@
  */
 import { guides } from '../data/guides.js';
 import content from '../data/content.json';
+import { SIDO } from '../data/funeral-homes.js';
 
 const fixed = ['/', '/check/', '/checklist/', '/note/', '/tools/', '/tools/deadlines/', '/tools/obituary/', '/tools/after-checklist/', '/tools/print/',
   '/tools/my-procedures/', '/tools/cards/', '/tools/inheritance-tax/',
-  '/guide/', '/faq/', '/links/', '/app/', '/privacy/'];
+  '/guide/', '/faq/', '/links/', '/app/', '/privacy/',
+  '/tools/funeral-homes/', ...SIDO.map((s) => `/tools/funeral-homes/${s.slug}/`)];
 const fromContent = content.pages.filter((p) => p.id !== 'start-after' && p.id !== 'tools').map((p) => p.url);
 const fromGuides = guides.map((g) => `/guide/${g.slug}/`);
 const paths = [...new Set([...fixed, ...fromContent, ...fromGuides])];

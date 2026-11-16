@@ -44,6 +44,8 @@ export default function pwa() {
           if (SKIP.has(f)) continue;
           // 글꼴 조각(약 90개, 3MB)은 미리 받지 않습니다. 페이지가 실제로 쓰는 조각만 그때그때 저장됩니다.
           if (f.startsWith('fonts/')) continue;
+          // 장례식장 찾기 시도별 페이지(17개, 약 1.7MB)도 미리 받지 않습니다. 한 번 연 지역은 그때 저장되어 오프라인에서도 열립니다.
+          if (/^tools\/funeral-homes\/[^/]+\/index\.html$/.test(f)) continue;
           // 페이지는 /note/index.html → /note/ 처럼 실제 주소로 저장합니다.
           const url = f === 'index.html' ? '/' : f.endsWith('/index.html') ? '/' + f.slice(0, -'index.html'.length) : '/' + f;
           urls.push(url);
