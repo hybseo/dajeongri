@@ -1,12 +1,13 @@
 ---
 /*
  * 첫 화면 (2026-11-16 개편 시안 3: 많이 찾는 것 + 한 줄의 길)
+ *   큰 문구·다정한 설명·검색칸 | 식탁 그림 (검색을 맨 위로, 다정한 요소 되살림)
  *   맨 위: 많이 찾는 것 바로가기 4개 (근거는 아래 quick 주석)
  *   마지막을 준비하는 때부터 떠나보낸 뒤 6개월까지를 한 줄의 길(5개 지점)로 보여 주고,
  *   지금 계신 지점을 누르면 그때 할 일을 순서대로 보여 줍니다.
  *   PC: 지점이 가로로 한 줄, 고른 지점의 할 일이 그 아래 한 칸에.
  *   휴대폰: 지점이 세로로 늘어서고, 고른 지점 바로 아래에 할 일이 펼쳐집니다(같은 HTML, CSS만 다름).
- *   → 검색 · 3분 진단 · 도구/가이드 전체 → 확인한 정보만 → 설치
+ *   → 3분 진단 · 도구/가이드 전체 한 줄 → 확인한 정보만 → 설치
  *   (2026-11-16 대표 결정: 위와 겹치던 엔딩노트 칸·'바로 쓸 수 있는 도구'·'마음도 미리' 편지 칸은 뺌.
  *    엔딩노트는 바로가기 아래 '단계별로 찾기 → 건강할 때', 머리말과 휴대폰 아래 탭에서 들어감)
  */
@@ -66,7 +67,7 @@ const stops = [
     cta: { href: '/after/first-days/', t: '첫 3일 안내 보기' }, more: null,
   },
   {
-    id: 'months', who: '떠나보낸 분', label: '그 뒤 6개월', ill: 'costs',
+    id: 'months', who: '남은 가족', label: '그 뒤 6개월', ill: 'costs',
     head: '기한이 있는 일을 날짜순으로', text: '상속은 기한을 넘기면 되돌리기 어렵습니다. 돌아가신 날만 넣으면 마감일을 한 번에 계산합니다.',
     steps: [
       { when: '한 달 안', href: '/after/first-month/', t: '사망신고와 안심상속 조회', d: '재산·빚을 한 번에 찾기' },
@@ -82,22 +83,31 @@ const stops = [
 // 고른 근거: 한 해에 그 일을 겪는 사람 수 — 장기요양 신청 155만(2025 장기요양 통계연보), 연명의료의향서 신규 약 50만(2025 연보),
 // 사망 36만(2025 사망원인통계)이 모두 거치는 장례와 사망신고·안심상속. 장례식장 찾기는 대표 요청.
 const quick = [
-  { href: '/guide/care-home/', ill: 'situ-parents', t: '장기요양 등급과 요양원', d: '등급 신청 순서, 요양원·요양병원 차이와 비용' },
-  { href: '/tools/funeral-homes/', ill: 'situ-after', t: '장례식장 찾기', d: `전국 ${fhCount}곳, e하늘 가격 바로가기` },
-  { href: '/after/first-month/', ill: 'done', t: '사망신고와 재산·빚 조회', d: '안심상속으로 한 번에 신청' },
-  { href: '/tools/inheritance-tax/', ill: 'costs', t: '상속세 계산기', d: '세금이 나올지, 대략 얼마인지' },
+  { id: 'carehome', href: '/guide/care-home/', ill: 'situ-parents', t: '장기요양 등급과 요양원', d: '등급 신청 순서, 요양원·요양병원 차이와 비용' },
+  { id: 'funeral', href: '/tools/funeral-homes/', ill: 'situ-after', t: '장례식장 찾기', d: `전국 ${fhCount}곳, e하늘 가격 바로가기` },
+  { id: 'death', href: '/after/first-month/', ill: 'done', t: '사망신고와 재산·빚 조회', d: '안심상속으로 한 번에 신청' },
+  { id: 'tax', href: '/tools/inheritance-tax/', ill: 'costs', t: '상속세 가늠 계산기', d: '세금이 나올지, 대략 얼마인지' },
 ];
 
 ---
 <Base description="마지막을 준비하는 일부터 떠나보낸 뒤의 일까지. 건강할 때의 엔딩노트, 돌봄과 연명의료, 장례식장 찾기, 첫 3일 안내, 상속 기한 계산까지 지금 상황에 맞는 할 일을 순서대로. 무료, 가입 없이, 쓴 내용은 내 기기에만.">
   <section class="hero">
     <div class="wrap">
-      <h1>마지막을 준비하는 일부터<br /> 떠나보낸 뒤의 일까지</h1>
-      <p class="lead">마지막을 준비하는 분, 가족을 떠나보낼 준비를 하는 분, 가족을 떠나보낸 분께 필요한 일을 모았습니다.</p>
+      <div class="hero-top">
+        <div class="hero-copy">
+          <h1>마지막을 준비하는 일부터<br /> 떠나보낸 뒤의 일까지</h1>
+          <p class="lead">마지막을 준비하는 분도, 가족을 떠나보낼 준비를 하는 분도, 가족을 떠나보낸 분도 혼자 헤매지 않도록 차근차근 함께 챙겨 드릴게요.</p>
+          <SearchBox id="home-q" label="무엇이 궁금하세요?" compact />
+          <p class="promise">모두 무료 · 회원가입 없음 · 쓴 내용은 내 기기에만</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <img src="/illust/hero-table.svg" alt="" width="640" height="420" />
+        </div>
+      </div>
 
       <nav class="quick" aria-label="많이 찾는 것 바로가기">
         {quick.map((q) => (
-          <a href={q.href}>
+          <a href={q.href} data-track={`home_quick_${q.id}`}>
             <img src={`/illust/${q.ill}.svg`} alt="" width="320" height="240" />
             <b>{q.t}</b>
             <span>{q.d}</span>
@@ -108,14 +118,14 @@ const quick = [
       <h2 class="road-title">단계별로 찾기<small>지금 계신 곳을 누르면 그때 할 일을 순서대로 보여 드립니다.</small></h2>
 
       <ol class="road" data-road aria-label="마지막을 준비하는 때부터 떠나보낸 뒤까지">
-        {stops.map((s, i) => (
+        {stops.map((s) => (
           <li class="stop">
-            <button class="stop-btn" type="button" id={`stop-${s.id}`} aria-expanded={i === 0 ? 'true' : 'false'} aria-controls={`panel-${s.id}`}>
+            <button class="stop-btn" type="button" id={`stop-${s.id}`} aria-expanded="false" aria-controls={`panel-${s.id}`}>
               <span class="dot" aria-hidden="true"></span>
               <span class="who">{s.who}</span>
               <span class="lbl">{s.label}</span>
             </button>
-            <div class="panel" id={`panel-${s.id}`} role="region" aria-labelledby={`stop-${s.id}`} hidden={i !== 0}>
+            <div class="panel" id={`panel-${s.id}`} role="region" aria-labelledby={`stop-${s.id}`} hidden>
               <div class="p-intro">
                 <img src={`/illust/${s.ill}.svg`} alt="" width="320" height="240" />
                 <h2>{s.head}</h2>
@@ -135,22 +145,12 @@ const quick = [
           </li>
         ))}
       </ol>
-      <script is:inline>
-        /* 휴대폰은 다섯 지점이 한눈에 보이도록 처음에는 모두 접어 둡니다. 화면을 그리기 전에 해야 화면이 밀리지 않습니다. */
-        if (window.matchMedia('(max-width: 760px)').matches) {
-          document.querySelectorAll('[data-road] .stop-btn').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
-          document.querySelectorAll('[data-road] .panel').forEach(function (p) { p.hidden = true; });
-        }
-      </script>
 
-      <div class="find">
-        <SearchBox id="home-q" label="찾는 내용이 있으신가요?" />
-        <p class="find-side">
-          <a href="/check/">어디서부터 할지 모르겠다면, 질문 3개로 시작점 찾기</a>
-          <span class="all"><a href="/tools/">정리 도구 전체 보기</a><a href="/guide/">정리 가이드 전체 보기</a></span>
-          <span>모두 무료 · 회원가입 없음 · 쓴 내용은 내 기기에만</span>
-        </p>
-      </div>
+      <p class="more-row">
+        <a href="/check/">어디서부터 할지 모르겠다면, 질문 3개로 시작점 찾기</a>
+        <a href="/tools/">정리 도구 전체 보기</a>
+        <a href="/guide/">정리 가이드 전체 보기</a>
+      </p>
     </div>
   </section>
 
@@ -185,8 +185,16 @@ const quick = [
   /* ---------- 첫 화면: 한 줄의 길 ---------- */
   .hero { background: #fff; padding: 44px 0 40px; border-bottom: 1px solid var(--line); }
   .hero h1 { font-size: clamp(28px, 3.8vw, 44px); letter-spacing: -0.05em; line-height: 1.22; margin: 0 0 14px; color: var(--green); }
-  .hero .lead { max-width: 46em; margin: 0 0 24px; font-size: 19px; line-height: 1.6; }
+  .hero .lead { max-width: 34em; margin: 0 0 22px; font-size: 19px; line-height: 1.6; }
 
+  .hero-top { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 40px; align-items: center; margin-bottom: 34px; }
+  .hero-copy :global(.sbox) { max-width: 600px; }
+  .hero-copy :global(.sbox-label) { font-size: 16px; }
+  .promise { margin: 12px 0 0; font-size: 15px; font-weight: 700; color: #1f6e55; }
+  .hero-art { border-radius: 30px; background: var(--warm); overflow: hidden; }
+  .hero-art img { display: block; width: 100%; height: auto; }
+  .more-row { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 26px 0 0; font-weight: 700; font-size: 16px; }
+  .more-row a { color: var(--green-2); }
   .quick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 14px; margin-bottom: 44px; }
   .quick a { display: flex; flex-direction: column; align-items: flex-start; background: #fff; border: 1.5px solid var(--line); border-radius: 22px; padding: 20px 20px 22px; text-decoration: none; color: var(--ink); box-shadow: 0 6px 18px rgba(22, 33, 44, .05); }
   .quick a:hover { border-color: #c9d6e5; color: var(--ink); background: var(--bg); }
@@ -225,12 +233,6 @@ const quick = [
   .steps-list b { display: block; font-size: 17.5px; letter-spacing: -0.02em; }
   .steps-list small { display: block; font-size: 14.5px; color: var(--ink-soft); margin-top: 2px; }
 
-  .find { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; align-items: center; }
-  .find-side { margin: 0; display: grid; gap: 8px; font-size: 16px; }
-  .find-side a { font-weight: 800; color: var(--green-2); }
-  .find-side > span:not(.all) { color: #1f6e55; font-weight: 700; font-size: 15px; }
-  .find-side .all { display: flex; gap: 6px 18px; flex-wrap: wrap; }
-  .find-side .all a { font-weight: 700; }
 
   /* ---------- 대표 도구 · 아래 묶음 ---------- */
 
@@ -247,16 +249,20 @@ const quick = [
   .install-row p { margin: 0; }
 
   @media (max-width: 960px) {
+    .hero-top { grid-template-columns: minmax(0, 1fr) 240px; gap: 24px; }
     .quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .panel { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 24px; }
-    .find { grid-template-columns: minmax(0, 1fr); gap: 14px; }
     .trust { grid-template-columns: 1fr; padding: 28px 22px; }
   }
   /* 휴대폰·좁은 태블릿: 길을 세로로, 고른 지점 바로 아래에 할 일이 펼쳐집니다 */
   @media (max-width: 760px) {
     .hero { padding: 26px 0 30px; }
     .hero h1 { font-size: 28px; }
-    .hero .lead { font-size: 16.5px; margin-bottom: 18px; }
+    .hero .lead { font-size: 15.5px; margin-bottom: 14px; }
+    .hero-copy :global(.sbox-chips a:nth-of-type(n+4)) { display: none; }
+    .hero-copy :global(.sbox-label) { font-size: 15px; margin-bottom: 6px; }
+    .hero-copy :global(.sbox-chips) { margin-top: 8px; }
+    .promise { margin-top: 8px; }
     .quick { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-bottom: 28px; }
     .quick a { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-areas: 'img t' 'img d'; column-gap: 14px; align-items: center; padding: 12px 14px; border-radius: 18px; }
     .quick img { grid-area: img; width: 64px; height: 48px; margin: 0; }
@@ -264,6 +270,11 @@ const quick = [
     .quick span { grid-area: d; font-size: 13.5px; margin-top: 2px; align-self: start; }
     .road-title { font-size: 19px; margin-bottom: 8px; }
     .road-title small { font-size: 14px; }
+    .hero-top { grid-template-columns: minmax(0, 1fr); gap: 0; margin-bottom: 22px; }
+    .hero-art { order: -1; height: 92px; margin-bottom: 14px; border-radius: 20px; }
+    .hero-art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; }
+    .promise { font-size: 13.5px; }
+    .more-row { flex-direction: column; gap: 10px; font-size: 15.5px; margin-top: 18px; }
     .road { display: block; }
     .road::before { left: 13px; right: auto; top: 22px; bottom: 22px; width: 3px; height: auto; }
     .stop { display: block; position: relative; }
@@ -291,14 +302,15 @@ const quick = [
 </style>
 
 <script>
+  import { track } from '../scripts/analytics.js';
+
   /*
-   * 한 줄의 길: 지점을 누르면 그 지점의 할 일만 보여 줍니다.
-   * PC에서는 늘 하나가 열려 있고, 휴대폰에서는 열린 지점을 다시 누르면 접힙니다.
+   * 한 줄의 길: 처음에는 모두 접혀 있고, 지점을 누르면 그 지점의 할 일만 펼칩니다(다시 누르면 접힘).
    * 주소 끝에 #after 처럼 들어오면 그 지점을 열어 둡니다.
+   * 이용 횟수: 바로가기 4개(home_quick_…)와 지점 5개(home_stage_…)를 누른 횟수만 사건 이름으로 셉니다.
    */
   const road = document.querySelector<HTMLElement>('[data-road]');
   if (road) {
-    const narrow = window.matchMedia('(max-width: 760px)');
     const btns = [...road.querySelectorAll<HTMLButtonElement>('.stop-btn')];
     const open = (btn: HTMLButtonElement | null) => {
       btns.forEach((b) => {
@@ -309,12 +321,13 @@ const quick = [
     };
     btns.forEach((b) => b.addEventListener('click', () => {
       const isOpen = b.getAttribute('aria-expanded') === 'true';
-      open(isOpen && narrow.matches ? null : b);
+      open(isOpen ? null : b);
+      if (!isOpen) track(`home_stage_${b.id.replace('stop-', '')}`);
     }));
-    narrow.addEventListener('change', () => { if (!narrow.matches && !btns.some((b) => b.getAttribute('aria-expanded') === 'true')) open(btns[0]); });
     const alias: Record<string, string> = { after: 'days' };
     const h = location.hash.replace('#', '');
     const target = document.getElementById(`stop-${alias[h] || h}`) as HTMLButtonElement | null;
     if (target && btns.includes(target)) open(target);
   }
+  document.querySelectorAll<HTMLElement>('[data-track]').forEach((el) => el.addEventListener('click', () => track(el.dataset.track!)));
 </script>
