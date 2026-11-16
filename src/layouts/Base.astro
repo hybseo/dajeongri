@@ -3,7 +3,7 @@ import '../styles/global.css';
 import { SITE_NAME, GA_ID } from '../site.js';
 
 const { title, description, noindex = false } = Astro.props;
-const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} · 생전정리와 엔딩노트`;
+const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} · 생전정리부터 장례·상속까지`;
 const site = Astro.site?.href.replace(/\/$/, '') ?? '';
 const canonical = site ? site + Astro.url.pathname : null;
 const path = Astro.url.pathname;

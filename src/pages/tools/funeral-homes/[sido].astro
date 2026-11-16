@@ -83,7 +83,7 @@ const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
           </div>
         </section>
       ))}
-      <p class="empty muted" id="fh-empty" hidden>조건에 맞는 장례식장이 없습니다. 거르기를 줄여 보세요.</p>
+      <p class="empty muted" id="fh-empty" hidden>조건에 맞는 장례식장이 없습니다. 고른 조건을 줄여 보세요.</p>
     </div>
 
     <section class="price card">
@@ -137,7 +137,14 @@ const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
   .src { margin-top: 20px; line-height: 1.6; }
   [hidden] { display: none !important; }
   @media (max-width: 900px) { .filter, .filter.single { grid-template-columns: 1fr 1fr; } .filter fieldset { grid-column: 1 / -1; } }
-  @media (max-width: 600px) { .filter, .filter.single { grid-template-columns: 1fr; } .fh-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) {
+    .filter, .filter.single { grid-template-columns: 1fr; }
+    .fh-grid { grid-template-columns: 1fr; }
+    /* 휴대폰: 가격 보기는 한 줄 전체, 전화·지도·홈페이지는 한 줄에 나란히 (카드 길이 절반) */
+    .links { gap: 8px; }
+    .links .btn { width: auto; flex: 1 1 auto; padding: 8px 12px; white-space: nowrap; }
+    .links .btn:first-child { flex-basis: 100%; }
+  }
 </style>
 
 <script>
@@ -175,6 +182,17 @@ const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
 
   form?.addEventListener('input', apply);
   form?.addEventListener('change', apply);
+  // 시군구를 고르면 결과가 화면 밖에 있을 때 결과 위치로 내려갑니다(휴대폰에서 아무 일도 안 일어난 것처럼 보이지 않게).
+  (form?.elements.namedItem('sgg') as HTMLSelectElement | null)?.addEventListener('change', () => {
+    const first = sections.find((s) => !s.hidden);
+    const target = first || empty;
+    if (!target) return;
+    const r = target.getBoundingClientRect();
+    if (r.top > innerHeight * 0.6 || r.top < 0) {
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }
+  });
   // 주소 끝에 #g-강남구 처럼 들어오면 그 시군구를 골라 둡니다.
   const h = decodeURIComponent(location.hash || '').replace(/^#g-/, '');
   const sel = form?.elements.namedItem('sgg') as HTMLSelectElement | null;
