@@ -24,7 +24,8 @@ const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
     <header class="page-head">
       <p class="crumb"><a href="/tools/">정리 도구</a> › <a href="/tools/funeral-homes/">장례식장 찾기</a></p>
       <h1>{region.name} 장례식장</h1>
-      <p class="lead">{list.length}곳{pubCount > 0 && ` (공설 ${pubCount}곳)`} · 보건복지부 {asOfText()} 기준. 가격은 e하늘에서 확인하세요.</p>
+      <p class="lead">{list.length}곳{pubCount > 0 && ` (공설 ${pubCount}곳)`} · 보건복지부 {asOfText()} 기준</p>
+      <p class="price-top no-print"><a class="btn clay" href={EHANEUL_LIST} target="_blank" rel="noopener">장례식장 가격은 e하늘에서 보기 ↗</a><span>e하늘에서 지역을 고르거나 장례식장 이름을 검색하면 빈소 사용료와 장례용품 가격이 나옵니다.</span></p>
     </header>
 
     <form class={`filter card no-print${single ? ' single' : ''}`} id="fh-filter" onsubmit="return false" autocomplete="off" data-nosearch>
@@ -102,6 +103,8 @@ const sggNames = groups.map((g) => g.sgg).slice(0, 6).join(', ');
 
 <style>
   .filter { display: grid; grid-template-columns: 1fr 1.3fr 2fr auto; gap: 14px 18px; align-items: end; margin-bottom: 24px; padding: 20px 22px; }
+  .price-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .price-top span { font-size: 16px; color: var(--ink-soft); flex: 1 1 260px; }
   .filter.single { grid-template-columns: 1.3fr 2fr auto; }
   .lab { display: block; font-weight: 700; font-size: 16px; margin-bottom: 6px; padding: 0; }
   .filter select, .filter input[type=search] { width: 100%; font: inherit; font-size: 17px; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }

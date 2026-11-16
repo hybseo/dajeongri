@@ -33,16 +33,17 @@ const total = regions.reduce((n, r) => n + r.count, 0);
     <section class="price card">
       <h2>가격은 e하늘에서 확인하세요</h2>
       <p>장례식장은 빈소 사용료, 안치료, 수의·관 같은 장례용품 가격을 정부 장사정보시스템(e하늘)에 올려야 합니다(장사 등에 관한 법률 제29조). 다정리에 가격을 싣지 않은 것은 장례식장마다 수시로 바뀌는 값이라, 정부 화면에서 그날 가격을 보는 것이 가장 정확하기 때문입니다.</p>
-      <ol class="steps">
-        <li><strong>e하늘 장사시설 화면 열기</strong>아래 버튼을 누르면 장례식장 목록이 열립니다.</li>
-        <li><strong>지역과 시설 이름으로 찾기</strong>시도·시군구를 고르거나, 이 페이지에서 본 장례식장 이름을 검색칸에 넣습니다.</li>
-        <li><strong>시설사용료와 장례용품 비교</strong>시설을 누르면 빈소·안치실 사용료와 품목별 장례용품 가격, 지역 평균과 전국 평균이 나옵니다.</li>
-        <li><strong>계약하고 명세서 받기</strong>게시한 가격보다 더 받거나 장례용품을 강요하면 안 됩니다. 끝난 뒤 항목별 명세서를 꼭 받아 두세요.</li>
-      </ol>
       <div class="btn-row">
         <a class="btn clay" href={EHANEUL_LIST} target="_blank" rel="noopener">e하늘에서 장례식장 가격 보기 ↗</a>
         <a class="btn ghost" href={EHANEUL_ITEMS} target="_blank" rel="noopener">장례용품 가격 검색 ↗</a>
       </div>
+      <h3>보는 순서</h3>
+      <ol class="steps">
+        <li><strong>e하늘 장사시설 화면 열기</strong>위 버튼을 누르면 장례식장 목록이 열립니다.</li>
+        <li><strong>지역과 시설 이름으로 찾기</strong>시도·시군구를 고르거나, 이 페이지에서 본 장례식장 이름을 검색칸에 넣습니다.</li>
+        <li><strong>시설사용료와 장례용품 비교</strong>시설을 누르면 빈소·안치실 사용료와 품목별 장례용품 가격, 지역 평균과 전국 평균이 나옵니다.</li>
+        <li><strong>계약하고 명세서 받기</strong>게시한 가격보다 더 받거나 장례용품을 강요하면 안 됩니다. 끝난 뒤 항목별 명세서를 꼭 받아 두세요.</li>
+      </ol>
     </section>
 
     <div class="calm">
@@ -61,7 +62,8 @@ const total = regions.reduce((n, r) => n + r.count, 0);
   .regions b { display: block; font-size: 21px; color: var(--green); }
   .regions span { display: block; font-size: 15px; color: var(--ink-soft); margin-top: 2px; }
   .price h2 { margin-top: 0; }
-  .price .btn-row { margin-top: 16px; }
+  .price .btn-row { margin: 16px 0 8px; }
+  .price h3 { font-size: 18px; margin: 24px 0 10px; }
   .src { margin-top: 24px; line-height: 1.6; }
   @media (max-width: 600px) { .regions { grid-template-columns: repeat(2, 1fr); } }
 </style>
