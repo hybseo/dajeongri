@@ -1,6 +1,7 @@
 ---
 /*
- * 첫 화면 (2026-11-16 개편 시안 2: "한 줄의 길")
+ * 첫 화면 (2026-11-16 개편 시안 3: 많이 찾는 것 + 한 줄의 길)
+ *   맨 위: "마지막을 준비할 때" 바로가기 2개 | "떠나보낸 뒤" 바로가기 2개 (근거는 아래 halves 주석)
  *   마지막을 준비하는 때부터 떠나보낸 뒤 6개월까지를 한 줄의 길(5개 지점)로 보여 주고,
  *   지금 계신 지점을 누르면 그때 할 일을 순서대로 보여 줍니다.
  *   PC: 지점이 가로로 한 줄, 고른 지점의 할 일이 그 아래 한 칸에.
@@ -79,6 +80,26 @@ const stops = [
   },
 ];
 
+// 첫 화면 맨 위 "가장 많이 찾는 것" 네 개 (2026-11-16 대표 결정: 마지막 준비 2 · 떠나보낸 뒤 2).
+// 고른 근거: 한 해에 그 일을 겪는 사람 수 — 장기요양 신청 155만(2025 장기요양 통계연보), 연명의료의향서 신규 약 50만(2025 연보),
+// 사망 36만(2025 사망원인통계)이 모두 거치는 사망신고·안심상속, 상속포기·한정승인 약 5.6만(2023 대법원 자료).
+const halves = [
+  {
+    key: 'before', title: '마지막을 준비할 때', sub: '나와 가족이 미리 할 일',
+    links: [
+      { href: '/guide/care-home/', t: '장기요양 등급과 요양원', d: '등급 신청 순서, 요양원·요양병원 차이와 비용' },
+      { href: '/guide/life-sustaining/', t: '사전연명의료의향서', d: '언제, 어디서, 어떻게 등록하나' },
+    ],
+  },
+  {
+    key: 'after', title: '떠나보낸 뒤', sub: '남은 가족이 할 일',
+    links: [
+      { href: '/after/first-month/', t: '사망신고와 재산·빚 조회', d: '안심상속으로 한 번에 신청' },
+      { href: '/guide/renounce/', t: '상속포기·한정승인', d: '빚이 더 많을 때, 3개월 안에' },
+    ],
+  },
+];
+
 const tools = [
   { href: '/tools/deadlines/', t: '상속 기한 계산기', d: '돌아가신 날만 넣으면 마감 8가지' },
   { href: '/tools/funeral-homes/', t: '장례식장 찾기', d: `전국 ${fhCount}곳 · e하늘 가격 바로가기`, fresh: true },
@@ -92,7 +113,20 @@ const tools = [
   <section class="hero">
     <div class="wrap">
       <h1>마지막을 준비하는 일부터<br /> 떠나보낸 뒤의 일까지</h1>
-      <p class="lead">마지막을 준비하는 분, 가족을 떠나보낼 준비를 하는 분, 가족을 떠나보낸 분께. 지금 계신 곳을 고르면 그때 할 일을 순서대로 알려 드립니다.</p>
+      <p class="lead">마지막을 준비하는 분, 가족을 떠나보낼 준비를 하는 분, 가족을 떠나보낸 분께 필요한 일을 모았습니다.</p>
+
+      <div class="halves">
+        {halves.map((h) => (
+          <section class={`half ${h.key}`}>
+            <h2>{h.title}<small>{h.sub}</small></h2>
+            <div class="quick">
+              {h.links.map((l) => <a href={l.href}><b>{l.t}</b><span>{l.d}</span></a>)}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <h2 class="road-title">단계별로 찾기<small>지금 계신 곳을 누르면 그때 할 일을 순서대로 보여 드립니다.</small></h2>
 
       <ol class="road" data-road aria-label="마지막을 준비하는 때부터 떠나보낸 뒤까지">
         {stops.map((s, i) => (
@@ -215,9 +249,25 @@ const tools = [
 <style>
   /* ---------- 첫 화면: 한 줄의 길 ---------- */
   .hero { background: #fff; padding: 44px 0 40px; border-bottom: 1px solid var(--line); }
-  .hero h1 { font-size: clamp(30px, 4.4vw, 50px); letter-spacing: -0.05em; line-height: 1.22; margin: 0 0 14px; color: var(--green); }
-  .hero .lead { max-width: 46em; margin: 0 0 34px; font-size: 19px; line-height: 1.6; }
+  .hero h1 { font-size: clamp(28px, 3.8vw, 44px); letter-spacing: -0.05em; line-height: 1.22; margin: 0 0 14px; color: var(--green); }
+  .hero .lead { max-width: 46em; margin: 0 0 24px; font-size: 19px; line-height: 1.6; }
 
+  .halves { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-bottom: 40px; }
+  .half { border-radius: 24px; padding: 22px 22px 22px; }
+  .half.before { background: var(--navy-t); }
+  .half.after { background: var(--clay-soft); }
+  .half h2 { font-size: 22px; margin: 0 0 14px; color: var(--green); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .half.after h2 { color: #8a4b0f; }
+  .half h2 small { font-size: 15px; font-weight: 600; color: var(--ink-soft); }
+  .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .quick a { display: block; background: #fff; border-radius: 16px; padding: 16px 18px 16px; text-decoration: none; color: var(--ink); box-shadow: 0 1px 0 rgba(22, 33, 44, .06); border: 1.5px solid transparent; }
+  .quick a:hover { border-color: #c9d6e5; color: var(--ink); }
+  .half.after .quick a:hover { border-color: #f2d3ae; }
+  .quick b { display: block; font-size: 19px; letter-spacing: -0.03em; line-height: 1.35; color: var(--green-2); }
+  .half.after .quick b { color: #8a4b0f; }
+  .quick span { display: block; font-size: 14.5px; color: var(--ink-soft); margin-top: 4px; line-height: 1.45; }
+  .road-title { font-size: 22px; margin: 0 0 22px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .road-title small { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
   .road { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: relative; }
   .stop { display: contents; }
   /* 지점들을 잇는 선 (PC: 가로) */
@@ -320,6 +370,14 @@ const tools = [
     .hero { padding: 26px 0 30px; }
     .hero h1 { font-size: 28px; }
     .hero .lead { font-size: 16.5px; margin-bottom: 18px; }
+    .halves { grid-template-columns: minmax(0, 1fr); gap: 12px; margin-bottom: 28px; }
+    .half { padding: 16px; border-radius: 20px; }
+    .half h2 { font-size: 19px; margin-bottom: 10px; }
+    .quick a { padding: 13px 14px; }
+    .quick b { font-size: 16.5px; }
+    .quick span { font-size: 13.5px; }
+    .road-title { font-size: 19px; margin-bottom: 8px; }
+    .road-title small { font-size: 14px; }
     .road { display: block; }
     .road::before { left: 13px; right: auto; top: 22px; bottom: 22px; width: 3px; height: auto; }
     .stop { display: block; position: relative; }
