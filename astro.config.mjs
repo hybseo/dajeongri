@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import pwa from './pwa.mjs';
 import searchIndex from './search-index.mjs';
+import rss from './rss.mjs';
 
 export default defineConfig({
   /*
@@ -23,6 +24,7 @@ export default defineConfig({
    * 자세한 설명은 pwa.mjs 맨 위 주석에 있습니다.
    * 사이트 검색 색인(dist/search-index.json)을 먼저 만들어야 오프라인 목록에 함께 들어가므로
    * searchIndex 를 pwa 보다 앞에 둡니다. 자세한 설명은 search-index.mjs 맨 위 주석에 있습니다.
+   * RSS(dist/rss.xml, 네이버 수집용)는 오프라인 목록에 넣지 않으려고 pwa 뒤에 둡니다. 설명은 rss.mjs 맨 위 주석.
    */
-  integrations: [searchIndex(), pwa()],
+  integrations: [searchIndex(), pwa(), rss()],
 });

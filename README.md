@@ -163,7 +163,8 @@ npm run preview:offline
 | 사이트 검색어 | 켬 (2026-10-28 대표 결정) | `view_search_results` 의 `search_term`, 결과 없으면 `search_no_result` 의 `no_result_term`. 숫자는 #, 메일 주소는 (메일)로 바꿔 보냄(`maskTerm`). 검색 화면 주소의 `?w=` 는 페이지 주소 통계에서 뺌(`Base.astro` 의 `page_location`). 개인정보 안내에 적음 |
 | 애널리틱스 설정 (2026-10-28) | 내부 트래픽 제외 · 주요 이벤트 · 검색 | 대표 컴퓨터 IP(116.121.208.187/32)를 내부 트래픽으로 지정하고 Internal Traffic 데이터 필터 "사용 중"(IP가 바뀌면 규칙도 고칠 것). 주요 이벤트: check_done, deadline_ics, note_download, tax_calc. 향상된 측정의 "사이트 검색" 자동 감지는 끔(3분 진단 `?s=` 가 검색으로 잘못 잡히던 문제). 향상된 측정의 "양식 상호작용"(form_start·form_submit)도 끔(2026-11-01: 검색칸·엔딩노트 입력 반응 속도 때문. 검색어·엔딩노트 시작·다운로드는 사이트가 직접 보내므로 잃는 수치 없음). 맞춤 측정기준 "결과 없는 검색어"(no_result_term), "사이트 검색어"(search_term, 2026-10-28 추가: 이날부터 검색어별로 보고서에서 볼 수 있음) |
 | 구글 서치콘솔 | 등록 완료, 사이트맵 다시 제출(개편 후 페이지 45개 확인). 2026-10-27 색인 요청: `/`, `/check/`, `/note/`, `/tools/`, `/guide/`, `/guide/burial/`, `/guide/living-alone/` | 도메인 속성. 소유확인은 클라우드플레어 DNS 의 TXT 기록(`google-site-verification=...`)으로 했으므로 사이트 코드에는 없습니다. **그 TXT 기록을 지우면 확인이 풀립니다.** |
-| 네이버 서치어드바이저 | 등록·소유확인 완료, 사이트맵 제출 (2026-10-27) | `src/layouts/Base.astro` 머리말의 `naver-site-verification` 메타(값 babd2aa2…). **지우면 확인이 풀립니다.** 사이트맵 https://dajeongri.com/sitemap.xml 제출. |
+| 네이버 서치어드바이저 | 등록·소유확인 완료, 사이트맵 제출 (2026-10-27) | `src/layouts/Base.astro` 머리말의 `naver-site-verification` 메타(값 babd2aa2…). **지우면 확인이 풀립니다.** 사이트맵 https://dajeongri.com/sitemap.xml 제출. 2026-11-17 네이버 `site:dajeongri.com` 검색 결과가 첫 화면 1개뿐이라 RSS 추가(아래). |
+| RSS 피드 (2026-11-17) | https://dajeongri.com/rss.xml — 네이버 서치어드바이저 "요청 → RSS 제출"용 | `rss.mjs`(빌드 끝에 사이트맵 주소마다 페이지 제목·설명을 읽어 만듦, 첫 화면·개인정보 안내 제외). 글 날짜는 `src/data/rss-dates.json`(처음 올린 날). **새 페이지를 만들면** 빌드 뒤 `python3 tools/rss-dates.py` 로 날짜를 채워 함께 올릴 것 — 날짜가 없으면 RSS 에서 빠지고 빌드 기록에 경고. 모든 페이지 머리말에 `<link rel="alternate" type="application/rss+xml">` |
 
 ## 직접 돌려 볼 때
 
