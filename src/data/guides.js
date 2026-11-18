@@ -14,7 +14,8 @@ export const groups = [
   { key: 'digital', title: '디지털', desc: '계정, 휴대폰, 사진' },
   { key: 'funeral', title: '장례', desc: '방식, 비용, 상조' },
   { key: 'heart', title: '마음과 관계', desc: '가족과 이야기하기, 남기는 말' },
-  { key: 'after', title: '떠나보낸 뒤', desc: '유족이 할 일과 기한' },
+  // key 'after' 는 예전 주소(/guide/#after)가 그대로 열리도록 둡니다. 2026-11-18 이름만 바꿈(메인 메뉴 '떠나보낸 뒤'와 헷갈려서).
+  { key: 'after', title: '재산 및 부채 정리', desc: '상속 절차와 기한, 재산과 빚 찾기' },
 ];
 
 export const guides = [

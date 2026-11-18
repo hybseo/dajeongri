@@ -1,19 +1,19 @@
 ---
 /*
- * 정리 도구 모음 (2026-10-27 개편). 예전에는 표였던 것을 세 묶음 카드로 바꿨습니다.
- *   미리 준비하기 · 떠나보낸 뒤 · 알아두기(가이드 묶음)
+ * 정리 도구 모음 (2026-10-27 개편, 2026-11-18 손질).
+ *   쓰는 사람 기준 두 묶음: 떠날 준비(본인) · 떠나보낼 준비(가족)
+ *   '알아두기'(가이드 묶음)는 정리 가이드 화면과 같은 내용이라 2026-11-18 뺐습니다.
  */
 import Base from '../../layouts/Base.astro';
 import { noteSections } from '../../data/note.js';
 import { checklist } from '../../data/checklist.js';
 import { afterChecklist } from '../../data/after-checklist.js';
-import { guides, groups } from '../../data/guides.js';
 
 const checkCount = checklist.reduce((n, g) => n + g.items.length, 0);
 const afterCount = afterChecklist.reduce((n, g) => n + g.items.length, 0);
 const panels = [
   {
-    key: 'before', title: '미리 준비하기', ill: 'situ-me',
+    key: 'before', title: '떠날 준비', ill: 'situ-me',
     items: [
       { href: '/note/', icon: '✎', title: '엔딩노트 작성기', desc: `${noteSections.length}개 항목 · Word로 보관` },
       { href: '/checklist/', icon: '☑', title: '생전정리 체크리스트', desc: `${checkCount}가지 할 일 · 진행률 표시` },
@@ -23,7 +23,7 @@ const panels = [
     ],
   },
   {
-    key: 'after', title: '떠나보낸 뒤', ill: 'situ-after',
+    key: 'after', title: '떠나보낼 준비', ill: 'situ-after',
     items: [
       { href: '/tools/deadlines/', icon: '⏳', title: '상속 기한 계산기', desc: '마감 8가지 · 달력 저장' },
       { href: '/tools/inheritance-tax/', icon: '₩', title: '상속세 가늠 계산기', desc: '세금이 나올지, 대략 얼마인지', fresh: true },
@@ -34,7 +34,6 @@ const panels = [
     ],
   },
 ];
-const guideGroups = groups.map((g) => ({ ...g, list: guides.filter((x) => x.group === g.key) }));
 ---
 <Base title="정리 도구" description="무료로 바로 쓰는 생전정리 도구 모음. 엔딩노트 작성기, 생전정리 체크리스트, 3분 진단, 상속 기한 계산기, 상속세 가늠 계산기, 나에게 필요한 절차만, 장례식장 찾기, 부고 문자 만들기, 휴대폰 잠금 카드 · 지갑 긴급 카드.">
   <div class="wrap">
@@ -53,32 +52,25 @@ const guideGroups = groups.map((g) => ({ ...g, list: guides.filter((x) => x.grou
           ))}
         </section>
       ))}
-      <section class="panel know">
-        <div class="ph"><h2>알아두기</h2><img src="/illust/burial.svg" alt="" width="320" height="240" /></div>
-        {guideGroups.map((g) => (
-          <a href={`/guide/#${g.key}`}><span class="ic" aria-hidden="true">§</span><span class="tx"><b>{g.title}</b><span>{g.list.map((x) => x.short ?? x.title).join(' · ')}</span></span><span class="gt" aria-hidden="true">›</span></a>
-        ))}
-      </section>
     </div>
   </div>
 </Base>
 
 <style>
-  .panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
+  .panels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
   .panel { background: #fff; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
   .ph { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px 14px 22px; }
   .ph h2 { margin: 0; font-size: 21px; }
   .ph img { width: 92px; height: 69px; border-radius: 12px; }
   .before .ph { background: var(--mint-t); } .before .ph h2 { color: #1f6e55; }
   .after .ph { background: var(--clay-soft); } .after .ph h2 { color: #8a4b0f; }
-  .know .ph { background: var(--navy-t); } .know .ph h2 { color: var(--green); }
   .panel a { display: flex; align-items: center; gap: 14px; padding: 15px 20px; border-top: 1px solid var(--line); text-decoration: none; color: var(--ink); }
   .panel a:hover { background: var(--bg); color: var(--ink); }
   .ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; flex: none; font-size: 17px; color: var(--green); }
-  .before .ic { background: var(--mint-t); } .after .ic { background: var(--clay-soft); } .know .ic { background: var(--navy-t); }
+  .before .ic { background: var(--mint-t); } .after .ic { background: var(--clay-soft); }
   .tx b { display: block; font-size: 17px; line-height: 1.35; letter-spacing: -0.02em; }
   .tx b em { display: inline-block; white-space: nowrap; font-style: normal; font-size: 13px; background: var(--mint-t); color: #1f6e55; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
   .tx > span { display: block; font-size: 14.5px; color: var(--ink-soft); line-height: 1.45; }
   .gt { margin-left: auto; color: var(--ink-soft); font-size: 20px; }
-  @media (max-width: 1000px) { .panels { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .panels { grid-template-columns: 1fr; } }
 </style>
